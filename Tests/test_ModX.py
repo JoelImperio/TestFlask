@@ -9,3 +9,4 @@ Created on Sun Jul 14 18:48:39 2019
 
 #Test on Array:
 #https://docs.scipy.org/doc/numpy/reference/generated/numpy.testing.assert_array_equal.html
+
