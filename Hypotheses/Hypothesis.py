@@ -1,7 +1,7 @@
 import pandas as pd 
 
 
-h=pd.ExcelFile('TablesProphet 2018-12.xls').parse("Hypothèses")
+h=pd.ExcelFile(r'Hypotheses\TablesProphet 2018-12.xls').parse("Hypothèses")
  
 
 #Tables :
