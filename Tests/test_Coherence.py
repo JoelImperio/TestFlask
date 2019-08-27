@@ -18,3 +18,8 @@ Created on Sun Jul 14 18:47:10 2019
     
     
 #to run test: py.test
+
+
+import unittest
+
+unittest.main()

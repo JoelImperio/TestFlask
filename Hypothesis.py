@@ -18,3 +18,18 @@ Created on Sun Jul 14 18:29:45 2019
 #
 #- Il y a les inputs en lien avec le run 
 #- Il y a des inputs généraux
+
+class hypo:
+    def __init__(a,b):
+        a=a
+    def Lapse(a):
+        return print(float(a))
+    def Cost(a):
+        return print(float(a))
+    def Rate(a):
+        return print(float(a))
+    def run(a):
+        return print(float(a))
+    
+    
+c=hypo.run(1)

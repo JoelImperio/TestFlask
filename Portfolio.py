@@ -10,3 +10,13 @@ Created on Sun Jul 14 18:29:11 2019
 #- Nombre de période de projection
 
 
+class portfolio:
+    def __init__(a,b):
+        a=a
+        b=b
+    def mod(a, b):
+
+        return print(float(a+b))
+    
+    
+c=portfolio.mod(6,2)
