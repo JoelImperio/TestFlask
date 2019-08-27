@@ -21,6 +21,14 @@ Created on Sun Jul 14 18:36:45 2019
 # Utilisation dans quelle partie:
 #
 #
+# Proposition alternative:
+#   
+#   def myFonction(a,b):
+#       return a-b
+#
+#
+#
+#La fonction:
 
 def myFonction(a,b):
     return a+b
