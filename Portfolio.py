@@ -20,3 +20,6 @@ class portfolio:
     
     
 c=portfolio.mod(6,2)
+
+from Hypothesis import hypo
+c=hypo.run(1)

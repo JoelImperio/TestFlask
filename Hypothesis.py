@@ -19,9 +19,31 @@ Created on Sun Jul 14 18:29:45 2019
 #- Il y a les inputs en lien avec le run 
 #- Il y a des inputs généraux
 
+#class hypo:
+#    ba=5
+#    def __init__(self):
+#        self.ba=10
+#    def Lapse(a):
+#        return print(float(a))
+#    def Cost(a):
+#        return print(float(a))
+#    def Rate(a):
+#        return print(float(a))
+#    def run(a,self):
+#        return print(float(a) + self.ba)
+#    
+#    
+#c=hypo()
+#c=hypo.run(1,c)
+#d=hypo.ba
+#e=hypo().ba
+        
+ba=6
+
 class hypo:
-    def __init__(a,b):
-        a=a
+    ba=5
+    def __init__(self):
+        self.ba=10
     def Lapse(a):
         return print(float(a))
     def Cost(a):
@@ -29,7 +51,20 @@ class hypo:
     def Rate(a):
         return print(float(a))
     def run(a):
-        return print(float(a))
+        return print(float(a) + ba)
     
     
+#c=hypo()
 c=hypo.run(1)
+d=hypo.ba
+e=hypo().ba
+
+
+
+
+
+
+
+
+
+
