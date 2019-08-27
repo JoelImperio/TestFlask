@@ -27,16 +27,21 @@ class hypo:
     
     tout=h
     
-    def __init(self):
-        self        
+    def __init__(self,runs):
+        self
+        self.run=runs
     
 #Permet de retourner un sous-portefeuille sélectionné de la liste de mods=[]
     def lapse(self):
        return h.iloc[2:8,1:38].transpose()
+   
+    def getRuns(self):
+        return self.run
 
 
-z=hypo().lapse()
-zz=hypo().tout
+z=hypo(5).lapse()
+zz=hypo(5).tout
+zzz=hypo(5).run
 
 
 

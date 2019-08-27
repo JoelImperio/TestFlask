@@ -33,7 +33,7 @@ class portfolio:
     
     tout=p
     
-    def __init(self):
+    def __init__(self):
         self        
     
 #Permet de retourner un sous-portefeuille sélectionné de la liste de mods=[]
