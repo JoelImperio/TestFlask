@@ -12,18 +12,18 @@ cnxn = pyodbc.connect(
 
 #Extraction du portefeuille des polices
 
-#PortfolioQRY=open(r'Portfolio\Portfolio.csv').read()
-#p=pd.read_sql(PortfolioQRY, cnxn)
-#p.to_csv(r'Portfolio\Portfolio.csv')
+#PortfolioQRY=open(r'Portefeuille\Portfolio.csv').read()
+#vporpolpm=pd.read_sql(PortfolioQRY, cnxn)
+#vporpolpm.to_csv(r'Portefeuille\Portfolio.csv')
 
 #Extraction du portefeuille de polices
 
-p=pd.read_csv(r'Portfolio\Portfolio.csv')
-
+vporpolpm=pd.read_csv(r'Portefeuille\Portfolio.csv')
 
 
 #Formatage des colonnes et création des colonnes utiles
 
+p=vporpolpm[['PMBMOD','PMBPOL']]
 
 
 #Création de la class Portefeuille
@@ -33,7 +33,7 @@ class portfolio:
     tout=p
     
     def __init(self):
-        self
+        self        
     
 #Permet de retourner un sous-portefeuille sélectionné de la liste de mod=[]
     def mods(mod):
