@@ -1,13 +1,13 @@
 import pandas as pd
-import pyodbc
+#import pyodbc
 
 
 #Paramètres de connection
-cnxn = pyodbc.connect(
-    driver='{iSeries Access ODBC Driver}',
-    system='10.254.25.1',
-    uid='liviaplus',
-    pwd='liviaplus')
+#cnxn = pyodbc.connect(
+#    driver='{iSeries Access ODBC Driver}',
+#    system='10.254.25.1',
+#    uid='liviaplus',
+#    pwd='liviaplus')
 
 
 #Extraction du portefeuille des polices
@@ -35,9 +35,9 @@ class portfolio:
     def __init(self):
         self        
     
-#Permet de retourner un sous-portefeuille sélectionné de la liste de mod=[]
-    def mods(mod):
-       return p.loc[p['PMBMOD'].isin(mod)]
+#Permet de retourner un sous-portefeuille sélectionné de la liste de mods=[]
+    def mod(mods):
+       return p.loc[p['PMBMOD'].isin(mods)]
    
 #Permet de retourner un sous-portefeuille sélectionné de la liste de num=[]
     def ids(num):
