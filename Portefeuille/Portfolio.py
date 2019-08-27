@@ -23,7 +23,8 @@ vporpolpm=pd.read_csv(r'Portefeuille\Portfolio.csv')
 
 #Formatage des colonnes et création des colonnes utiles
 
-p=vporpolpm[['PMBMOD','PMBPOL']]
+p=vporpolpm
+#[['PMBMOD','PMBPOL']]
 
 
 #Création de la class Portefeuille

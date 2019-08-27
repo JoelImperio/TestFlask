@@ -21,8 +21,22 @@ h=pd.ExcelFile('TablesProphet 2018-12.xls').parse("Hypothèses")
 
 
 
+#Création de la class Portefeuille
+
+class hypo:
+    
+    tout=h
+    
+    def __init(self):
+        self        
+    
+#Permet de retourner un sous-portefeuille sélectionné de la liste de mods=[]
+    def lapse(self):
+       return h.iloc[2:8,1:38].transpose()
 
 
+z=hypo().lapse()
+zz=hypo().tout
 
 
 
