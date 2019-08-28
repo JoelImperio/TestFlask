@@ -25,6 +25,10 @@ dateCalcul='20181231'
 
 p=pd.read_csv(r'Portefeuille\Portfolio.csv')
 
+#Traitement des anomalies dans les données
+
+#Certaines dates d'échéances tombe un jour qui n'existe pas
+p.loc[p['PMBPOL'].isin([1602101,609403,2161101,2162601,297004]), 'POLDTEXP'] = '20190228'
 
 #Formatage des colonnes et création des colonnes utiles
 
@@ -32,11 +36,14 @@ p=pd.read_csv(r'Portefeuille\Portfolio.csv')
 #p['NewVariable']=
 
 p['DateCalcul']=pd.to_datetime(dateCalcul)
+p['POLDTDEB']= pd.to_datetime(p['POLDTDEB'].astype(str), format='%Y%m%d').dt.date
+p['POLDTEXP']= pd.to_datetime(p['POLDTEXP'].astype(str), format='%Y%m%d').dt.date
 
-p['DateFin']= pd.to_datetime(p['POLDTEXP'].astype(str), format='%Y%m%d',yearfirst=True)
+p['ProjectionMonths']=((pd.to_datetime(p['POLDTEXP'])-pd.to_datetime(p['DateCalcul']))/np.timedelta64(1,'M')).apply(np.ceil)
 
-p['ProjectionMonths']=(pd.to_datetime(p['POLDTEXP'])-pd.to_datetime(p['DateCalcul']))/np.timedelta64(1,'M')
 
+aa=pd.date_range(start=p['DateCalcul'].min(), end=p['POLDTEXP'].max(), freq='M')
+aa=pd.DataFrame(aa).set_index(0).transpose()
 
 
 
