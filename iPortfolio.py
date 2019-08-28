@@ -33,13 +33,12 @@ p.loc[p['PMBPOL'].isin([1602101,609403,2161101,2162601,297004]), 'POLDTEXP'] = '
 #Formatage des colonnes et création des colonnes utiles
 
 
-#p['NewVariable']=
-
 p['DateCalcul']=pd.to_datetime(dateCalcul)
 p['POLDTDEB']= pd.to_datetime(p['POLDTDEB'].astype(str), format='%Y%m%d').dt.date
 p['POLDTEXP']= pd.to_datetime(p['POLDTEXP'].astype(str), format='%Y%m%d').dt.date
 
-p['ProjectionMonths']=((pd.to_datetime(p['POLDTEXP'])-pd.to_datetime(p['DateCalcul']))/np.timedelta64(1,'M')).apply(np.ceil)
+p['ProjectionMonths']=((pd.to_datetime(p['POLDTEXP'])-pd.to_datetime(p['DateCalcul']))/np.timedelta64(1,'M')).apply(np.ceil)+1
+
 
 
 aa=pd.date_range(start=p['DateCalcul'].min(), end=p['POLDTEXP'].max(), freq='M')
@@ -57,6 +56,7 @@ class portfolio:
         self.tout=p        
         self.p=p
 
+
     
 #Permet de retourner un sous-portefeuille sélectionné de la liste de mods=[]
     def mod(self,mods):
@@ -69,12 +69,13 @@ class portfolio:
 #Permet de mettre à jour le portefeuille avec le sous-portefeuille de traitement
     def update(self,subPortfolio):
         self.p=subPortfolio
-    
+        
+#Permet de créer un vecteur de rempli de 1 pour la taille de portefeuille et la durée de projection  
     def one(self,subPortfolio):
         self.update(subPortfolio)
-        nbrPolices=len(self.p)
-        nbrPeriodes= self.p
-        
+        nbrPolices=int(len(self.p))
+        nbrPeriodes= int(self.p['ProjectionMonths'].max())     
+        return np.ones([nbrPolices,nbrPeriodes])
 
         
 
@@ -84,3 +85,4 @@ b=policies.mod([8,9])
 c=policies.p
 d=policies.update(b)
 e=policies.p
+f=policies.one(b)
