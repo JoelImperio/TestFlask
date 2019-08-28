@@ -18,8 +18,10 @@ h=f+g
 i=h+1
 
 
+a=pd.DataFrame(100,100)
 
-c=pd.DataFrame(np.random.rand(10000000,2))
+
+
 
 start_time = time.time()
 for i in range(100):
