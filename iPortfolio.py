@@ -26,6 +26,15 @@ vporpolpm=pd.read_csv(r'Portefeuille\Portfolio.csv')
 p=vporpolpm
 #[['PMBMOD','PMBPOL']]
 
+#p['NewVariable']=
+
+
+
+
+
+
+
+
 
 #Création de la class Portefeuille
 
