@@ -1,4 +1,5 @@
-import pandas as pd 
+import pandas as pd
+from iPortfolio import portfolio
 
 
 h=pd.ExcelFile(r'Hypotheses\TablesProphet 2018-12.xls').parse("Hypothèses")
@@ -24,24 +25,29 @@ h=pd.ExcelFile(r'Hypotheses\TablesProphet 2018-12.xls').parse("Hypothèses")
 #Création de la class Portefeuille
 
 class hypo:
-    
-    tout=h
-    
-    def __init__(self,runs):
-        self
-        self.run=runs
+        
+    def __init__(self,run, polices):
+        self.run=run
+        self.h=h
+        self.p=polices
     
 #Permet de retourner un sous-portefeuille sélectionné de la liste de mods=[]
     def lapse(self):
-       return h.iloc[2:8,1:38].transpose()
-   
-    def getRuns(self):
-        return self.run
+       return self.h.iloc[2:8,1:38].transpose()
 
+    
+    def fixcost(self):
+        coutParPolice=self.h.iloc[43,3]
+        
+        return coutParPolice
 
-z=hypo(5).lapse()
-zz=hypo(5).tout
-zzz=hypo(5).run
+policies=portfolio().mod([8,9])
+hyp=hypo(5,policies)
+a=hyp.lapse()
+b=hyp.h
+c=hyp.run
+d=hyp.p
+e=hyp.fixcost()
 
 
 
