@@ -3,6 +3,7 @@ from iPortfolio import portfolio
 
 
 h=pd.ExcelFile(r'Hypotheses\TablesProphet 2018-12.xls').parse("Hypothèses")
+h1=pd.ExcelFile(r'Hypotheses\TablesProphet 2018-12.xls').parse("Hypothèses")
  
 
 #Tables :
@@ -26,10 +27,14 @@ h=pd.ExcelFile(r'Hypotheses\TablesProphet 2018-12.xls').parse("Hypothèses")
 
 class hypo:
         
-    def __init__(self,run, polices):
+    def __init__(self,polices,run=0, new=True):
         self.run=run
-        self.h=h
+        if new:
+            self.h=h
+        else:
+            self.h=h1
         self.p=polices
+
     
 #Permet de retourner un sous-portefeuille sélectionné de la liste de mods=[]
     def lapse(self):
@@ -42,12 +47,13 @@ class hypo:
         return coutParPolice
 
 policies=portfolio().mod([8,9])
-hyp=hypo(5,policies)
+hyp=hypo(policies,run=5)
 a=hyp.lapse()
-b=hyp.h
+b=hypo(policies).run
 c=hyp.run
 d=hyp.p
 e=hyp.fixcost()
+
 
 
 

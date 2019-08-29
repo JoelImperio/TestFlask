@@ -22,7 +22,7 @@ Created on Sun Jul 14 18:35:51 2019
 #Faire les agrégations
 
 
-ModX=ClassModX()
+ModX=ClassModX(run, lapse,taux,sinistralité)
 ModY=ClassModY()
 
 ModX.PGG

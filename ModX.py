@@ -7,13 +7,18 @@ import pandas as pd
 class modX(portfolio):
     mods=[8]
     
+    
     def __init__(self):
         super().__init__()
         self.p=self.mod(self.mods)
         
-z=portfolio().p
-a=modX().p
-e=modX().tout
-b=modX().un
-c=np.empty_like(b)
-d=np.zeros_like(b)
+
+sp=modX()       
+a=sp.vide
+b=sp.ids([6401])
+c=sp.vide
+d=sp.p
+
+
+
+
