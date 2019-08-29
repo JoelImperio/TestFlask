@@ -1,14 +1,19 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Jul 14 18:46:08 2019
+from iPortfolio import portfolio
+from iHypothesis import hypo
+import numpy as np
+import pandas as pd
 
-@author: Robin
-"""
-#- les produits sont constitué uniquement d'appel de fonctions
-#- Il s'agit d'une fonction qui prend en Input le set de parametre pour la police
-#- Il prend également le set de paramètre généraux et particulier au numéro de Run
 
-def ModX(Portfolio,hypo):
+class modX(portfolio):
+    mods=[8]
     
-    
-    return dfCashFlow
+    def __init__(self):
+        super().__init__()
+        self.p=self.mod(self.mods)
+        
+z=portfolio().p
+a=modX().p
+e=modX().tout
+b=modX().un
+c=np.empty_like(b)
+d=np.zeros_like(b)

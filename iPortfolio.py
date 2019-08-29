@@ -55,12 +55,15 @@ class portfolio:
     def __init__(self):
         self.tout=p        
         self.p=p
+        self.un=self.one()
 
 
     
 #Permet de retourner un sous-portefeuille sélectionné de la liste de mods=[]
     def mod(self,mods):
-       return self.p.loc[self.p['PMBMOD'].isin(mods)]
+       sp=self.p.loc[self.p['PMBMOD'].isin(mods)]
+       self.update(sp)
+       return sp
    
 #Permet de retourner un sous-portefeuille sélectionné de la liste de num=[]
     def ids(self,num):
@@ -71,12 +74,12 @@ class portfolio:
         self.p=subPortfolio
         
 #Permet de créer un vecteur de rempli de 1 pour la taille de portefeuille et la durée de projection  
-    def one(self,subPortfolio):
-        self.update(subPortfolio)
+    def one(self):
         nbrPolices=int(len(self.p))
         nbrPeriodes= int(self.p['ProjectionMonths'].max())     
         return np.ones([nbrPolices,nbrPeriodes])
 
+ 
         
 
 policies=portfolio()
@@ -85,4 +88,5 @@ b=policies.mod([8,9])
 c=policies.p
 d=policies.update(b)
 e=policies.p
-f=policies.one(b)
+f=portfolio().one()
+

@@ -20,3 +20,10 @@ Created on Sun Jul 14 18:35:51 2019
 #    return les valeurs agrégée
 #
 #Faire les agrégations
+
+
+ModX=ClassModX()
+ModY=ClassModY()
+
+ModX.PGG
+ModY.PGG
