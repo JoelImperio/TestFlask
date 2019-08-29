@@ -36,13 +36,7 @@ p.loc[p['PMBPOL'].isin([1602101,609403,2161101,2162601,297004]), 'POLDTEXP'] = '
 p['DateCalcul']=pd.to_datetime(dateCalcul)
 p['POLDTDEB']= pd.to_datetime(p['POLDTDEB'].astype(str), format='%Y%m%d').dt.date
 p['POLDTEXP']= pd.to_datetime(p['POLDTEXP'].astype(str), format='%Y%m%d').dt.date
-
 p['ProjectionMonths']=((pd.to_datetime(p['POLDTEXP'])-pd.to_datetime(p['DateCalcul']))/np.timedelta64(1,'M')).apply(np.ceil)+1
-
-
-
-z=pd.date_range(start=p['DateCalcul'].min(), end=p['POLDTEXP'].max(), freq='M')
-z=pd.DataFrame(z).set_index(0).transpose()
 
 
 
@@ -103,16 +97,12 @@ class portfolio:
         return myTemplate
 
 
- 
-        
-
 policies=portfolio()
 a=policies.template
 b=policies.ids([301,2501])
 c=policies.template
-#b=policies.mod([8,9])
-#c=policies.p
-#d=policies.update(b)
-#e=policies.p
-#f=portfolio().one()
+        
+
+
+
 
