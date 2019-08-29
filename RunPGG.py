@@ -1,9 +1,6 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Jul 14 18:35:51 2019
+from iPortfolio import Portfolio
+import pandas as pd
 
-@author: Robin
-"""
 #Run Setting
 #-	Quel run lancer 
 #-	Quelle structure de produit
@@ -21,9 +18,13 @@ Created on Sun Jul 14 18:35:51 2019
 #
 #Faire les agrégations
 
+resultat=pd.DataFrame()
 
-ModX=ClassModX(run, lapse,taux,sinistralité)
-ModY=ClassModY()
+for i in range(5):
+    MonPortfolio=Portfolio(run=i)  
+    resultat=resultat.append(MonPortfolio.PGG)
 
-ModX.PGG
-ModY.PGG
+
+
+resultat.to_csv('Resultat_PGG.csv')
+

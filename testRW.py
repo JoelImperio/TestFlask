@@ -1,16 +1,16 @@
-from iPortfolio import portfolio
-from iHypothesis import hypo
+from iPortfolio import Portfolio
+from iHypothesis import Hypo
 from ModX import mod8
 import numpy as np
 import pandas as pd
 import time
 
-policies=portfolio()
+policies=Portfolio()
 a=policies.ids([301,2501,3101])
 b=policies.mod([8,9])
 c=policies.p
 
-#hyp=hypo([2,5])
+#hyp=Hypo([2,5])
 #d=hyp.lapse()
 #e=hyp.run
 #

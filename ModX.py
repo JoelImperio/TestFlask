@@ -1,10 +1,10 @@
-from iPortfolio import portfolio
-from iHypothesis import hypo
+from iPortfolio import Portfolio
+from iHypothesis import Hypo
 import numpy as np
 import pandas as pd
 
 
-class modX(portfolio):
+class MODX(Portfolio):
     mods=[8]
     
     
@@ -13,7 +13,7 @@ class modX(portfolio):
         self.p=self.mod(self.mods)
         
 
-sp=modX()       
+sp=MODX()       
 a=sp.vide
 b=sp.ids([6401])
 c=sp.vide

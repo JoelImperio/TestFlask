@@ -1,3 +1,4 @@
+from iHypothesis import Hypo
 import pandas as pd
 import numpy as np
 import time
@@ -43,7 +44,7 @@ p['ProjectionMonths']=((pd.to_datetime(p['POLDTEXP'])-pd.to_datetime(p['DateCalc
 
 #Création de la class Portefeuille
 
-class portfolio:
+class Portfolio:
     
     
     def __init__(self):
@@ -97,7 +98,7 @@ class portfolio:
         return myTemplate
 
 
-policies=portfolio()
+policies=Portfolio()
 a=policies.template
 b=policies.ids([301,2501])
 c=policies.template

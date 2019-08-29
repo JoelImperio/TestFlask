@@ -1,5 +1,5 @@
 import pandas as pd
-from iPortfolio import portfolio
+from iPortfolio import Portfolio
 
 
 h=pd.ExcelFile(r'Hypotheses\TablesProphet 2018-12.xls').parse("Hypothèses")
@@ -25,7 +25,7 @@ h1=pd.ExcelFile(r'Hypotheses\TablesProphet 2018-12.xls').parse("Hypothèses")
 
 #Création de la class Portefeuille
 
-class hypo:
+class Hypo:
         
     def __init__(self,polices,run=0, new=True):
         self.run=run
@@ -46,14 +46,13 @@ class hypo:
         
         return coutParPolice
 
-policies=portfolio().mod([8,9])
-hyp=hypo(policies,run=5)
+policies=Portfolio().mod([8,9])
+hyp=Hypo(policies,run=5)
 a=hyp.lapse()
-b=hypo(policies).run
+b=Hypo(policies).run
 c=hyp.run
 d=hyp.p
 e=hyp.fixcost()
-
 
 
 
