@@ -1,11 +1,15 @@
-from iPortfolio import Portfolio
-from iHypothesis import Hypo
-from MyPyliferisk import MortalityTable,qx
-from MyPyliferisk.mortalitytables import EKF95_2ordre
-from ModX import MODX
 import numpy as np
 import pandas as pd
 import time
+
+from iPortfolio import Portfolio
+from iHypothesis import Hypo
+
+from MyPyliferisk import MortalityTable,qx
+from MyPyliferisk.mortalitytables import EKM05i
+
+from ModX import MODX
+
 
 #policies=Portfolio()
 #a=policies.mod([2])
@@ -14,30 +18,14 @@ import time
 
 
 
-table=EKF95_2ordre
-age=35
-mt=MortalityTable(nt=table)
 
-b=qx(mt,age)
+mt=MortalityTable(nt=EKM05i)
+b=qx(mt,35)
+
+
+
 
 
 #start_time = time.time()
 #print("additionPandas--- %s seconds ---" %'%.20f'%  (time.time() - start_time))
 
-
-
-#class A:
-#    def __init__(self,a,b):
-#        self.a=a
-#        self.b=b
-#        self.tag=self.add(self.a,self.b)
-#    def add(self,a,b):
-#        return a+b
-#    
-#
-#class B(A):
-#    def adds(self,a,b):
-#        return a
-#    
-#a=A(1,2).tag
-#b=B(0,0).tag
