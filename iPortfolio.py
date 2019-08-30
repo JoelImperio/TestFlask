@@ -1,4 +1,4 @@
-#from iHypothesis import Hypo
+
 import pandas as pd
 import numpy as np
 import time
@@ -50,13 +50,19 @@ p['ProjectionMonths']=((pd.to_datetime(p['POLDTEXP'])-pd.to_datetime(p['DateCalc
 class Portfolio:
     
     
-    def __init__(self):
+    def __init__(self,runs=[0,1,2,3,4], \
+                 LapseNew=True,WaverNew=True,RateNew=True,PbRateNew=True,SinistralityNew=True,CommissionNew=True,CostNew=True):
         self.tout=p        
         self.p=p
+        self.runs=runs
         self.un=self.one()
         self.zero=self.zeros()
         self.vide=self.vides()
         self.template= self.templateProjection()
+        self.shape=list(self.un.shape)
+        #Faut-il les ajouter dans la method update() ?
+        from iHypothesis import Hypo
+        self.lapse=Hypo(MyShape=self.shape,run=runs,New=LapseNew).lapse()
 
 
     
@@ -79,12 +85,14 @@ class Portfolio:
         self.zero=self.zeros()
         self.vide=self.vides()
         self.template= self.templateProjection()
+        self.shape=list(self.un.shape)
         
 #Permet de créer un vecteur  rempli de 1 pour la taille de portefeuille et la durée de projection  
     def one(self):
         nbrPolices=int(len(self.p))
-        nbrPeriodes= int(self.p['ProjectionMonths'].max())     
-        return np.ones([nbrPolices,nbrPeriodes])
+        nbrPeriodes= int(self.p['ProjectionMonths'].max())
+        nbrRuns=int(len(self.runs))
+        return np.ones([nbrPolices,nbrPeriodes,nbrRuns])
 
 #Permet de créer un vecteur rempli de 0 pour la taille de portefeuille et la durée de projection  
     def zeros(self):             
@@ -105,6 +113,7 @@ policies=Portfolio()
 a=policies.template
 b=policies.ids([301,2501])
 c=policies.template
+d=policies.shape
         
 
 

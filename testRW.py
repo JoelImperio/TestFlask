@@ -16,12 +16,13 @@ a=policies.mod([2])
 #b=policies.ids([301,2501,3101])
 #c=policies.p
 
-c=Hypo(a).run
+
+hyp=Hypo(shape=a.shape,run=5)
+b=hyp.lapse()
 
 
-mt=MortalityTable(nt=EKM05i)
-b=qx(mt,35)
-
+#mt=MortalityTable(nt=EKM05i)
+#b=qx(mt,35)
 
 
 

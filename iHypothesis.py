@@ -1,5 +1,4 @@
 import pandas as pd
-from iPortfolio import Portfolio
 import os, os.path
 path = os.path.dirname(os.path.abspath(__file__))
 
@@ -31,14 +30,13 @@ h1=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypothè
 
 class Hypo:
         
-    def __init__(self,polices,run=0, new=True):
-        self.run=run
-        if new:
+    def __init__(self,MyShape=[],Run=[0,1,2,3,4], New=True):
+        self.run=Run
+        self.shape=MyShape
+        if New:
             self.h=h
         else:
             self.h=h1
-        self.p=polices
-
     
 #Permet de retourner un sous-portefeuille sélectionné de la liste de mods=[]
     def lapse(self):
@@ -50,13 +48,16 @@ class Hypo:
         
         return coutParPolice
 
-policies=Portfolio().mod([8,9])
-hyp=Hypo(policies,run=5)
+##############################ICI pour faire des tests sur la class##########################################################
+from iPortfolio import Portfolio
+shape=Portfolio().mod([8,9]).shape
+
+hyp=Hypo(MyShape=shape,Run=5)
 a=hyp.lapse()
-b=Hypo(policies).run
-c=hyp.run
-d=hyp.p
-e=hyp.fixcost()
+#b=Hypo(policies).run
+#c=hyp.run
+#d=hyp.p
+#e=hyp.fixcost()
 
 
 

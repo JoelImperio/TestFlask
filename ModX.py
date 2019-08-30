@@ -14,10 +14,10 @@ class MODX(Portfolio):
         
 
 sp=MODX()       
-a=sp.vide
-b=sp.ids([6401])
+a=sp.lapse
+b=sp.un
 c=sp.vide
-d=sp.p
+#d=sp.p
 
 
 
