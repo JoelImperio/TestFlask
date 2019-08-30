@@ -117,6 +117,8 @@ class Portfolio:
         return myTemplate
 
 
+##############################ICI pour faire des tests sur la class##########################################################
+
 policies=Portfolio()
 a=policies.template
 b=policies.ids([301,2501])
