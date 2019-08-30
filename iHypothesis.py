@@ -1,9 +1,13 @@
 import pandas as pd
 from iPortfolio import Portfolio
+import os, os.path
+path = os.path.dirname(os.path.abspath(__file__))
 
 
-h=pd.ExcelFile(r'Hypotheses\TablesProphet 2018-12.xls').parse("Hypothèses")
-h1=pd.ExcelFile(r'Hypotheses\TablesProphet 2018-12.xls').parse("Hypothèses")
+
+h=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypothèses")
+h1=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypothèses")
+
  
 
 #Tables :

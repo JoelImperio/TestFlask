@@ -11,12 +11,12 @@ from MyPyliferisk.mortalitytables import EKM05i
 from ModX import MODX
 
 
-#policies=Portfolio()
-#a=policies.mod([2])
+policies=Portfolio()
+a=policies.mod([2])
 #b=policies.ids([301,2501,3101])
 #c=policies.p
 
-
+c=Hypo(a).run
 
 
 mt=MortalityTable(nt=EKM05i)

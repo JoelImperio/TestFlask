@@ -2,6 +2,9 @@
 import pandas as pd
 import numpy as np
 import time
+import os, os.path
+path = os.path.dirname(os.path.abspath(__file__))
+
 #import pyodbc
 #
 #
@@ -24,7 +27,7 @@ dateCalcul='20181231'
 
 #Extraction du portefeuille de polices
 
-p=pd.read_csv(r'Portefeuille\Portfolio.csv')
+p=pd.read_csv(path+'/Portefeuille\Portfolio.csv')
 
 #Traitement des anomalies dans les données
 
