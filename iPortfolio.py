@@ -51,7 +51,7 @@ class Portfolio:
     
     
     def __init__(self,runs=[0,1,2,3,4], \
-                 LapseNew=True,WaverNew=True,RateNew=True,PbRateNew=True,SinistralityNew=True,CommissionNew=True,CostNew=True):
+                 LapseNew=True,RateNew=True,SinistralityNew=True,CommissionNew=True,CostNew=True):
         self.tout=p        
         self.p=p
         self.runs=runs
@@ -60,9 +60,17 @@ class Portfolio:
         self.vide=self.vides()
         self.template= self.templateProjection()
         self.shape=list(self.un.shape)
-        #Faut-il les ajouter dans la method update() ?
+
+
         from iHypothesis import Hypo
-        self.lapse=Hypo(MyShape=self.shape,run=runs,New=LapseNew).lapse()
+        self.lapse=Hypo(MyShape=self.shape,Run=runs,New=LapseNew).lapse()    
+#        self.waver=Hypo(MyShape=self.shape,Run=runs,New=LapseNew)
+#        self.rate=Hypo(MyShape=self.shape,Run=runs,New=RateNew)
+#        self.ratePb=Hypo(MyShape=self.shape,Run=runs,New=RateNew)
+#        self.sinistrality=Hypo(MyShape=self.shape,Run=runs,New=SinistralityNew)
+#        self.commissions=Hypo(MyShape=self.shape,Run=runs,New=CommissionNew)
+#        self.fixeCost=Hypo(MyShape=self.shape,Run=runs,New=CostNew)
+#        self.investCost=Hypo(MyShape=self.shape,Run=runs,New=CostNew)
 
 
     
@@ -112,8 +120,10 @@ class Portfolio:
 policies=Portfolio()
 a=policies.template
 b=policies.ids([301,2501])
-c=policies.template
+c=policies.un
 d=policies.shape
+e=policies.lapse
+
         
 
 
