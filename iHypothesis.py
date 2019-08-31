@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import os, os.path
 path = os.path.dirname(os.path.abspath(__file__))
 
@@ -22,7 +23,7 @@ class Hypo:
             self.h=h1
     
 #Permet de retourner un sous-portefeuille sélectionné de la liste de mods=[]
-    def lapse(self):
+    def rate(self):
        return self.h.iloc[2:6,1:38].transpose()
 
     
@@ -36,9 +37,10 @@ from iPortfolio import Portfolio
 shape=Portfolio().mod([8,9]).shape
 
 hyp=Hypo(MyShape=shape,Run=5)
-a=hyp.lapse()
+a=hyp.rate()
 
-b=a.iloc[:,1].to_numpy()
+b=a.iloc[1:,1].to_numpy()
+c=np.repeat(b,12)
 #b=Hypo(policies).run
 #c=hyp.run
 #d=hyp.p

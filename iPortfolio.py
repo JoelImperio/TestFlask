@@ -63,7 +63,7 @@ class Portfolio:
 
 
         from iHypothesis import Hypo
-        self.lapse=Hypo(MyShape=self.shape,Run=runs,New=LapseNew).lapse()    
+#        self.lapse=Hypo(MyShape=self.shape,Run=runs,New=LapseNew).lapse()    
 #        self.waver=Hypo(MyShape=self.shape,Run=runs,New=LapseNew)
 #        self.rate=Hypo(MyShape=self.shape,Run=runs,New=RateNew)
 #        self.ratePb=Hypo(MyShape=self.shape,Run=runs,New=RateNew)
@@ -124,7 +124,7 @@ a=policies.template
 b=policies.ids([301,2501])
 c=policies.un
 d=policies.shape
-e=policies.lapse
+#e=policies.lapse
 
         
 
