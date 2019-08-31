@@ -23,7 +23,7 @@ class Hypo:
     
 #Permet de retourner un sous-portefeuille sélectionné de la liste de mods=[]
     def lapse(self):
-       return self.h.iloc[2:8,1:38].transpose()
+       return self.h.iloc[2:6,1:38].transpose()
 
     
     def fixcost(self):
@@ -37,6 +37,8 @@ shape=Portfolio().mod([8,9]).shape
 
 hyp=Hypo(MyShape=shape,Run=5)
 a=hyp.lapse()
+
+b=a.iloc[:,1].to_numpy()
 #b=Hypo(policies).run
 #c=hyp.run
 #d=hyp.p
