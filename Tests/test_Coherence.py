@@ -23,3 +23,7 @@ Created on Sun Jul 14 18:47:10 2019
 import unittest
 
 unittest.main()
+
+
+#conda install -c spyder-ide spyder-unittest
+
