@@ -16,13 +16,20 @@ from ModX import MODX
 
 #Importation des données pour les tests
 
-DataProphet=pd.read_csv(path+'/Tests\DataProphet.csv')
+DataProphet=pd.ExcelFile(path+'/Tests\DataProphet.xls',skiprows=5).parse("Hypothèses")
 
 pTest=pd.read_csv(path+'/Tests\Portfolio_Test.csv')
 
 pTest=portfolioPreProcessing(pTest)
 
 hTest=pd.ExcelFile(path  + '/Tests/TablesProphet 2018-12_Test.xls').parse("Hypothèses")
+
+
+#Instenciation Des Class pour les tests
+
+pt=Portfolio(po=pTest)
+ht=Hypo(hy=hTest)
+
 
 #Test général sur la structure et la cohérence du modèle
 class TestCoherenceGlobal(ut.TestCase):
