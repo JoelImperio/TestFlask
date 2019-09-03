@@ -33,6 +33,19 @@ Premier test de PGG pour la structure
 #### Titre 4
 Texte du titre 4
 
+Ici j'ajoute une table
+
+|   | hh |    |   |   |
+|---|----|---:|---|---|
+|   |    |    | h |   |
+|   |    | ff |   |   |
+|   |    |    |   |   |
+
+
+
+
+
+
 # Titre new
 * une puce
 * une autre
