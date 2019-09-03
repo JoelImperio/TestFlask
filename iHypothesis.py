@@ -14,13 +14,13 @@ h1=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypothè
 
 class Hypo:
         
-    def __init__(self,MyShape=[],Run=[0,1,2,3,4], New=True):
+    def __init__(self,hy=h,hy1=h1,MyShape=[],Run=[0,1,2,3,4], New=True):
         self.run=Run
         self.shape=MyShape
         if New:
-            self.h=h
+            self.h=hy
         else:
-            self.h=h1
+            self.h=hy1
     
 #Permet de retourner un sous-portefeuille sélectionné de la liste de mods=[]
     def rate(self):

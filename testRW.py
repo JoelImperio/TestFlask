@@ -8,11 +8,11 @@ from iHypothesis import Hypo
 from MyPyliferisk import MortalityTable,qx
 from MyPyliferisk.mortalitytables import EKM05i
 
-from ModX import MODX
+#from ModX import MODX
 
 
 policies=Portfolio()
-a=policies.mod([2])
+a=policies.p
 #b=policies.ids([301,2501,3101])
 #c=policies.p
 
@@ -30,3 +30,7 @@ b=hyp.lapse()
 #start_time = time.time()
 #print("additionPandas--- %s seconds ---" %'%.20f'%  (time.time() - start_time))
 
+import os, os.path
+path = os.path.dirname(os.path.abspath(__file__))
+
+DataTest=pd.read_csv(path+'/Tests\DataTest.csv')

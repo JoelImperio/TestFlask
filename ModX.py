@@ -14,7 +14,6 @@ class MODX(Portfolio):
         
 
 sp=MODX()       
-a=sp.lapse
 b=sp.un
 c=sp.vide
 #d=sp.p

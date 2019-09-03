@@ -36,13 +36,17 @@ p.loc[p['PMBPOL'].isin([1602101,609403,2161101,2162601,297004]), 'POLDTEXP'] = '
 
 #Formatage des colonnes et création des colonnes utiles
 
+def portfolioPreProcessing(p):
 
-p['DateCalcul']=pd.to_datetime(dateCalcul)
-p['POLDTDEB']= pd.to_datetime(p['POLDTDEB'].astype(str), format='%Y%m%d').dt.date
-p['POLDTEXP']= pd.to_datetime(p['POLDTEXP'].astype(str), format='%Y%m%d').dt.date
-p['ProjectionMonths']=((pd.to_datetime(p['POLDTEXP'])-pd.to_datetime(p['DateCalcul']))/np.timedelta64(1,'M')).apply(np.ceil)+1
+    p['DateCalcul']=pd.to_datetime(dateCalcul)
+    p['POLDTDEB']= pd.to_datetime(p['POLDTDEB'].astype(str), format='%Y%m%d').dt.date
+    p['POLDTEXP']= pd.to_datetime(p['POLDTEXP'].astype(str), format='%Y%m%d').dt.date
+    p['ProjectionMonths']=((pd.to_datetime(p['POLDTEXP'])-pd.to_datetime(p['DateCalcul']))/np.timedelta64(1,'M')).apply(np.ceil)+1
+
+    return p
 
 
+p=portfolioPreProcessing(p)
 
 
 #Création de la class Portefeuille
@@ -50,10 +54,10 @@ p['ProjectionMonths']=((pd.to_datetime(p['POLDTEXP'])-pd.to_datetime(p['DateCalc
 class Portfolio:
     
     
-    def __init__(self,runs=[0,1,2,3,4], \
+    def __init__(self,po=p,runs=[0,1,2,3,4], \
                  LapseNew=True,RateNew=True,SinistralityNew=True,CommissionNew=True,CostNew=True):
-        self.tout=p        
-        self.p=p
+        self.tout=po    
+        self.p=po
         self.runs=runs
         self.un=self.one()
         self.zero=self.zeros()
