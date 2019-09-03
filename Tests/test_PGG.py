@@ -16,7 +16,11 @@ from ModX import MODX
 
 #Importation des données pour les tests
 
-DataProphet=pd.ExcelFile(path+'/Tests\DataProphet.xls',skiprows=5).parse("Hypothèses")
+#DataProphet=pd.ExcelFile(path+'/Tests\DataProphet.xls',skiprows=5)
+DataProphet=pd.read_excel(path+'/Tests\DataProphet.xls',sheet_name=None,skiprows=[5])
+
+DataProphet=pd.concat(DataProphet,axis=1)
+
 
 pTest=pd.read_csv(path+'/Tests\Portfolio_Test.csv')
 
