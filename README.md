@@ -44,7 +44,7 @@ Ici j'ajoute une table
 Et une équation
 Thèse
  
- \sum_{1}^{44}\alpha ^{j}
+\sum_{1}^{44}\alpha ^{j}
 
 
 
