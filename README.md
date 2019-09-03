@@ -2,11 +2,11 @@
 ## Avec deux
 Premier test de PGG pour la structure
 
-##Equation de test
+## Equation de test
 
 ![equation](https://latex.codecogs.com/gif.latex?\sum&space;{x_{i}}^{})
 
-#WOW Magnifique
+# WOW Magnifique
 
 ##Mon image
 
@@ -14,5 +14,4 @@ Premier test de PGG pour la structure
 
 
 
-test1
-test2
+
