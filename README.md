@@ -44,7 +44,7 @@ Ici j'ajoute une table
 Et une équation
 Thèse
  
-\sum_{1}^{44}\alpha ^{j}
+![Monéeuqation](https://latex.codecogs.com/gif.latex?\sum_{1}^{44}\alpha&space;^{j})
 
 
 
