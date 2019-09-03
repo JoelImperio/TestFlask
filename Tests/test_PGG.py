@@ -14,6 +14,7 @@ from MyPyliferisk.mortalitytables import EKM05i
 from ModX import MODX
     
 
+
 #Importation des données pour les tests
 
 #DataProphet=pd.ExcelFile(path+'/Tests\DataProphet.xls',skiprows=5)
