@@ -12,13 +12,15 @@ from MyPyliferisk.mortalitytables import EKM05i
 
 
 policies=Portfolio()
+hyp=Hypo(shape=policies.shape,run=5)
+
+
 a=policies.p
 #b=policies.ids([301,2501,3101])
 #c=policies.p
 
 
-hyp=Hypo(shape=a.shape,run=5)
-b=hyp.lapse()
+
 
 
 #mt=MortalityTable(nt=EKM05i)
@@ -30,7 +32,3 @@ b=hyp.lapse()
 #start_time = time.time()
 #print("additionPandas--- %s seconds ---" %'%.20f'%  (time.time() - start_time))
 
-import os, os.path
-path = os.path.dirname(os.path.abspath(__file__))
-
-DataTest=pd.read_csv(path+'/Tests\DataTest.csv')
