@@ -11,7 +11,8 @@ from iHypothesis import Hypo
 from MyPyliferisk import MortalityTable,qx
 from MyPyliferisk.mortalitytables import EKM05i
 
-from ModX import MODX
+from Mod8_9 import MOD8_9
+
     
 
 
@@ -47,7 +48,7 @@ class TestCoherenceGlobal(ut.TestCase):
 
 
 #Test spécifique au produit X
-class TestResultatsModX(ut.TestCase):
+class TestResultatsMod8_9(ut.TestCase):
 
     DataProphetMOD8_9 = DataProphet.filter(regex='MOD8_9')
     

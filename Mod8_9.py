@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 
 
-class MODX(Portfolio):
-    mods=[8]
+class MOD8_9(Portfolio):
+    mods=[8,9]
     
     
     def __init__(self):
@@ -13,7 +13,7 @@ class MODX(Portfolio):
         self.p=self.mod(self.mods)
         
 
-sp=MODX()       
+sp=MOD8_9()       
 b=sp.un
 c=sp.vide
 #d=sp.p
