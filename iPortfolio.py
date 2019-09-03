@@ -127,6 +127,7 @@ class Portfolio:
 
 policies=Portfolio()
 a=policies.template
+aa=policies.shape
 b=policies.ids([301,2501])
 c=policies.un
 d=policies.shape
