@@ -17,16 +17,16 @@ from ModX import MODX
 #Importation des données pour les tests
 
 #DataProphet=pd.ExcelFile(path+'/Tests\DataProphet.xls',skiprows=5)
-DataProphet=pd.read_excel(path+'/Tests\DataProphet.xls',sheet_name=None,skiprows=[5])
+DataProphet=pd.read_excel(path+'\Resultats_PGG.xls',sheet_name=None,skiprows=[7])
 
-DataProphet=pd.concat(DataProphet,axis=1)
+DataProphet=pd.concat(DataProphet,axis=0)
 
 
-pTest=pd.read_csv(path+'/Tests\Portfolio_Test.csv')
+pTest=pd.read_csv(path+'\Portfolio_Test.csv')
 
 pTest=portfolioPreProcessing(pTest)
 
-hTest=pd.ExcelFile(path  + '/Tests/TablesProphet 2018-12_Test.xls').parse("Hypothèses")
+hTest=pd.ExcelFile(path  + '/TablesProphet 2018-12_Test.xls').parse("Hypothèses")
 
 
 #Instenciation Des Class pour les tests

@@ -29,14 +29,16 @@ dateCalcul='20181231'
 
 p=pd.read_csv(path+'/Portefeuille\Portfolio.csv')
 
-#Traitement des anomalies dans les données
 
-#Certaines dates d'échéances tombe un jour qui n'existe pas
-p.loc[p['PMBPOL'].isin([1602101,609403,2161101,2162601,297004]), 'POLDTEXP'] = '20190228'
-
-#Formatage des colonnes et création des colonnes utiles
 
 def portfolioPreProcessing(p):
+
+#Traitement des anomalies dans les données
+
+    #Certaines dates d'échéances tombe un jour qui n'existe pas
+    p.loc[p['PMBPOL'].isin([1602101,609403,2161101,2162601,297004]), 'POLDTEXP'] = '20190228'
+
+#Formatage des colonnes et création des colonnes utiles    
 
     p['DateCalcul']=pd.to_datetime(dateCalcul)
     p['POLDTDEB']= pd.to_datetime(p['POLDTDEB'].astype(str), format='%Y%m%d').dt.date
