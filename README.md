@@ -41,7 +41,10 @@ Ici j'ajoute une table
 |   |    | ff |   |   |
 |   |    |    |   |   |
 
-
+Et une équation
+Thèse
+ 
+ \sum_{1}^{44}\alpha ^{j}
 
 
 
