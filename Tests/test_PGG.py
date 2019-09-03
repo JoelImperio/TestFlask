@@ -20,6 +20,8 @@ from ModX import MODX
 DataProphet=pd.read_excel(path+'\Resultats_Prophet.xls',sheet_name=None,skiprows=7)
 DataProphet=pd.concat(DataProphet,axis=1)
 
+
+
 ResultatPGG=pd.read_excel(path+'\Resultats_PGG.xls',sheet_name='Synthèse',skiprows=3)
 
 pTest=pd.read_csv(path+'\Portfolio_Test.csv')
@@ -46,6 +48,8 @@ class TestCoherenceGlobal(ut.TestCase):
 
 #Test spécifique au produit X
 class TestResultatsModX(ut.TestCase):
+
+    DataProphetMOD8_9 = DataProphet.filter(regex='MOD8_9')
     
     def test_inforce(self):
         self
