@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import os, os.path
-import ast
 path = os.path.dirname(os.path.abspath(__file__))
  
 
@@ -9,16 +8,12 @@ path = os.path.dirname(os.path.abspath(__file__))
 h=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypothèses")
 h1=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypothèses")
 
-def eval_code(code):
-    parsed = ast.parse(code, mode='eval')
-    fixed = ast.fix_missing_locations(parsed)
-    compiled = compile(fixed, '<string>', 'eval')
-    eval(compiled)
 
 #Création de la class Portefeuille
 
 class Hypo:
-        
+
+
     def __init__(self,hy=h,hy1=h1,MyShape=[],Run=[0,1,2,3,4,5], New=True):
         self.run=Run
         self.shape=MyShape
@@ -29,38 +24,40 @@ class Hypo:
             self.h=hy
         else:
             self.h=hy1
- 
+        self.securityMarginMarge=1+self.h.iloc[47,2]
+        self.securityMarginBio=1+self.h.iloc[48,2]
+
+        
+#Cette méthode permet de retourner un array selon la liste de conditons choiceForEachRun='[run0,..,run5]'        
     def ifsRun(self,choiceForEachRun):
-        
+
+#       Les Variables appelées avec les choiceForEachRun
         adminCost=self.h.iloc[43,3]*(self.un)
-        SecurityMarginMarge=1+self.h.iloc[47,2]
-        SecurityMarginBio=1+self.h.iloc[48,2]
+        investCost=self.h.iloc[44,3]*(self.un)
         
-        
-        c=self.un
+        result=self.zero
         listeDesRuns=self.run
         
         for i in range(len(listeDesRuns)):
-            z=listeDesRuns[i]
-            z=z*(self.un)
+            z=listeDesRuns[i]*(self.un)
             condlist = [z[:,:,i]==0,z[:,:,i]==1,z[:,:,i]==2,z[:,:,i]==3,z[:,:,i]==4,z[:,:,i]==5]
-            c[:,:,i]=np.select(condlist, eval(choiceForEachRun))
-        return c
-    
+            result[:,:,i]=np.select(condlist, eval(choiceForEachRun))
+        return np.copy(result)
+
     def fraisGestion(self):
-        
-        choiceForEachRun='[adminCost[:,:,i],adminCost[:,:,i],adminCost[:,:,i],adminCost[:,:,i],adminCost[:,:,i]*SecurityMarginMarge,adminCost[:,:,i]*SecurityMarginBio]'
+
+        choiceForEachRun='[adminCost[:,:,i],adminCost[:,:,i],adminCost[:,:,i],adminCost[:,:,i],\
+        adminCost[:,:,i]*self.securityMarginMarge,adminCost[:,:,i]*self.securityMarginBio]'    
         
         return self.ifsRun(choiceForEachRun)
     
     
     def fraisGestionPlacement(self):
-    
-        choiceForEachRun='[adminCost[:,:,i],adminCost[:,:,i],adminCost[:,:,i],adminCost[:,:,i],adminCost[:,:,i]*SecurityMarginMarge,adminCost[:,:,i]*SecurityMarginBio]'
-    
+
+        choiceForEachRun='[investCost[:,:,i],investCost[:,:,i],investCost[:,:,i],investCost[:,:,i], \
+        investCost[:,:,i]*self.securityMarginMarge,investCost[:,:,i]*self.securityMarginBio]'    
+        
         return self.ifsRun(choiceForEachRun)
-
-
 
 
     def rate(self):
@@ -77,10 +74,11 @@ policies=Portfolio(runs=myRun)
 policies.mod([8,9])
 shape=policies.shape
 
-hyp=Hypo(MyShape=shape, Run=myRun)
+hyp1=Hypo(MyShape=shape, Run=myRun)
 
-a=hyp.fraisGestion()
-b=hyp.fraisGestionPlacement()
+
+a=hyp1.fraisGestion()
+b=hyp1.fraisGestionPlacement()
 
 
 
@@ -108,9 +106,10 @@ b=hyp.fraisGestionPlacement()
 #    - Sinistralité
 #    - Lapse
 #    - Reduction
-#    - frais Gestion v
-#    - frais gestion placement
+#    - frais Gestion --> e/o
+#    - frais gestion placement--> e/o
 #    - Commissions
+#    - Inflation
 
 
 #Tables :
