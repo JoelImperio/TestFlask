@@ -56,7 +56,7 @@ p=portfolioPreProcessing(p)
 class Portfolio:
     
     
-    def __init__(self,po=p,runs=[0,1,2,3,4], \
+    def __init__(self,po=p,runs=[0,1,2,3,4,5], \
                  LapseNew=True,RateNew=True,SinistralityNew=True,CommissionNew=True,CostNew=True):
         self.tout=po    
         self.p=po
@@ -127,10 +127,11 @@ class Portfolio:
 
 policies=Portfolio()
 a=policies.template
-b=policies.ids([301,2501])
-c=policies.un
-d=policies.shape
-#e=policies.rate()
+b=policies.shape
+c=policies.ids([301,2501])
+d=policies.un
+e=policies.shape
+#f=policies.rate()
 
         
 
