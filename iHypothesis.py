@@ -82,6 +82,15 @@ c[:,:,1]=np.where(b[:,:,1]==a,b[:,:,1]*2,0)
 #e=hyp.fixcost()
 
 
+#A mettre en place:
+#    - Taux
+#    - TauxPB
+#    - Sinistralité
+#    - Lapse
+#    - Reduction
+#    - frais Gestion
+#    - frais gestion placement
+#    - Commissions
 
 
 #Tables :
