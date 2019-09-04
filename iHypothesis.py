@@ -67,8 +67,11 @@ for i in range(len(hyp.run)):
         b[:,:,i]=b[:,:,i]*a*i
 
 
-
-        
+#np.where(a==1,) or np.select
+#https://medium.com/@emayoung95/using-numpy-where-function-to-replace-for-loops-with-if-else-statements-a1e6044ac4c1
+#https://stackoverflow.com/questions/39109045/numpy-where-with-multiple-conditions/39111919
+c=hyp.un
+c[:,:,1]=np.where(b[:,:,1]==a,b[:,:,1]*2,0)
     
 
 #b=a.iloc[1:,1].to_numpy()
