@@ -32,9 +32,31 @@ class Hypo:
     def ifsRun(self,choiceForEachRun):
 
 #       Les Variables appelées avec les choiceForEachRun
+        
+        #variables des coûts
         adminCost=self.h.iloc[43,3]*(self.un)
         investCost=self.h.iloc[44,3]*(self.un)
+        interestRate=self.h.iloc[2:6,1:38].transpose()
         
+        #Variables des taux
+        allrates=self.h.iloc[2:6,1:38].transpose()
+        rateBE=(np.repeat(allrates.iloc[1:,1].to_numpy(),12))[np.newaxis,:,np.newaxis]
+        rateRL=(np.repeat(allrates.iloc[1:,3].to_numpy(),12))[np.newaxis,:,np.newaxis]
+        rateMarge=(np.repeat(allrates.iloc[1:,2].to_numpy(),12))[np.newaxis,:,np.newaxis]
+        rates=(hyp1.zero).copy()
+        if rates.shape[1]>rateBE.shape[1]:
+            rates[:,:rateBE.shape[1],[0,2,3,5]]=rateBE
+            rates[:,:rateRL.shape[1],[1]]=rateRL
+            rates[:,:rateMarge.shape[1],[4]]=rateMarge
+        else:
+            rates[:,:,[0,2,3,5]]=rateBE[:,:rates.shape[1],:]
+            rates[:,:,[1]]=rateRL[:,:rates.shape[1],:]
+            rates[:,:,[4]]=rateMarge[:,:rates.shape[1],:]
+        
+        #Variables taux PB
+        ratePB=self.h.iloc[39,2]/100
+        
+        #Variable de la méthode
         result=self.zero
         listeDesRuns=self.run
         
@@ -61,7 +83,16 @@ class Hypo:
 
 
     def rate(self):
-       return self.h.iloc[2:6,1:38].transpose()
+        choiceForEachRun='[rates[:,:,0],rates[:,:,1],rates[:,:,2],\
+        rates[:,:,3],rates[:,:,4],rates[:,:,5]]'    
+        
+        return self.ifsRun(choiceForEachRun)
+    
+    def pbRate(self):
+        choiceForEachRun='[rates[:,:,0]-ratePB,rates[:,:,1]-ratePB,rates[:,:,2]-ratePB,\
+        rates[:,:,3]-ratePB,rates[:,:,4]-ratePB,rates[:,:,5]-ratePB]'    
+    
+        return self.ifsRun(choiceForEachRun)
 
     
 
@@ -77,32 +108,32 @@ shape=policies.shape
 hyp1=Hypo(MyShape=shape, Run=myRun)
 
 
-a=hyp1.fraisGestion()
-b=hyp1.fraisGestionPlacement()
+a=hyp1.rate()
+b=hyp1.pbRate()
+
+
+#rates=(np.zeros((3392,200,6))).copy()
+#allrates=h.iloc[2:6,1:38].transpose()
+#rateBE=(np.repeat(allrates.iloc[1:,1].to_numpy(),12))[np.newaxis,:,np.newaxis]
+#rateRL=(np.repeat(allrates.iloc[1:,3].to_numpy(),12))[np.newaxis,:,np.newaxis]
+#rateMarge=(np.repeat(allrates.iloc[1:,2].to_numpy(),12))[np.newaxis,:,np.newaxis]
+#rates[:,:rateBE.shape[1],[0,2,3,5]]=rateBE
+#rates[:,:rateRL.shape[1],[1]]=rateRL
+#rates[:,:rateMarge.shape[1],[4]]=rateMarge
+#rates[:,:,[0,2,3,5]]=rateBE[:,:rates.shape[1],:]
+#rates[:,:,[1]]=rateRL[:,:rates.shape[1],:]
+#rates[:,:,[4]]=rateMarge[:,:rates.shape[1],:]
 
 
 
 
-#c=hyp.un 
-#for i in range(len(hyp.run)):
-#    z=(hyp.run)[i]
-#    z=z*b
-#    condlist = [z[:,:,i]==0,z[:,:,i]==1,z[:,:,i]==2,z[:,:,i]==3,z[:,:,i]==4,z[:,:,i]==5]
-#    choicelist = [b[:,:,i]*a*i,b[:,:,i]*a*i,b[:,:,i]*a*i,b[:,:,i]*a*i,b[:,:,i]*a*i,b[:,:,i]*a*i]
-#    c[:,:,i]=np.select(condlist, choicelist)
 
 
-#b=a.iloc[1:,1].to_numpy()
-#c=np.repeat(b,12)
-#b=Hypo(policies).run
-#c=hyp.run
-#d=hyp.p
-#e=hyp.fixcost()
 
 
 #A mettre en place:
-#    - Taux
-#    - TauxPB
+#    - Taux--> e/o
+#    - TauxPB--> e/o
 #    - Sinistralité
 #    - Lapse
 #    - Reduction
