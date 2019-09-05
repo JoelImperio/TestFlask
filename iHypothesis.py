@@ -45,13 +45,13 @@ class Hypo:
         rateMarge=(np.repeat(allrates.iloc[1:,2].to_numpy(),12))[np.newaxis,:,np.newaxis]
         rates=(hyp1.zero).copy()
         if rates.shape[1]>rateBE.shape[1]:
-            rates[:,:rateBE.shape[1],[0,2,3,5]]=rateBE
-            rates[:,:rateRL.shape[1],[1]]=rateRL
-            rates[:,:rateMarge.shape[1],[4]]=rateMarge
+            rates[:,:rateBE.shape[1],[0,2,3,5]]=(1+rateBE)**(1/12)-1
+            rates[:,:rateRL.shape[1],[1]]=(1+rateRL)**(1/12)-1
+            rates[:,:rateMarge.shape[1],[4]]=(1+rateMarge)**(1/12)-1
         else:
-            rates[:,:,[0,2,3,5]]=rateBE[:,:rates.shape[1],:]
-            rates[:,:,[1]]=rateRL[:,:rates.shape[1],:]
-            rates[:,:,[4]]=rateMarge[:,:rates.shape[1],:]
+            rates[:,:,[0,2,3,5]]=(1+rateBE[:,:rates.shape[1],:])**(1/12)-1
+            rates[:,:,[1]]=(1+rateRL[:,:rates.shape[1],:])**(1/12)-1
+            rates[:,:,[4]]=(1+rateMarge[:,:rates.shape[1],:])**(1/12)-1
         
         #Variables taux PB
         ratePB=self.h.iloc[39,2]/100
@@ -141,6 +141,7 @@ b=hyp1.pbRate()
 #    - frais gestion placement--> e/o
 #    - Commissions
 #    - Inflation
+#    - Faire test pour les vecteurs (notament Rates)
 
 
 #Tables :

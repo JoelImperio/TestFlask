@@ -25,6 +25,9 @@ DataProphet=pd.concat(DataProphet,axis=1)
 #Les resultats de la PGG selon la répartition en vigueur
 ResultatPGG=pd.read_excel(path+'\Resultats_PGG.xls',sheet_name='Synthèse',skiprows=3)
 
+#Les variables de contrôle
+variablesTest=pd.read_excel(path+'\Resultats_PGG.xls',sheet_name='Test',skiprows=7)
+
 #Portefeuille servant de test qui correspond on portefeuille au 31.12.2018
 pTest=pd.read_csv(path+'\Portfolio_Test.csv')
 pTest=portfolioPreProcessing(pTest)
@@ -36,7 +39,7 @@ hTest=pd.ExcelFile(path  + '/TablesProphet 2018-12_Test.xls').parse("Hypothèses
 #Instenciation Des Class pour les tests
 
 pt=Portfolio(po=pTest)
-ht=Hypo(hy=hTest)
+ht=Hypo(hy=hTest,MyShape=pt.shape)
 
 
 cov=coverage.Coverage()
@@ -44,7 +47,8 @@ cov.start()
 
 #Test général sur la structure et la cohérence du modèle
 class TestCoherenceGlobal(ut.TestCase):
-
+    
+    
 #Ce test permet de vérifier que le nombre de polices chargées est correct par rapport à la clôture
     def test_nombrePolices(self):
         NombreTotalDePolices=9248
@@ -52,9 +56,19 @@ class TestCoherenceGlobal(ut.TestCase):
         
 #Ce test permet de vérifier que les taux de rendement sont corrects        
     def test_rate(self):
-        a=ht.rate().iloc[1,1]
-        b=0.0139365173434374
-        self.assertAlmostEqual(a,b)
+        self
+        
+        
+    def test_Exemple(self):
+        
+        RTOL=0.1
+        ATOL=1
+        
+        resultatAttendu=variablesTest['M_DISC_B']
+        
+        resultatScript=ht.rate()[0,:,0]
+        
+        np.testing.assert_allclose(resultatScript, resultatAttendu, rtol = RTOL, atol = ATOL, err_msg='Erreur')
         
     
 
