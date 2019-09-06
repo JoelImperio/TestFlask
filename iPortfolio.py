@@ -25,6 +25,9 @@ path = os.path.dirname(os.path.abspath(__file__))
 #Inputs global
 dateCalcul='20181231'
 
+
+dateFinCalcul='20521231'
+
 #Extraction du portefeuille de polices
 
 p=pd.read_csv(path+'/Portefeuille\Portfolio.csv')
@@ -41,9 +44,15 @@ def portfolioPreProcessing(p):
 #Formatage des colonnes et création des colonnes utiles    
 
     p['DateCalcul']=pd.to_datetime(dateCalcul)
+##On pense que la solution en commentaire est meilleure mais ptophet effectue l'autre
+#    p['DateFinCalcul']=p['POLDTEXP']
+    p['DateFinCalcul']=pd.to_datetime(dateFinCalcul)
+    
     p['POLDTDEB']= pd.to_datetime(p['POLDTDEB'].astype(str), format='%Y%m%d').dt.date
     p['POLDTEXP']= pd.to_datetime(p['POLDTEXP'].astype(str), format='%Y%m%d').dt.date
-    p['ProjectionMonths']=((pd.to_datetime(p['POLDTEXP'])-pd.to_datetime(p['DateCalcul']))/np.timedelta64(1,'M')).apply(np.ceil)+1
+    p['ProjectionMonths']=((pd.to_datetime(p['DateFinCalcul'])-pd.to_datetime(p['DateCalcul']))/np.timedelta64(1,'M')).apply(np.ceil)+1
+    
+    p['DurationIfInitial']=((pd.to_datetime(p['DateCalcul'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.ceil)+1
 
     return p
 
@@ -118,22 +127,50 @@ class Portfolio:
 
 #Permet de retourner une DF indexé par le temps de projection permet ensuite d'append les resultats de chaque police  
     def templateProjection(self): 
-        myTemplate=pd.date_range(start=self.p['DateCalcul'].min(), end=self.p['POLDTEXP'].max(), freq='M')
+        myTemplate=pd.date_range(start=self.p['DateCalcul'].min(), end=self.p['DateFinCalcul'].max(), freq='M')
         myTemplate=pd.DataFrame(myTemplate).set_index(0).transpose()            
         return myTemplate
 
+#####DEBUT DES VARIABLES DE CALCUL DES PROJECTIONS#################################################
 
-##############################ICI pour faire des tests sur la class##########################################################
+    def durationIf(self):
+        
+        durationInitial=p['DurationIfInitial'].to_numpy()
+        
+        durationInitial=durationInitial[:,np.newaxis,np.newaxis]
+        
+        increment=np.arange(0,policies.shape[1]/12,(1/12))
+        increment=increment[np.newaxis,:,np.newaxis]
+            
+        durIf=self.un
+        
+        durIf=durIf*durationInitial
+        
+        durIf=durIf+increment
+        
+        return durIf
+        
+        
+
+
+
+
+
+
+
+
+#####ICI pour faire des tests sur la class##########################################################
 
 policies=Portfolio()
-a=policies.template
+a=policies.durationIf()
+
 #b=policies.shape
 #c=policies.ids([301,2501])
 #d=policies.un
 #e=policies.shape
 #f=policies.rate()
 
-a.columns= a.columns.year
+
     
 
 

@@ -118,7 +118,16 @@ class Hypo:
         ratesPB=((1+rate)**12-1)-fixratePB
         
         return ratesPB
+    
+    def laspePerPolicy(self,police):
+
+        lapseRates=hyp.h.iloc[23:29,1:12]
+        lapseRates.columns = lapseRates.iloc[0]
+        lapseRates=lapseRates.drop(lapseRates.index[0])
+        lapseRates=lapseRates.set_index('Year')
         
+        a=p.p
+#        ARRONDI(JOURS360([@[Date début]];'Cash flows par police'!$C$4)/30;0)
     
 
 
@@ -127,16 +136,19 @@ class Hypo:
 myRun=[1,4,5]
 #myRun=[0,1,2,3,4,5]
 policies=Portfolio(runs=myRun)
-policies.mod([8,9])
+#policies.mod([8,9])
 shape=policies.shape
 
 hyp=Hypo(MyShape=shape, Run=myRun)
 
-#Ce que la classe peut faire
+###Ce que la classe peut faire
+
 a=hyp.fraisGestion()
-b=hyp.fraisGestionPlacement()
-c=hyp.rate()
-d=hyp.pbRate()
+#b=hyp.fraisGestionPlacement()
+#c=hyp.rate()
+#d=hyp.pbRate()
+
+#e=hyp.laspePerPolicy()
 
 
 
