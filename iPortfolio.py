@@ -68,7 +68,7 @@ class Portfolio:
         self.shape=list(self.un.shape)
 
 
-        from iHypothesis import Hypo
+#        from iHypothesis import Hypo
 #        self.lapse=Hypo(MyShape=self.shape,Run=runs,New=LapseNew).lapse()    
 #        self.waver=Hypo(MyShape=self.shape,Run=runs,New=LapseNew)
 #        self.rate=Hypo(MyShape=self.shape,Run=runs,New=RateNew)
@@ -127,13 +127,14 @@ class Portfolio:
 
 policies=Portfolio()
 a=policies.template
-b=policies.shape
-c=policies.ids([301,2501])
-d=policies.un
-e=policies.shape
+#b=policies.shape
+#c=policies.ids([301,2501])
+#d=policies.un
+#e=policies.shape
 #f=policies.rate()
 
-        
+a.columns= a.columns.year
+    
 
 
 

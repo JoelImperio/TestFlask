@@ -39,7 +39,7 @@ hTest=pd.ExcelFile(path  + '/TablesProphet 2018-12_Test.xls').parse("Hypothèses
 #Instenciation Des Class pour les tests
 
 pt=Portfolio(po=pTest)
-ht=Hypo(hy=hTest,MyShape=pt.shape)
+ht=Hypo(hy=hTest,MyShape=pt.shape, MyPortfolio=pt)
 
 
 cov=coverage.Coverage()
