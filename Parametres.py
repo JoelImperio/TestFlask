@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import os, os.path
 path = os.path.dirname(os.path.abspath(__file__))
-from iPortfolio import Portfolio
+from Portefeuille import Portfolio
 
 
 #Chargement des fichiers inputs contenant les hypothèses

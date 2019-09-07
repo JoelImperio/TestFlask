@@ -32,7 +32,32 @@ dateFinCalcul='20521231'
 
 p=pd.read_csv(path+'/Portefeuille\Portfolio.csv')
 
+#Permet de crée une colonne avec la classPGG
+def allocationClassPGG():
+    p['zero']=0   
+    dico=dict(zip(p['PMBMOD'],p['zero']))        
+    #Les listes de numéro représente les mod a allouer dans la catégorie
+    for i in [2,10,6,7]:
+        dico[i]='MI'       
+    for i in [1,11]:
+        dico[i]='VE'
+    for i in [3,4]:
+        dico[i]='TE'
+    for i in [25,26]:
+        dico[i]='PR'
+    for i in [8,9,12]:
+        dico[i]='FU'       
+    for i in [28,29,30,31,32,33,36]:      
+        dico[i]='EP'  
+    dico[58]='HO'
+    dico[70]='AX'
+    p['ClassPGG'] = p['PMBMOD'].map(dico)
+    p.loc[p['ClassPGG'].isin(['EP','MI']),'ClassPGG']= \
+    p.loc[p['ClassPGG'].isin(['EP','MI']),'ClassPGG'].map(str)+ \
+    p.loc[p['ClassPGG'].isin(['EP','MI']),'PMBTXINT'].map(str)
 
+    
+    
 
 def portfolioPreProcessing(p):
 
@@ -51,8 +76,9 @@ def portfolioPreProcessing(p):
     p['POLDTDEB']= pd.to_datetime(p['POLDTDEB'].astype(str), format='%Y%m%d').dt.date
     p['POLDTEXP']= pd.to_datetime(p['POLDTEXP'].astype(str), format='%Y%m%d').dt.date
     p['ProjectionMonths']=((pd.to_datetime(p['DateFinCalcul'])-pd.to_datetime(p['DateCalcul']))/np.timedelta64(1,'M')).apply(np.ceil)+1
-    
     p['DurationIfInitial']=((pd.to_datetime(p['DateCalcul'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.ceil)+1
+    allocationClassPGG()
+
 
     return p
 
@@ -77,7 +103,7 @@ class Portfolio:
         self.shape=list(self.un.shape)
 
 
-#        from iHypothesis import Hypo
+#        from Parametres import Hypo
 #        self.lapse=Hypo(MyShape=self.shape,Run=runs,New=LapseNew).lapse()    
 #        self.waver=Hypo(MyShape=self.shape,Run=runs,New=LapseNew)
 #        self.rate=Hypo(MyShape=self.shape,Run=runs,New=RateNew)
