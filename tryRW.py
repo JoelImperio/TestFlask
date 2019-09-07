@@ -2,13 +2,11 @@ import numpy as np
 import pandas as pd
 import time
 
-from iPortfolio import Portfolio
-from iHypothesis import Hypo
+from Portefeuille import Portfolio
+from Parametres import Hypo
 
 from MyPyliferisk import MortalityTable,qx
 from MyPyliferisk.mortalitytables import EKM05i
-
-#from ModX import MODX
 
 
 policies=Portfolio()

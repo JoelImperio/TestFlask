@@ -1,10 +1,10 @@
-from iPortfolio import Portfolio
-from iHypothesis import Hypo
+from Portefeuille import Portfolio
+from Parametres import Hypo
 import numpy as np
 import pandas as pd
 
 
-class MOD8_9(Portfolio):
+class FU(Portfolio):
     mods=[8,9]
     
     
@@ -13,7 +13,7 @@ class MOD8_9(Portfolio):
         self.p=self.mod(self.mods)
         
 
-sp=MOD8_9()       
+sp=FU()       
 b=sp.un
 c=sp.vide
 #d=sp.p

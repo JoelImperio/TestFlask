@@ -12,7 +12,7 @@ h1=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypothè
 #Importation d'une intance de Portfolio
 p=Portfolio()
 
-#Création de la class Portefeuille
+#Création de la class Hypothèse
 
 class Hypo:
     
@@ -32,7 +32,7 @@ class Hypo:
         self.securityMarginBio=1+self.h.iloc[48,2]
         self.inflation=1+self.h.iloc[49,2]
 
-#Retourne une template formaté pour tous les runs    
+# Retourne une template formaté pour tous les runs    
     def templateAllrun(self):             
         myShape=self.shape
         myShape[2]=(p.shape)[2]
@@ -40,7 +40,7 @@ class Hypo:
         return np.copy(result)
         
 
-#Retourne une template avec les années chaque mois
+# Retourne une template avec les années chaque mois
     def templateAllYear(self):
         
         model=p.template
@@ -48,7 +48,7 @@ class Hypo:
         model.columns=model.columns.year
         return model.transpose()
     
-#Retourne les frais de gestion par police
+# Retourne les frais de gestion par police
     def fraisGestion(self):
         
         fixfee=self.h.iloc[43,3]
@@ -78,7 +78,7 @@ class Hypo:
         
         return investCost
     
-#Cette fonction retourne un vecteur avec les taux d'intérêt mensuel 
+# Cette fonction retourne un vecteur avec les taux d'intérêt mensuel 
     def rate(self):
       
         rates=self.templateAllrun()       
@@ -118,7 +118,8 @@ class Hypo:
         ratesPB=((1+rate)**12-1)-fixratePB
         
         return ratesPB
-    
+
+# Taux de rachat dimensionné pour les runs et polices   
     def laspe(self):
 
         lapseRates=hyp.h.iloc[23:32,1:12]
@@ -133,16 +134,11 @@ class Hypo:
         
         
 
-        
-        
-        
-        
 
-#        ARRONDI(JOURS360([@[Date début]];'Cash flows par police'!$C$4)/30;0)
     
 
 
-##############################ICI pour faire des tests sur la class##########################################################
+#####ICI pour faire des tests sur la class##########################################################
 
 myRun=[1,4,5]
 #myRun=[0,1,2,3,4,5]
@@ -159,45 +155,21 @@ a=hyp.fraisGestion()
 #c=hyp.rate()
 #d=hyp.pbRate()
 
-#e=hyp.laspePerPolicy()
-
-
-
-
-
-
-
-
+#e=hyp.lapse()
 
 
 
 #A mettre en place:
 #    - Taux--> e/o
 #    - TauxPB--> e/o
-#    - Sinistralité
-#    - Lapse
-#    - Reduction
 #    - frais Gestion --> e/o
 #    - frais gestion placement--> e/o
+#    - Lapse
+#    - Reduction
+#    - Sinistralité
 #    - Commissions
-#    - Inflation
-#    - Faire test pour les vecteurs (notament Rates)
-
-
-#Tables :
-#-	Actu
-#-	Paramfrais: 2 types de frais
-#-	Global:mortalité d’expérience, sensibilité aux rachat, taux d’inflation
-#-	Rdt-est: taux de PB
-#-	Rachat: taux de rachat
-#-	Reducs: taux de réduction
-#-	Paramgticompl: taux de sinistralité
-#-	Paramcomm: commissions ? ou directement dans le portfolio ?
-#-  Date de calcul
-#
-#- Il y a les inputs en lien avec le run 
-#- Il y a des inputs généraux
-
+#    - Sensibilité aux rachats
+#    - mortalité d'expérience
 
 
 

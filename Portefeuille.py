@@ -5,30 +5,28 @@ import time
 import os, os.path
 path = os.path.dirname(os.path.abspath(__file__))
 
-#import pyodbc
-#
-#
-##Paramètres de connection
-#cnxn = pyodbc.connect(
-#    driver='{iSeries Access ODBC Driver}',
-#    system='10.254.25.1',
-#    uid='liviaplus',
-#    pwd='liviaplus')
-#
-#
-##Extraction du portefeuille des polices
-#
-#PortfolioQRY=open(r'Portefeuille\QRY.txt').read()
-#p=pd.read_sql(PortfolioQRY, cnxn)
-#p.to_csv(r'Portefeuille\Portfolio.csv')
+#Permet de recréer le fichier CSV du portefeuille en cas de modif de l'extraction
+def portfolioExtractionToCSV():
+    import pyodbc
+      
+    #Paramètres de connection
+    cnxn = pyodbc.connect(
+        driver='{iSeries Access ODBC Driver}',
+        system='10.254.25.1',
+        uid='liviaplus',
+        pwd='liviaplus')  
+    #Extraction du portefeuille des polices   
+    PortfolioQRY=open(r'Portefeuille\QRY.txt').read()
+    p=pd.read_sql(PortfolioQRY, cnxn)
+    #Copy l'extraction dans un CSV
+    p.to_csv(r'Portefeuille\Portfolio.csv')
 
 #Inputs global
 dateCalcul='20181231'
-
-
-dateFinCalcul='20521231'
+dateFinCalcul='20521231' #A mon avis doit être remplacer par date expiration des polices
 
 #Extraction du portefeuille de polices
+#portfolioExtractionToCSV()
 
 p=pd.read_csv(path+'/Portefeuille\Portfolio.csv')
 
@@ -49,16 +47,17 @@ def allocationClassPGG():
         dico[i]='FU'       
     for i in [28,29,30,31,32,33,36]:      
         dico[i]='EP'  
-    dico[58]='HO'
-    dico[70]='AX'
-    p['ClassPGG'] = p['PMBMOD'].map(dico)
-    p.loc[p['ClassPGG'].isin(['EP','MI']),'ClassPGG']= \
-    p.loc[p['ClassPGG'].isin(['EP','MI']),'ClassPGG'].map(str)+ \
-    p.loc[p['ClassPGG'].isin(['EP','MI']),'PMBTXINT'].map(str)
+    for i in [58]:
+        dico[i]='HO'
+    for i in [70]:
+        dico[i]='AX'
+    p['ClassPGGinit'] = p['PMBMOD'].map(dico)
+    p['ClassPGG']=p['ClassPGGinit']
+    p.loc[p['ClassPGGinit'].isin(['EP','MI']),'ClassPGG']= \
+    p.loc[p['ClassPGGinit'].isin(['EP','MI']),'ClassPGGinit'].map(str)+ \
+    p.loc[p['ClassPGGinit'].isin(['EP','MI']),'PMBTXINT'].map(str)
 
-    
-    
-
+#Permet de formater la dataframe des polices avant d'entrer dans la classe
 def portfolioPreProcessing(p):
 
 #Traitement des anomalies dans les données
@@ -69,6 +68,7 @@ def portfolioPreProcessing(p):
 #Formatage des colonnes et création des colonnes utiles    
 
     p['DateCalcul']=pd.to_datetime(dateCalcul)
+
 ##On pense que la solution en commentaire est meilleure mais ptophet effectue l'autre
 #    p['DateFinCalcul']=p['POLDTEXP']
     p['DateFinCalcul']=pd.to_datetime(dateFinCalcul)
@@ -82,14 +82,13 @@ def portfolioPreProcessing(p):
 
     return p
 
-
 p=portfolioPreProcessing(p)
-
 
 #Création de la class Portefeuille
 
 class Portfolio:
     
+
     
     def __init__(self,po=p,runs=[0,1,2,3,4,5], \
                  LapseNew=True,RateNew=True,SinistralityNew=True,CommissionNew=True,CostNew=True):

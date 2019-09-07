@@ -4,15 +4,12 @@ import unittest as ut
 import coverage
 import os, os.path
 path = os.path.dirname(os.path.abspath(__file__))
-
-
-from iPortfolio import Portfolio, portfolioPreProcessing
-from iHypothesis import Hypo
-
 from MyPyliferisk import MortalityTable,qx
 from MyPyliferisk.mortalitytables import EKM05i
 
-from Mod8_9 import MOD8_9
+from Portefeuille import Portfolio, portfolioPreProcessing
+from Parametres import Hypo
+from Produits import MOD8_9
 
 
 #Importation des données pour les tests
