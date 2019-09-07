@@ -109,6 +109,7 @@ class Portfolio:
         self.vide=self.vides()
         self.template= self.templateProjection()
         self.shape=list(self.un.shape)
+        self.runs=self.runs
         
 #Permet de créer un vecteur  rempli de 1 pour la taille de portefeuille et la durée de projection  
     def one(self):
