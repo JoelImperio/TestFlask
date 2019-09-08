@@ -51,7 +51,9 @@ def allocationClassPGG():
         dico[i]='HO'
     for i in [70]:
         dico[i]='AX'
+    #Creation des classes PGG génériques
     p['ClassPGGinit'] = p['PMBMOD'].map(dico)
+    #Creation des classesPGG avec txInt pour les EP et MI
     p['ClassPGG']=p['ClassPGGinit']
     p.loc[p['ClassPGGinit'].isin(['EP','MI']),'ClassPGG']= \
     p.loc[p['ClassPGGinit'].isin(['EP','MI']),'ClassPGGinit'].map(str)+ \

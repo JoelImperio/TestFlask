@@ -28,9 +28,9 @@ class Hypo:
             self.h=hy
         else:
             self.h=hy1
-        self.securityMarginMarge=1+self.h.iloc[47,2]
-        self.securityMarginBio=1+self.h.iloc[48,2]
-        self.inflation=1+self.h.iloc[49,2]
+        self.securityMarginMarge=1+self.h.iloc[53,2]
+        self.securityMarginBio=1+self.h.iloc[54,2]
+        self.inflation=1+self.h.iloc[55,2]
 
 # Retourne une template formaté pour tous les runs    
     def templateAllrun(self):             
@@ -51,7 +51,7 @@ class Hypo:
 # Retourne les frais de gestion par police
     def fraisGestion(self):
         
-        fixfee=self.h.iloc[43,3]
+        fixfee=self.h.iloc[49,3]
         
         adminCost=self.templateAllrun()
         
@@ -66,7 +66,7 @@ class Hypo:
     
     def fraisGestionPlacement(self):
         
-        fixfee=self.h.iloc[44,3]
+        fixfee=self.h.iloc[50,3]
 
         investCost=self.templateAllrun()
         
@@ -142,7 +142,7 @@ class Hypo:
 # Taux de pd annuel pour chaque mois de projection   
     def pbRate(self):
         
-        fixratePB=self.h.iloc[39,2]/100
+        fixratePB=self.h.iloc[45,2]/100
         
         rate=self.rate()
         
@@ -150,10 +150,12 @@ class Hypo:
         
         return ratesPB
 
-# Taux de rachat dimensionné pour les runs et polices   
+# Taux de rachat (anual rate) dimensionné pour les runs et polices   
     def lapse(self,policies):
 
-        
+ 
+        lapseSensiMoins=self.h.iloc[56,2]
+        lapseSensiPlus=self.h.iloc[57,2]       
         cl=p.p['ClassPGGinit']
         
         lapseRates=self.h.iloc[23:32,1:12]
@@ -175,8 +177,6 @@ class Hypo:
                       lapseRates[:,9,:] ]
         mylapse=np.select(condlist, choicelist)
 
-        lapseSensiMoins=self.h.iloc[50,2]
-        lapseSensiPlus=self.h.iloc[51,2]
         
         mylapse[:,:,[3,5]]=mylapse[:,:,[3,5]]*lapseSensiMoins
         mylapse[:,:,2]=mylapse[:,:,2]*lapseSensiPlus
@@ -185,13 +185,51 @@ class Hypo:
         sp=p.p.loc[p.p['PMBPOL'].isin(policies.p['PMBPOL'].values )]        
         pol=list(sp.index.values)
         
-        #Dimensionner pour les runs en appel    
+        #Dimensionner pour les runs et le portefeuille en appel    
         mylapse=np.take(mylapse, pol,axis=0)
         mylapse[:,:,self.run]
         
         return mylapse
 
+    def reduction(self,policies):
 
+# A vérifier si même sensibilité que rachat 
+        lapseSensiMoins=self.h.iloc[56,2]
+        lapseSensiPlus=self.h.iloc[57,2] 
+        
+        cl=p.p['ClassPGGinit']
+        reductionRates=self.h.iloc[34:43,1:12]
+        reductionRates.columns = reductionRates.iloc[0]
+        reductionRates=reductionRates.drop(reductionRates.index[0])
+        reductionRates=reductionRates.set_index('Year').transpose()
+        reductionRates=reductionRates[cl].transpose().to_numpy()
+        reductionRates=reductionRates[:,:,np.newaxis,np.newaxis]
+
+        dur=p.durationIf()      
+      
+
+        condlist = [dur<12,dur<24,dur<36,dur<48,dur<60, 
+                    dur<72,dur<84,dur<96,dur<108, 
+                    dur>120]
+        choicelist = [reductionRates[:,0,:],reductionRates[:,1,:],reductionRates[:,2,:], 
+                      reductionRates[:,3,:],reductionRates[:,4,:],reductionRates[:,5,:], 
+                      reductionRates[:,6,:],reductionRates[:,7,:],reductionRates[:,8,:], 
+                      reductionRates[:,9,:] ]
+        myReduction=np.select(condlist, choicelist)
+
+        
+        myReduction[:,:,[3,5]]=myReduction[:,:,[3,5]]*lapseSensiMoins
+        myReduction[:,:,2]=myReduction[:,:,2]*lapseSensiPlus
+       
+        
+        sp=p.p.loc[p.p['PMBPOL'].isin(policies.p['PMBPOL'].values )]      
+        pol=list(sp.index.values)
+        
+        #Dimensionner pour les runs et le portefeuille en appel    
+        myReduction=np.take(myReduction, pol,axis=0)
+        myReduction[:,:,self.run]
+        
+        return myReduction
 
     
 
@@ -201,7 +239,7 @@ class Hypo:
 myRun=[1,4,5]
 #myRun=[0,1,2,3,4,5]
 policies=Portfolio(runs=myRun)
-policies.mod([8,9])
+policies.mod([2])
 shape=policies.shape
 
 hyp=Hypo(MyShape=shape, Run=myRun)
@@ -213,13 +251,14 @@ hyp=Hypo(MyShape=shape, Run=myRun)
 #c=hyp.rate()
 #d=hyp.pbRate()
 #e=hyp.lapse(policies)
-f=hyp.ipt()
-g=hyp.dcAccident()
-h=hyp.exo()
-i=hyp.itt()
-j=hyp.hospi()
-k=hyp.dc()
-l=hyp.fraisVisite()
+#f=hyp.ipt()
+#g=hyp.dcAccident()
+#h=hyp.exo()
+#i=hyp.itt()
+#j=hyp.hospi()
+#k=hyp.dc()
+#l=hyp.fraisVisite()
+#m=hyp.reduction(policies)
 
 
 #A mettre en place:
@@ -228,11 +267,10 @@ l=hyp.fraisVisite()
 #    - frais Gestion --> e/o
 #    - frais gestion placement--> e/o
 #    - Lapse--> e/o
-#    - Reduction
-#    - Sinistralité
+#    - Reduction-->e/o
+#    - Sinistralité-->e/o
 #    - Commissions
-#    - Sensibilité aux rachats
-#    - mortalité d'expérience
+
 
 
 
