@@ -18,7 +18,7 @@ a=policies.p
 #c=policies.p
 
 
-
+#f=pd.Panel(e).to_frame().transpose()
 
 
 #mt=MortalityTable(nt=EKM05i)

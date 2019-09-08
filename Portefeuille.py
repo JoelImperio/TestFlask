@@ -161,7 +161,7 @@ class Portfolio:
 
     def durationIf(self):
         
-        durationInitial=p['DurationIfInitial'].to_numpy()
+        durationInitial=self.p['DurationIfInitial'].to_numpy()
         
         durationInitial=durationInitial[:,np.newaxis,np.newaxis]
         

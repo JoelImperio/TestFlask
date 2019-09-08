@@ -78,6 +78,37 @@ class Hypo:
         
         return investCost
     
+    def templateSinistrality(self,a):
+        
+        bestEstimate=self.h.iloc[a,3]
+        bePlusMarge=self.h.iloc[a,4]
+        bioEtFrais=self.h.iloc[a,5]
+
+        sin=self.templateAllrun()
+        
+        sin[:,:,:4]=bestEstimate
+        sin[:,:,4]=bePlusMarge
+        sin[:,:,5]=bioEtFrais
+        #Dimensionner pour les runs en appel    
+        sin=sin[:,:,self.run]
+        
+        return sin
+
+    def ipt(self):
+        return self.templateSinistrality(14)
+    def dcAccident(self):
+        return self.templateSinistrality(15)
+    def exo(self):
+        return self.templateSinistrality(16)
+    def itt(self):
+        return self.templateSinistrality(17)
+    def hospi(self):
+        return self.templateSinistrality(18)
+    def dc(self):
+        return self.templateSinistrality(19)
+    def fraisVisite(self):
+        return self.templateSinistrality(20)
+    
 # Cette fonction retourne un vecteur avec les taux d'intérêt mensuel 
     def rate(self):
       
@@ -120,19 +151,46 @@ class Hypo:
         return ratesPB
 
 # Taux de rachat dimensionné pour les runs et polices   
-    def laspe(self):
+    def lapse(self,policies):
 
-        lapseRates=hyp.h.iloc[23:32,1:12]
+        
+        cl=p.p['ClassPGGinit']
+        
+        lapseRates=self.h.iloc[23:32,1:12]
         lapseRates.columns = lapseRates.iloc[0]
         lapseRates=lapseRates.drop(lapseRates.index[0])
-        lapseRates=lapseRates.set_index('Year')
-        
-        mySize=list(hyp.un.shape)
-        
+        lapseRates=lapseRates.set_index('Year').transpose()
+        lapseRates=lapseRates[cl].transpose().to_numpy()
+        lapseRates=lapseRates[:,:,np.newaxis,np.newaxis]
+
         dur=p.durationIf()
-        dur=dur[:mySize[0],:mySize[1],:mySize[2]]
         
+
+        condlist = [dur<12,dur<24,dur<36,dur<48,dur<60, 
+                    dur<72,dur<84,dur<96,dur<108, 
+                    dur>120]
+        choicelist = [lapseRates[:,0,:],lapseRates[:,1,:],lapseRates[:,2,:], 
+                      lapseRates[:,3,:],lapseRates[:,4,:],lapseRates[:,5,:], 
+                      lapseRates[:,6,:],lapseRates[:,7,:],lapseRates[:,8,:], 
+                      lapseRates[:,9,:] ]
+        mylapse=np.select(condlist, choicelist)
+
+        lapseSensiMoins=self.h.iloc[50,2]
+        lapseSensiPlus=self.h.iloc[51,2]
         
+        mylapse[:,:,[3,5]]=mylapse[:,:,[3,5]]*lapseSensiMoins
+        mylapse[:,:,2]=mylapse[:,:,2]*lapseSensiPlus
+       
+        
+        sp=p.p.loc[p.p['PMBPOL'].isin(policies.p['PMBPOL'].values )]        
+        pol=list(sp.index.values)
+        
+        #Dimensionner pour les runs en appel    
+        mylapse=np.take(mylapse, pol,axis=0)
+        mylapse[:,:,self.run]
+        
+        return mylapse
+
 
 
     
@@ -150,13 +208,18 @@ hyp=Hypo(MyShape=shape, Run=myRun)
 
 ###Ce que la classe peut faire
 
-a=hyp.fraisGestion()
+#a=hyp.fraisGestion()
 #b=hyp.fraisGestionPlacement()
 #c=hyp.rate()
 #d=hyp.pbRate()
-
-#e=hyp.lapse()
-
+#e=hyp.lapse(policies)
+f=hyp.ipt()
+g=hyp.dcAccident()
+h=hyp.exo()
+i=hyp.itt()
+j=hyp.hospi()
+k=hyp.dc()
+l=hyp.fraisVisite()
 
 
 #A mettre en place:
@@ -164,7 +227,7 @@ a=hyp.fraisGestion()
 #    - TauxPB--> e/o
 #    - frais Gestion --> e/o
 #    - frais gestion placement--> e/o
-#    - Lapse
+#    - Lapse--> e/o
 #    - Reduction
 #    - Sinistralité
 #    - Commissions
