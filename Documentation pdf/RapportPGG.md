@@ -41,7 +41,9 @@ keywords: [Markdown, Example]
     * 4.3 [Sinistralité des complémentaires](#sincompl)
     
     * 4.4 [Nombre de rachat](#nblapse)
-    
+        + 4.4.1 [Produits sans réduction possible](#lapsesansred)
+        + 4.4.2 [Produits avec réduction possible](#lapseavecred)
+        
     * 4.5 [Nombre de réduction](#nbred)
     
     * 4.6 [Reserves et valeur de rachat](#resVR)
@@ -143,7 +145,7 @@ Expliquer comment l'annulation est impacté dans le modèle
 
 
 
-# Calcul des variables utilisée <a name="var"></a>
+# Calcul des variables utilisées <a name="var"></a>
 
 Les diverses variables utilisée pour calculer le "Best estimated liabilities" varient en fonction du produit. En effet, le calcul des probabilités que la police soit toujours en vigueur va dépendre si il y a possibilité de réduction pour le produit en question.
 
@@ -198,7 +200,36 @@ Le calcul de la sinistralité va également dépendre du produit. Tout les sinis
  Ces produits ont une sinistralité qui va dépendre des probabilités de décès mais aussi de l'hypothèse de mortalité d'expérience. Pour tout les autres produits, la sinistralité va donc dépendre de l'hypothèse de sinistralité ainsi que du montant des primes.
  
  
-    
-    
+## Sinistralité des complémentaires <a name="sincompl"></a>
+ 
+Le taux de sinistralité des complémentaires est défini dans les hypothèses. La sinistralité des complémentaires sera donc déterminée en fonction de ce taux ainsi que de la prime complémentaire en question
+ 
+ 
+## Nombre de rachat <a name="nblapse"></a>
 
+Le calcul du nombre de rachat sera différent si un produit permet la réduction ou non.
 
+### Nombre de rachat : Produits sans réduction possible <a name="lapsesansred"></a>
+    
+Nous avons la probabilité de décès mensuel $qx^m$ qui est défini par
+
+\begin{equation}
+  qx^m = 1-(1-qx)^{1/12}
+\end{equation}
+
+avec
+
+\begin{equation}
+  {\Pi}_{t} = Inforce probability au temps t
+\end{equation}
+et
+\begin{equation}
+  W_{t} = Annual lapse probability au temps t
+  W^m_{t} = Monthly lapse probability
+\end{equation}
+
+nous aurons alors le nombre de lapse $Lapse$
+
+\begin{equation}
+  Lapse_t = {\Pi}_{t-1} * qx^m*(1-)
+\end{equation}
