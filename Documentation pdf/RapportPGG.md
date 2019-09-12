@@ -1,4 +1,8 @@
 
+
+
+
+
 ---
 title: "Modèle PGG en Python"
 author: [Joël Da Costa Oliveira, Robin Wengi, Fredéric Tauxe]
@@ -30,7 +34,7 @@ keywords: [Markdown, Example]
 
 - 4 [Calcul des variables utilisée](#var)
 
-    * 4.1 [Inforce](#Force3)
+    * 4.1 [Inforce probability](#inforce)
 
     * 4.2 [Sinistralité par produit](#nbm)
     
@@ -96,7 +100,7 @@ Modèle de frais, coût par produit, inflation des coûts
 Sinistralité utilisées ici
 
 
-
+\newpage.
 
 
 # Scénarios <a name="scenario"></a>
@@ -133,6 +137,11 @@ Expliquer comment l'annulation est impacté dans le modèle
 
 Expliquer comment l'annulation est impacté dans le modèle
 
+\newpage.
+
+
+
+
 
 # Calcul des variables utilisée <a name="var"></a>
 
@@ -142,71 +151,54 @@ La sinistralité va également dépendre si celle-ci est calculée avec un taux 
 
 En ce qui concerne les reserves ainsi que les valeur de rachat, ces valeurs seront calculées en fonction de chaque produit.
 
+## Inforce probability <a name="inforce"></a>
 
+Calcul des inforce probability. Il existe deux calculs pour connaître les inforce probability qui dépend du produits. Il y a donc les produits sans possibilité de réduction, et les produits avec possibilité de réduction.
 
+### Inforce pour les produits sans possibilité de réduction
 
+Ici on insère le calcul 
 
+### Inforce pour les produits avec possibilité de réduction
 
+Ici on insère le calcul 
 
-
-
-
-
-## Equation de test <a name="subparagraph1"></a>
-
-![equation](https://latex.codecogs.com/gif.latex?\sum&space;{x_{i}}^{})
-
-# WOW Magnifique
-
-## Mon image <a name="chevre"></a>
-
-![maxresdefault](https://user-images.githubusercontent.com/52786448/64136301-f521f800-cdf0-11e9-83ab-a1714ed7487b.jpg)
-
-
-# Titre 1
-
-## Titre 2
-
-### Titre 3
-
-#### Titre 4
-Texte du titre 4
-
-Ici j'ajoute une table
-
-|   | hh |    |   |   |
-|---|----|---:|---|---|
-|   |    |    | h |   |
-|   |    | ff |   |   |
-|   |    |    |   |   |
-
-Et une équation
-Thèse
- 
- J'ajoute ça sur bracket
- 
-![Monéeuqation](https://latex.codecogs.com/gif.latex?\sum_{1}^{44}\alpha&space;^{j})
-
-
-
-# Titre new
-* une puce
-* une autre
-    * une sous puce
+``` python
+class FU(Portfolio):
+    mods=[8,9]
     
-1. Numérotation
-2. Numéro2
-3. Etc...
+    def __init__(self):
+        super().__init__()
+        self.p=self.mod(self.mods)
+        
+on peut insérer du code python avec ce format
+```
 
-> Je cite un texte ici
->
-Citation du futur
+Exemple d'ajout de calcul Latex :
 
->> Réponse à cette citation
+La fonction $f$ est définie par
 
-Rendez-vous sur le [Site du Zéro](http://www.siteduzero.com) pour tout apprendre à partir de Zéro !
+\begin{equation}
+  f(x) = x-1
+\end{equation}
 
-# Les images de frankenstein
- ![Nomdemonimage](https://i2.wp.com/l-express.ca/wp-content/uploads/2018/01/Frankenstein-9-janvier.jpg?w=300&ssl=1)
+On a alors
+\begin{equation}
+   f(x) = 0 \iff x = 1
+\end{equation}
+
+
+## Sinistralité par produit  <a name="nbm"></a>
+
+Le calcul de la sinistralité va également dépendre du produit. Tout les sinistres de nos produits (hors rachat) sont calculés avec un taux de sinitralité/primes, à l'exception des produits suivants:
+
+ - Funérailles modalité 8 et 9
+ - Autre produits ???
  
+ Ces produits ont une sinistralité qui va dépendre des probabilités de décès mais aussi de l'hypothèse de mortalité d'expérience. Pour tout les autres produits, la sinistralité va donc dépendre de l'hypothèse de sinistralité ainsi que du montant des primes.
+ 
+ 
+    
+    
+
 
