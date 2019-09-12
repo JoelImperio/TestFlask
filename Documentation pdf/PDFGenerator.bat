@@ -1,1 +1,1 @@
-a: & cd 01 - Reserving\PGG\PGGenPython\JOmyPGG\MyPGG1\Documentation pdf & pandoc README.md -o testpdf.pdf
+a: & cd 01 - Reserving\PGG\PGGenPython\JOmyPGG\MyPGG1\Documentation pdf & pandoc RapportPGG.md -o testpdf.pdf
