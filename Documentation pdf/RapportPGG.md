@@ -200,10 +200,13 @@ Le calcul de la sinistralité va également dépendre du produit. Tout les sinis
  Ces produits ont une sinistralité qui va dépendre des probabilités de décès mais aussi de l'hypothèse de mortalité d'expérience. Pour tout les autres produits, la sinistralité va donc dépendre de l'hypothèse de sinistralité ainsi que du montant des primes.
  
  
+ \newpage.
+ 
 ## Sinistralité des complémentaires <a name="sincompl"></a>
  
 Le taux de sinistralité des complémentaires est défini dans les hypothèses. La sinistralité des complémentaires sera donc déterminée en fonction de ce taux ainsi que de la prime complémentaire en question
  
+ \newpage.
  
 ## Nombre de rachat <a name="nblapse"></a>
 
@@ -217,19 +220,92 @@ Nous avons la probabilité de décès mensuel $qx^m$ qui est défini par
   qx^m = 1-(1-qx)^{1/12}
 \end{equation}
 
-avec
+avec ${\Pi}_{t}$ la probabilité au temps $t$ que la police soit toujours en vigueur au temps $t+1$, $W_{t}$ la probabilité au temps $t$ qu'une police soit annulée au temps $t+1$ ainsi que $W^m_{t}$ la probabilité au temps $t$ que la police soit annulée au temps $t + 1/12$ (au mois prochain).
+
+$W_{t}$ vien des hypothèses de rachat. Nous trouvons la probabilité d'annulation mensuel
 
 \begin{equation}
-  {\Pi}_{t} = Inforce probability au temps t
-\end{equation}
-et
-\begin{equation}
-  W_{t} = Annual lapse probability au temps t
-  W^m_{t} = Monthly lapse probability
+ W^m_{t} = 1-(1-W_{t})^{1/12} 
 \end{equation}
 
-nous aurons alors le nombre de lapse $Lapse$
+
+
+nous avons ensuite le nombre d'annulation $Surr_t$ au temps t
 
 \begin{equation}
-  Lapse_t = {\Pi}_{t-1} * qx^m*(1-)
+  Surr_t = {\Pi}_{t-1} W^m_{t}(1- \frac{qx^m}{2})
 \end{equation}
+
+
+### Nombre de rachat : produit avec réduction possible <a name="lapseavecred"></a>
+
+Lorsque la réduction est possible nous aurons différents états possible :
+
+- Police réduite
+- Police en vigueur
+- Police annulée
+
+Nous devons donc connaître :
+
+- Le nombre de survivants pour une police non réduite
+- Le nombre de nouvelles réductions pour une police en vigueur
+- Le nombre total de polices réduites
+- Le nombre d'annulation pour une police en vigueur
+- Le nombre d'annulation pour une police réduite
+- Le nombre de décès pour une police en vigueur
+- Le nombre de décès pour une police réduite
+
+
+Nous avons les variables $qx$, $W_t$, $R_t$ venant des hypothèses, avec $R_t$ la probabilité qu'une police en vigueur soit réduite au temps $t+1$ et $frac$ étant le fractionnement de la police.
+
+Nous trouvons d'abord $R_t^m$ la probabilité mensuelle de réduction
+
+\begin{equation}
+  R_t^m = 1-(1-R_t)^{1/frac}
+\end{equation}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+   \newpage. 
+    
+    
+# Annexes <a name="annexes"></a>
+
+$qx$ : probabilité de décès annuel pour une personne agée de $x$ années
+
+$W_t$ : probabilité qu'une police en vigueur au temps $t$ soit annulée au temps $t+1$
+
+$frac$ : fractionnement de la police
