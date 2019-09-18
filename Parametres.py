@@ -309,6 +309,7 @@ nn=pd.DataFrame(data=data[1:,1:,1],index=data[1:,0,1],columns=data[0,1:,1]).tran
 #    - Commissions--> e/o
 
 #Attention à revoir les condi list de Lapse,Reduction et Commissions à mettre en lien avec DurationIf aussi à corriger
+#les durationIf n'ont pas la même unité de temps que les conditions
 
 
 
