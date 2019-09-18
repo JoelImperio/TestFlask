@@ -190,6 +190,7 @@ class Portfolio:
 #####ICI pour faire des tests sur la class##########################################################
 
 policies=Portfolio()
+c=policies.ids([697003])
 a=policies.durationIf()
 
 #b=policies.shape

@@ -170,7 +170,7 @@ class Hypo:
 
         condlist = [dur<12,dur<24,dur<36,dur<48,dur<60, 
                     dur<72,dur<84,dur<96,dur<108, 
-                    dur>120]
+                    dur>108]
         choicelist = [lapseRates[:,0,:],lapseRates[:,1,:],lapseRates[:,2,:], 
                       lapseRates[:,3,:],lapseRates[:,4,:],lapseRates[:,5,:], 
                       lapseRates[:,6,:],lapseRates[:,7,:],lapseRates[:,8,:], 
@@ -210,7 +210,7 @@ class Hypo:
 
         condlist = [dur<12,dur<24,dur<36,dur<48,dur<60, 
                     dur<72,dur<84,dur<96,dur<108, 
-                    dur>120]
+                    dur>=108]
         choicelist = [reductionRates[:,0,:],reductionRates[:,1,:],reductionRates[:,2,:], 
                       reductionRates[:,3,:],reductionRates[:,4,:],reductionRates[:,5,:], 
                       reductionRates[:,6,:],reductionRates[:,7,:],reductionRates[:,8,:], 
@@ -230,16 +230,49 @@ class Hypo:
         myReduction[:,:,self.run]
         
         return myReduction
+    
+    def commissions(self,policies):
+        
+        cl=p.p['PMBMOD']
+        
+        commissionsRates=self.h.iloc[61:85,1:7]
+        commissionsRates.columns = commissionsRates.iloc[0]
+        commissionsRates=commissionsRates.drop(commissionsRates.index[0])
+        commissionsRates=commissionsRates.set_index('Modalité').transpose()
+        commissionsRates=commissionsRates[cl].transpose().to_numpy()
+        commissionsRates=commissionsRates[:,:,np.newaxis,np.newaxis]
+        
+        dur=p.durationIf()      
+      
+
+        condlist = [dur<12,dur<24,dur<36, \
+                    dur<48,dur>=48]
+        
+        choicelist = [commissionsRates[:,0,:],commissionsRates[:,1,:],commissionsRates[:,2,:], \
+                      commissionsRates[:,3,:],commissionsRates[:,4,:]]
+        
+        myCommissions=np.select(condlist, choicelist)
+
+        
+        sp=p.p.loc[p.p['PMBPOL'].isin(policies.p['PMBPOL'].values )]      
+        pol=list(sp.index.values)
+        
+        #Dimensionner pour les runs et le portefeuille en appel    
+        myCommissions=np.take(myCommissions, pol,axis=0)
+        myCommissions[:,:,self.run]
+        
+        return myCommissions
 
     
 
 
 #####ICI pour faire des tests sur la class##########################################################
 
-myRun=[1,4,5]
+myRun=[1]
 #myRun=[0,1,2,3,4,5]
 policies=Portfolio(runs=myRun)
-policies.mod([2])
+#policies.mod([8])
+policies.ids([697003])
 shape=policies.shape
 
 hyp=Hypo(MyShape=shape, Run=myRun)
@@ -250,7 +283,7 @@ hyp=Hypo(MyShape=shape, Run=myRun)
 #b=hyp.fraisGestionPlacement()
 #c=hyp.rate()
 #d=hyp.pbRate()
-#e=hyp.lapse(policies)
+e=hyp.lapse(policies)
 #f=hyp.ipt()
 #g=hyp.dcAccident()
 #h=hyp.exo()
@@ -258,8 +291,12 @@ hyp=Hypo(MyShape=shape, Run=myRun)
 #j=hyp.hospi()
 #k=hyp.dc()
 #l=hyp.fraisVisite()
-#m=hyp.reduction(policies)
+m=hyp.reduction(policies)
+n=hyp.commissions(policies)
 
+
+data=e
+nn=pd.DataFrame(data=data[1:,1:,1],index=data[1:,0,1],columns=data[0,1:,1]).transpose()
 
 #A mettre en place:
 #    - Taux--> e/o
@@ -269,7 +306,9 @@ hyp=Hypo(MyShape=shape, Run=myRun)
 #    - Lapse--> e/o
 #    - Reduction-->e/o
 #    - Sinistralité-->e/o
-#    - Commissions
+#    - Commissions--> e/o
+
+#Attention à revoir les condi list de Lapse,Reduction et Commissions à mettre en lien avec DurationIf aussi à corriger
 
 
 
