@@ -170,7 +170,7 @@ class Hypo:
 
         condlist = [dur<12,dur<24,dur<36,dur<48,dur<60, 
                     dur<72,dur<84,dur<96,dur<108, 
-                    dur>108]
+                    dur>=108]
         choicelist = [lapseRates[:,0,:],lapseRates[:,1,:],lapseRates[:,2,:], 
                       lapseRates[:,3,:],lapseRates[:,4,:],lapseRates[:,5,:], 
                       lapseRates[:,6,:],lapseRates[:,7,:],lapseRates[:,8,:], 
@@ -191,6 +191,7 @@ class Hypo:
         
         return mylapse
 
+# Taux de réduction (anual rate) dimensionné pour les runs et polices  
     def reduction(self,policies):
 
 # A vérifier si même sensibilité que rachat 
@@ -230,7 +231,8 @@ class Hypo:
         myReduction[:,:,self.run]
         
         return myReduction
-    
+
+# Taux de commissions (anual rate) dimensionné pour les runs et polices (inclus les commissions de gestion)     
     def commissions(self,policies):
         
         cl=p.p['PMBMOD']
@@ -268,11 +270,11 @@ class Hypo:
 
 #####ICI pour faire des tests sur la class##########################################################
 
-myRun=[1]
-#myRun=[0,1,2,3,4,5]
+#myRun=[1]
+myRun=[0,1,2,3,4,5]
 policies=Portfolio(runs=myRun)
 #policies.mod([8])
-policies.ids([697003])
+#policies.ids([2401101])
 shape=policies.shape
 
 hyp=Hypo(MyShape=shape, Run=myRun)
@@ -283,7 +285,7 @@ hyp=Hypo(MyShape=shape, Run=myRun)
 #b=hyp.fraisGestionPlacement()
 #c=hyp.rate()
 #d=hyp.pbRate()
-e=hyp.lapse(policies)
+#e=hyp.lapse(policies)
 #f=hyp.ipt()
 #g=hyp.dcAccident()
 #h=hyp.exo()
@@ -294,9 +296,10 @@ e=hyp.lapse(policies)
 m=hyp.reduction(policies)
 n=hyp.commissions(policies)
 
+#Visualiser un vecteur np en réduisant une dimension
+data=n
+a=pd.DataFrame(data[:,:,1]).transpose()
 
-data=e
-nn=pd.DataFrame(data=data[1:,1:,1],index=data[1:,0,1],columns=data[0,1:,1]).transpose()
 
 #A mettre en place:
 #    - Taux--> e/o
@@ -308,8 +311,6 @@ nn=pd.DataFrame(data=data[1:,1:,1],index=data[1:,0,1],columns=data[0,1:,1]).tran
 #    - Sinistralité-->e/o
 #    - Commissions--> e/o
 
-#Attention à revoir les condi list de Lapse,Reduction et Commissions à mettre en lien avec DurationIf aussi à corriger
-#les durationIf n'ont pas la même unité de temps que les conditions
 
 
 

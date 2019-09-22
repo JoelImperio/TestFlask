@@ -78,7 +78,7 @@ def portfolioPreProcessing(p):
     p['POLDTDEB']= pd.to_datetime(p['POLDTDEB'].astype(str), format='%Y%m%d').dt.date
     p['POLDTEXP']= pd.to_datetime(p['POLDTEXP'].astype(str), format='%Y%m%d').dt.date
     p['ProjectionMonths']=((pd.to_datetime(p['DateFinCalcul'])-pd.to_datetime(p['DateCalcul']))/np.timedelta64(1,'M')).apply(np.ceil)+1
-    p['DurationIfInitial']=((pd.to_datetime(p['DateCalcul'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.ceil)+1
+    p['DurationIfInitial']=((pd.to_datetime(p['DateCalcul'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.ceil)
     allocationClassPGG()
 
 
@@ -167,7 +167,7 @@ class Portfolio:
         
         durationInitial=durationInitial[:,np.newaxis,np.newaxis]
         
-        increment=np.arange(0,policies.shape[1]/12,(1/12))
+        increment=np.arange(0,policies.shape[1],1)
         increment=increment[np.newaxis,:,np.newaxis]
             
         durIf=self.un
@@ -190,7 +190,7 @@ class Portfolio:
 #####ICI pour faire des tests sur la class##########################################################
 
 policies=Portfolio()
-c=policies.ids([697003])
+c=policies.ids([2401101])
 a=policies.durationIf()
 
 #b=policies.shape
