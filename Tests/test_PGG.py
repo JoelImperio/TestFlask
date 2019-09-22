@@ -9,7 +9,7 @@ from MyPyliferisk.mortalitytables import EKM05i
 
 from Portefeuille import Portfolio, portfolioPreProcessing
 from Parametres import Hypo
-from Produits import MOD8_9
+from Produits import FU
 
 
 #Importation des données pour les tests
@@ -36,8 +36,7 @@ hTest=pd.ExcelFile(path  + '/TablesProphet 2018-12_Test.xls').parse("Hypothèses
 #Instenciation Des Class pour les tests
 
 pt=Portfolio(po=pTest)
-ht=Hypo(hy=hTest,MyShape=pt.shape, MyPortfolio=pt)
-
+ht=Hypo(hy=hTest,MyShape=pt.shape)
 
 cov=coverage.Coverage()
 cov.start()
@@ -71,7 +70,7 @@ class TestCoherenceGlobal(ut.TestCase):
 
 
 #Test spécifique au produit X
-class TestResultatsMod8_9(ut.TestCase):
+class TestResultatsFU(ut.TestCase):
 
     DataProphetMOD8_9 = DataProphet.filter(regex='MOD8_9')
     
