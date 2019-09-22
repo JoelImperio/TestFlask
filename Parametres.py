@@ -274,7 +274,8 @@ class Hypo:
 myRun=[0,1,2,3,4,5]
 policies=Portfolio(runs=myRun)
 #policies.mod([8])
-#policies.ids([2401101])
+policies.ids([2401101])
+
 shape=policies.shape
 
 hyp=Hypo(MyShape=shape, Run=myRun)
@@ -293,12 +294,12 @@ hyp=Hypo(MyShape=shape, Run=myRun)
 #j=hyp.hospi()
 #k=hyp.dc()
 #l=hyp.fraisVisite()
-m=hyp.reduction(policies)
-n=hyp.commissions(policies)
+#m=hyp.reduction(policies)
+#n=hyp.commissions(policies)
 
-#Visualiser un vecteur np en réduisant une dimension
-data=n
-a=pd.DataFrame(data[:,:,1]).transpose()
+###Visualiser un vecteur np en réduisant une dimension
+#data=n
+#aa=pd.DataFrame(data[:,:,1])
 
 
 #A mettre en place:
