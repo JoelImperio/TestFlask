@@ -99,7 +99,7 @@ Modèle de frais, coût par produit, inflation des coûts
 
 ## Sinistralité <a name="sin"></a>
 
-Sinistralité utilisées ici
+Sinistralité utilisées ici ainsi que la mortalité d'expérience
 
 
 \newpage.
