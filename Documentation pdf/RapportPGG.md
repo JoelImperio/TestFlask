@@ -155,7 +155,7 @@ En ce qui concerne les reserves ainsi que les valeur de rachat, ces valeurs sero
 
 ## Inforce probability <a name="inforce"></a>
 
-Calcul des inforce probability. Il existe deux calculs pour connaître les inforce probability qui dépend du produits. Il y a donc les produits sans possibilité de réduction, et les produits avec possibilité de réduction.
+Calcul des inforce probability. Il existe deux façon de calculer les inforce probability qui va dépendre du produits. Il y a donc les produits sans possibilité de réduction et les produits avec possibilité de réduction.
 
 ### Inforce pour les produits sans possibilité de réduction
 
@@ -258,14 +258,16 @@ Nous devons donc connaître :
 
 Nous avons les variables $qx$, $W_t$, $R_t$ venant des hypothèses, avec $R_t$ la probabilité qu'une police en vigueur soit réduite au temps $t+1$ et $frac$ étant le fractionnement de la police.
 
-Nous trouvons d'abord $R_t^m$ la probabilité mensuelle de réduction
+Nous trouvons d'abord $death_t^m$ le nombre de décès mensuel au temps t. Avec $IFnotR_t$ étant le nombre de police en vigueur non réduite au temps t
+
 
 \begin{equation}
-  R_t^m = 1-(1-R_t)^{1/frac}
+  death_t^m = qx^m  IFnotR_{t-1} (1-\frac{W^m_{t}}{2})      
 \end{equation}
 
+pour tout $t > 1$
 
-
+en sachant que $IFnotR_t = 1$ au temps $t = 0$
 
 
 
