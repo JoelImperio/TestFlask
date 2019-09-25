@@ -1,0 +1,274 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{listings}
+\usepackage{xcolor}
+
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.97,0.97,0.97}
+\definecolor{magenta}{rgb}{0,0.6,0} 
+ 
+ 
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+ 
+\lstset{style=mystyle}
+
+\usepackage[french]{babel}
+\begin{document}
+
+
+
+
+\title{Modèle PGG en Python}
+\author{Joël Da Costa Oliveira,\\
+   Robin Wengi,\\
+   Frédéric Tauxe\\}
+\date{\today}
+
+\maketitle
+
+
+
+\newpage
+\tableofcontents
+\newpage
+
+\section{Introduction}
+
+L'objectif de cette documentation est d'expliquer le fonctionnement du modèle de calcul de la provision global de gestion.
+
+\newpage
+
+\section{Les inputs}
+
+Déscription des inputs issue du portefeuille extrait sur python
+
+\newpage
+
+\section{Les hypothèses utilisées}
+
+Explication brève des hypothèses, résumé la façon dont ces hypothèses sont calculées sans entrer dans les détails.
+
+\subsection{Taux de chute}
+
+Hypothèses de lapse ici
+
+\subsection{Courbe de rendement}
+
+Courbe de rendement ici
+
+\subsection{Coûts}
+
+Modèle de frais, coût par produit, inflation des coûts
+
+\subsection{Sinistralité}
+
+Sinistralité utilisées ici ainsi que la mortalité d'expérience
+
+
+\newpage
+\section{Les scénarios}
+Explication brève des scénarios, expliquer la façon dont les hypothèses sont stressée dans le modèle.
+
+\subsection{Scénario 0}
+Pas grand chose à dire, modèle de base
+
+\subsection{Scénario 1}
+Explication du stress des hypothèse pour ce scénario
+
+\subsection{Scénario 2}
+Explication du stress des hypothèse pour ce scénario
+
+\subsection{Scénario 3}
+Expliquer comment l'annulation est impacté dans le modèle
+
+\subsection{Scénario 4}
+Expliquer comment l'annulation est impacté dans le modèle
+
+
+\newpage
+\section{Calcul des variables utilisées}
+
+Les diverses variables utilisée pour calculer le "Best estimated liabilities" varient en fonction du produit. En effet, le calcul des probabilités que la police soit toujours en vigueur va dépendre si il y a possibilité de réduction pour le produit en question.\\
+
+La sinistralité va également dépendre si celle-ci est calculée avec un taux de sinistre sur primes ou alors simplement avec les probabilités de décès (pour les assurances temporaires décès).\\
+
+En ce qui concerne les reserves ainsi que les valeur de rachat, ces valeurs seront calculées en fonction de chaque produit.
+
+
+	\subsection{Inforce probability}
+	Calcul des inforce probability. Il existe deux façon de calculer les inforce 				probability qui va dépendre du produits. Il y a donc les produits sans possibilité 			de réduction et les produits avec possibilité de réduction.
+
+		\subsubsection{Inforce pour les produits sans possibilité de réduction}
+		Ici on insère le calcul 
+
+		\subsubsection{Inforce pour les produits avec possibilité de réduction}
+		Ici on insère le calcul 
+
+			\begin{lstlisting}[language=Python]
+			class Portfolio:
+    
+
+    			def __init__(self,po=p,runs=[0,1,2,3,4,5], \
+                    LapseNew=True,RateNew=True,SinistralityNew=True,CommissionNew=True,CostNew=True):
+        			self.tout=po    
+        			self.p=po
+        			self.runs=runs
+        			self.un=self.one()
+        			self.zero=self.zeros()
+        			self.vide=self.vides()
+        			self.template= self.templateProjection()
+        			self.shape=list(self.un.shape)
+
+			\end{lstlisting}
+			Exemple insertion code python	
+			
+			Exemple d'ajout de calcul Latex :
+
+La fonction $f$ est définie par
+
+\begin{equation}
+  f(x) = x-1
+\end{equation}
+
+On a alors
+\begin{equation}
+   f(x) = 0 \iff x = 1
+\end{equation}
+		
+\subsection{Sinistralité par produit}
+Le calcul de la sinistralité va également dépendre du produit. Tout les sinistres de nos produits (hors rachat) sont calculés avec un taux de sinitralité/primes, à l'exception des produits suivants:
+
+\begin{itemize}
+\item Funérailles modalité 8 et 9
+\item Autre produits ???
+\end{itemize}
+
+
+Ces produits ont une sinistralité qui va dépendre des probabilités de décès mais aussi de l'hypothèse de mortalité d'expérience. Pour tout les autres produits, la sinistralité va donc dépendre de l'hypothèse de sinistralité ainsi que du montant des primes.
+ 
+ 
+
+
+
+\subsection{Sinistralité des complémentaires}
+
+
+Le taux de sinistralité des complémentaires est défini dans les hypothèses. La sinistralité des complémentaires sera donc déterminée en fonction de ce taux ainsi que de la prime complémentaire en question
+ 
+\subsection{Nombre de rachat}
+
+Le calcul du nombre de rachat sera différent si un produit permet la réduction ou non.
+
+\subsubsection{Nombre de rachat : Produits sans réduction possible}
+
+Nous avons la probabilité de décès mensuel $qx^m$ qui est défini par
+
+\begin{equation}
+  qx^m = 1-(1-qx)^{1/12}
+\end{equation}
+
+\noindent avec ${\Pi}_{t}$ la probabilité au temps $t$ que la police soit toujours en vigueur au temps $t+1$, $W_{t}$ la probabilité au temps $t$ qu'une police soit annulée au temps $t+1$ ainsi que $W^m_{t}$ la probabilité au temps $t$ que la police soit annulée au temps $t + 1/12$ (au mois prochain).
+
+\hfill \break $W_{t}$ vien des hypothèses de rachat. Nous trouvons la probabilité d'annulation mensuel
+
+\begin{equation}
+ W^m_{t} = 1-(1-W_{t})^{1/12} 
+\end{equation}
+
+
+
+\noindent nous avons ensuite le nombre d'annulation $Surr_t$ au temps t
+
+\begin{equation}
+  Surr_t = {\Pi}_{t-1} W^m_{t}(1- \frac{qx^m}{2})
+\end{equation}
+
+
+\subsubsection{Nombre de rachat : Produits avec réduction possible}
+
+Lorsque la réduction est possible nous aurons différents états possible :
+\begin{itemize}
+\item Police réduite
+\item Police en vigueur
+\item Police annulée\\
+\end{itemize}
+Nous devons donc connaître :
+
+\begin{itemize}
+\item $IFnotR_t$ Le nombre de survivants pour une police non réduite
+\item $Rnew_t$ Le nombre de nouvelles réductions pour une police en vigueur 
+\item Le nombre total de polices réduites
+\item Le nombre d'annulation pour une police en vigueur
+\item Le nombre d'annulation pour une police réduite
+\item $death_t$ Le nombre de décès pour une police en vigueur
+\item Le nombre de décès pour une police réduite\\
+\end{itemize}
+
+Nous avons les variables $qx$, $W_t$, $R_t$ venant des hypothèses, avec $R_t$ la probabilité qu'une police en vigueur soit réduite au temps $t+1$ et $frac$ étant le fractionnement de la police.\\
+
+Nous trouvons d'abord $death_t^m$ le nombre de décès mensuel au temps t. Avec $IFnotR_t$ étant le nombre de police en vigueur non réduite au temps t
+
+
+\begin{equation}
+  death_t^m = qx^m  IFnotR_{t-1} (1-\frac{W^m_{t}}{2})      
+\end{equation}
+
+pour tout $t > 0$ en sachant que $IFnotR_t = 1$ au temps $t = 0$
+
+
+Sachant $R_t$ les probabilités de réduction venant des hypothèses, nous trouvons
+\begin{equation}
+      R_t^m= 1-(1-R_t)^{1/12}
+\end{equation}
+la probabilité de réduction mensuel.
+Nous avons besoin ensuite de connaître le nombre de nouvelles réductions $Rnew_t$. Nous connaissons  $IFnotR_{t-1}$ et donc nous avons
+
+\begin{equation}
+       Rnew_t= R_t^m (IFnotR_{t-1}-death_t-Surr_t)
+\end{equation}
+
+Nous connaissons désormais le nombre de police en vigueur non-réduite ainsi que le nombre de nouvelles réductions, donc nous pouvons à présent calculer le nombre d'annulation pour les polices non-réduite $SurrNotR_t$
+
+\begin{equation}
+       SurrNotR_t = IFnotR_{t-1}-death_t-Surr_t-Rnew_t
+\end{equation}
+
+Afin de connaître le nombre total d'annulation, il nous manque à calculer le nombre d'annulation pour des polices qui sont déjà réduites $Wred_t$. Pour cela il nous faut connaître le nombre de polices réduites qui va dépendre du nombre de décès pour des polices déjà réduite $deathR_t$
+
+\begin{equation}
+       deathR_t = IFred_{t-1} \cdot q^m_{(x+t+1)} \cdot (1-\frac{W_t^m}{2})
+\end{equation}
+
+\newpage. 
+    
+\appendix
+
+\section{Annexes}
+
+\noindent $qx$ : probabilité de décès annuel pour une personne agée de $x$ années
+
+\noindent $W_t$ : probabilité qu'une police en vigueur au temps $t$ soit annulée au temps $t+1$
+
+\noindent $frac$ : fractionnement de la police
+
+\end{document}
