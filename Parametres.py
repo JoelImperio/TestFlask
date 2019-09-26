@@ -135,7 +135,7 @@ class Hypo:
         rates[:,:,runMG]=allMensualrates[:,:,1]
         rates[:,:,runRL]=allMensualrates[:,:,2]
         #Dimensionner pour les runs en appel    
-        rates[:,:,self.run]
+        rates=rates[:,:,self.run]
         
         return rates
 
@@ -187,7 +187,7 @@ class Hypo:
         
         #Dimensionner pour les runs et le portefeuille en appel    
         mylapse=np.take(mylapse, pol,axis=0)
-        mylapse[:,:,self.run]
+        mylapse=mylapse[:,:,self.run]
         
         return mylapse
 
@@ -228,7 +228,7 @@ class Hypo:
         
         #Dimensionner pour les runs et le portefeuille en appel    
         myReduction=np.take(myReduction, pol,axis=0)
-        myReduction[:,:,self.run]
+        myReduction=myReduction[:,:,self.run]
         
         return myReduction
 
@@ -261,7 +261,7 @@ class Hypo:
         
         #Dimensionner pour les runs et le portefeuille en appel    
         myCommissions=np.take(myCommissions, pol,axis=0)
-        myCommissions[:,:,self.run]
+        myCommissions=myCommissions[:,:,self.run]
         
         return myCommissions
 
@@ -270,11 +270,11 @@ class Hypo:
 
 #####ICI pour faire des tests sur la class##########################################################
 
-#myRun=[1]
-myRun=[0,1,2,3,4,5]
+myRun=[1,5]
+#myRun=[0,1,2,3,4,5]
 policies=Portfolio(runs=myRun)
-#policies.mod([8])
-policies.ids([2401101])
+policies.mod([8,9])
+#policies.ids([2401101])
 
 shape=policies.shape
 
@@ -282,20 +282,20 @@ hyp=Hypo(MyShape=shape, Run=myRun)
 
 ###Ce que la classe peut faire
 
-#a=hyp.fraisGestion()
-#b=hyp.fraisGestionPlacement()
+a=hyp.fraisGestion()
+b=hyp.fraisGestionPlacement()
 #c=hyp.rate()
 #d=hyp.pbRate()
-#e=hyp.lapse(policies)
-#f=hyp.ipt()
-#g=hyp.dcAccident()
-#h=hyp.exo()
-#i=hyp.itt()
-#j=hyp.hospi()
-#k=hyp.dc()
-#l=hyp.fraisVisite()
-#m=hyp.reduction(policies)
-#n=hyp.commissions(policies)
+e=hyp.lapse(policies)
+f=hyp.ipt()
+g=hyp.dcAccident()
+h=hyp.exo()
+i=hyp.itt()
+j=hyp.hospi()
+k=hyp.dc()
+l=hyp.fraisVisite()
+m=hyp.reduction(policies)
+n=hyp.commissions(policies)
 
 ###Visualiser un vecteur np en réduisant une dimension
 #data=n
