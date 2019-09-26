@@ -127,6 +127,11 @@ class Portfolio:
         sp=self.p.loc[self.p['PMBPOL'].isin(num)]
         self.update(sp)
         return sp
+#Permet de retourner un sous-portefeuille sélectionné de la liste de gr=[]
+    def groupe(self,gr):
+        sp=self.p.loc[self.p['ClassPGG'].isin(gr)]
+        self.update(sp)
+        return sp
 
 #Permet de mettre à jour le portefeuille avec le sous-portefeuille de traitement
     def update(self,subPortfolio):
