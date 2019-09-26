@@ -282,20 +282,20 @@ hyp=Hypo(MyShape=shape, Run=myRun)
 
 ###Ce que la classe peut faire
 
-a=hyp.fraisGestion()
-b=hyp.fraisGestionPlacement()
+#a=hyp.fraisGestion()
+#b=hyp.fraisGestionPlacement()
 #c=hyp.rate()
 #d=hyp.pbRate()
-e=hyp.lapse(policies)
-f=hyp.ipt()
-g=hyp.dcAccident()
-h=hyp.exo()
-i=hyp.itt()
-j=hyp.hospi()
-k=hyp.dc()
-l=hyp.fraisVisite()
-m=hyp.reduction(policies)
-n=hyp.commissions(policies)
+#e=hyp.lapse(policies)
+#f=hyp.ipt()
+#g=hyp.dcAccident()
+#h=hyp.exo()
+#i=hyp.itt()
+#j=hyp.hospi()
+#k=hyp.dc()
+#l=hyp.fraisVisite()
+#m=hyp.reduction(policies)
+#n=hyp.commissions(policies)
 
 ###Visualiser un vecteur np en réduisant une dimension
 #data=n
@@ -312,7 +312,7 @@ n=hyp.commissions(policies)
 #    - Sinistralité-->e/o
 #    - Commissions--> e/o
 
-
+#Attention revoir les rate() il y a une erreur
 
 
 

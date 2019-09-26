@@ -12,14 +12,14 @@ def portfolioExtractionToCSV():
     #Paramètres de connection
     cnxn = pyodbc.connect(
         driver='{iSeries Access ODBC Driver}',
-        system='10.254.25.1',
+        system='10.254.5.1',
         uid='liviaplus',
         pwd='liviaplus')  
     #Extraction du portefeuille des polices   
     PortfolioQRY=open(r'Portefeuille\QRY.txt').read()
     p=pd.read_sql(PortfolioQRY, cnxn)
     #Copy l'extraction dans un CSV
-    p.to_csv(r'Portefeuille\Portfolio.csv')
+    return p.to_csv(r'Portefeuille\Portfolio.csv')
 
 #Inputs global
 dateCalcul='20181231'
