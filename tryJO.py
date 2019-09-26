@@ -12,5 +12,3 @@ from MyPyliferisk.mortalitytables import EKM05i
 tariff = MortalityTable(nt=EKM05i)
 
 print(tariff.qx[50])
-
-#Je suis dans Jo's branche encore une fois
