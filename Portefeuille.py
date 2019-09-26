@@ -68,6 +68,8 @@ def portfolioPreProcessing(p):
 
     #Certaines dates d'échéances tombe un jour qui n'existe pas
     p.loc[p['PMBPOL'].isin([1602101,609403,2161101,2162601,297004]), 'POLDTEXP'] = '20190228'
+    
+    #
 
 #Formatage des colonnes et création des colonnes utiles    
 
@@ -79,10 +81,13 @@ def portfolioPreProcessing(p):
     
     p['POLDTDEB']= pd.to_datetime(p['POLDTDEB'].astype(str), format='%Y%m%d').dt.date
     p['POLDTEXP']= pd.to_datetime(p['POLDTEXP'].astype(str), format='%Y%m%d').dt.date
+#    p['POLDTNAIS1']= pd.to_datetime(p['POLDTNAIS1'].astype(str), format='%Y%m%d').dt.date
+    
     p['ProjectionMonths']=((pd.to_datetime(p['DateFinCalcul'])-pd.to_datetime(p['DateCalcul']))/np.timedelta64(1,'M')).apply(np.ceil)+1
     p['DurationIfInitial']=((pd.to_datetime(p['DateCalcul'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.ceil)
     allocationClassPGG()
 
+#    p['Age1AtEntry']=((pd.to_datetime(p['POLDTDEB'])-pd.to_datetime(p['POLDTNAIS1']))/np.timedelta64(1,'Y')).apply(np.ceil)
 
     return p
 
@@ -184,6 +189,24 @@ class Portfolio:
         durIf=durIf+increment
         
         return durIf
+    
+    
+    def durationIf(self):
+        
+        durationInitial=self.p['DurationIfInitial'].to_numpy()
+        
+        durationInitial=durationInitial[:,np.newaxis,np.newaxis]
+        
+        increment=np.arange(0,policies.shape[1],1)
+        increment=increment[np.newaxis,:,np.newaxis]
+            
+        durIf=self.un
+        
+        durIf=durIf*durationInitial
+        
+        durIf=durIf+increment
+        
+        return durIf
         
         
 
@@ -207,7 +230,6 @@ b=policies.un
 #e=policies.shape
 #f=policies.rate()
 
-z=Portfolio(runs=[1,5])
 
     
 
