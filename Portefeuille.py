@@ -19,6 +19,8 @@ def portfolioExtractionToCSV():
     PortfolioQRY=open(r'Portefeuille\QRY.txt').read()
     p=pd.read_sql(PortfolioQRY, cnxn)
     #Copy l'extraction dans un CSV
+
+#Attention enlever à la copie du test
     return p.to_csv(r'Portefeuille\Portfolio.csv'), p.to_csv(r'Tests\Portfolio_Test.csv')
 
 #Inputs global

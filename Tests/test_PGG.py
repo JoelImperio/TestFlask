@@ -23,7 +23,7 @@ DataProphet=pd.concat(DataProphet,axis=1)
 ResultatPGG=pd.read_excel(path+'\Resultats_PGG.xls',sheet_name='Synthèse',skiprows=3)
 
 #Les variables de contrôle
-variablesTest=pd.read_excel(path+'\Resultats_PGG.xls',sheet_name='Test',skiprows=7)
+variablesTest=pd.read_excel(path+'\Resultats_PGG.xls',sheet_name='AllVariablesTest',skiprows=7)
 
 #Portefeuille servant de test qui correspond on portefeuille au 31.12.2018
 pTest=pd.read_csv(path+'\Portfolio_Test.csv')
@@ -42,7 +42,7 @@ cov=coverage.Coverage()
 cov.start()
 
 #Test général sur la structure et la cohérence du modèle
-class TestCoherenceGlobal(ut.TestCase):
+class TestCoherenceGlobale(ut.TestCase):
     
     
 #Ce test permet de vérifier que le nombre de polices chargées est correct par rapport à la clôture
@@ -70,7 +70,7 @@ class TestCoherenceGlobal(ut.TestCase):
 
 
 #Test spécifique au produit X
-class TestResultatsFU(ut.TestCase):
+class TestResultatsFUe(ut.TestCase):
 
     DataProphetMOD8_9 = DataProphet.filter(regex='MOD8_9')
     
@@ -78,9 +78,15 @@ class TestResultatsFU(ut.TestCase):
         self
 
 
+loader = ut.TestLoader()
+suite = loader.discover('.')
+runner = ut.TextTestRunner()
+runner.run(suite)
+
+
 #Print les tests et la couverture
 
-ut.main()
+#ut.main()
 cov.stop
 cov.save
 cov.report()
