@@ -19,7 +19,7 @@ def portfolioExtractionToCSV():
     PortfolioQRY=open(r'Portefeuille\QRY.txt').read()
     p=pd.read_sql(PortfolioQRY, cnxn)
     #Copy l'extraction dans un CSV
-    return p.to_csv(r'Portefeuille\Portfolio.csv')
+    return p.to_csv(r'Portefeuille\Portfolio.csv'), p.to_csv(r'Tests\Portfolio_Test.csv')
 
 #Inputs global
 dateCalcul='20181231'
@@ -195,8 +195,9 @@ class Portfolio:
 #####ICI pour faire des tests sur la class##########################################################
 
 policies=Portfolio()
-c=policies.ids([2401101])
+#c=policies.ids([2401101])
 a=policies.durationIf()
+b=policies.un
 
 #b=policies.shape
 #c=policies.ids([301,2501])
@@ -204,6 +205,7 @@ a=policies.durationIf()
 #e=policies.shape
 #f=policies.rate()
 
+z=Portfolio(runs=[1,5])
 
     
 
