@@ -15,15 +15,15 @@ from Produits import FU
 #Importation des données pour les tests
 
 #L'ensemble des variables Prophet par produit
-DataProphet=pd.read_excel(path+'\Resultats_Prophet.xls',sheet_name=None,skiprows=7)
+DataProphet=pd.read_excel(path+'\Tests_JO\Resultats_Prophet.xls',sheet_name=None,skiprows=7)
 DataProphet=pd.concat(DataProphet,axis=1)
 
 
 #Les resultats de la PGG selon la répartition en vigueur
-ResultatPGG=pd.read_excel(path+'\Resultats_PGG.xls',sheet_name='Synthèse',skiprows=3)
+ResultatPGG=pd.read_excel(path+'\Tests_JO\Resultats_PGG.xls',sheet_name='Synthèse',skiprows=3)
 
 #Les variables de contrôle
-variablesTest=pd.read_excel(path+'\Resultats_PGG.xls',sheet_name='AllVariablesTest',skiprows=7)
+variablesTest=pd.read_excel(path+'\Tests_JO\Resultats_PGG.xls',sheet_name='AllVariablesTest',skiprows=7)
 
 #Portefeuille servant de test qui correspond on portefeuille au 31.12.2018
 pTest=pd.read_csv(path+'\Portfolio_Test.csv')
