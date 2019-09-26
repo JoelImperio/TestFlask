@@ -19,6 +19,6 @@
 \contentsline {subsubsection}{\numberline {5.3.1}Nombre de rachat : Produits sans r\IeC {\'e}duction possible}{7}% 
 \contentsline {subsubsection}{\numberline {5.3.2}Nombre de rachat : Produits avec r\IeC {\'e}duction possible}{8}% 
 \contentsline {subsection}{\numberline {5.4}Inforce probability}{9}% 
-\contentsline {subsubsection}{\numberline {5.4.1}Inforce pour les produits sans possibilit\IeC {\'e} de r\IeC {\'e}duction}{9}% 
+\contentsline {subsubsection}{\numberline {5.4.1}Inforce pour les produits sans possibilit\IeC {\'e} de r\IeC {\'e}duction}{10}% 
 \contentsline {subsubsection}{\numberline {5.4.2}Inforce pour les produits avec possibilit\IeC {\'e} de r\IeC {\'e}duction}{10}% 
 \contentsline {section}{\numberline {A}Annexes}{11}% 
