@@ -38,4 +38,4 @@ experience = MortalityTable(nt=EKM05i, perc=85)
 
 # Print the omega (limiting age) of the both tables:
 
-
+test
