@@ -87,7 +87,7 @@ def portfolioPreProcessing(p):
     p['DurationIfInitial']=((pd.to_datetime(p['DateCalcul'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.ceil)
     allocationClassPGG()
 
-#    p['Age1AtEntry']=((pd.to_datetime(p['POLDTDEB'])-pd.to_datetime(p['POLDTNAIS1']))/np.timedelta64(1,'Y')).apply(np.ceil)
+    p['Age1AtEntry']=((pd.to_datetime(p['POLDTEXP'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'Y')).apply(np.ceil)
 
     return p
 
@@ -191,28 +191,22 @@ class Portfolio:
         return durIf
     
     
-    def durationIf(self):
+    def age1(self):
         
-        durationInitial=self.p['DurationIfInitial'].to_numpy()
+        ageInitial=self.p['Age1AtEntry'].to_numpy()
         
-        durationInitial=durationInitial[:,np.newaxis,np.newaxis]
+        ageInitial=ageInitial[:,np.newaxis,np.newaxis]
         
-        increment=np.arange(0,policies.shape[1],1)
+        increment=np.arange(0,policies.shape[1]/12,1/12)
         increment=increment[np.newaxis,:,np.newaxis]
             
-        durIf=self.un
+        age=self.un
         
-        durIf=durIf*durationInitial
+        age=age*ageInitial
         
-        durIf=durIf+increment
+        age=age+increment
         
-        return durIf
-        
-        
-
-
-
-
+        return np.floor(age)
 
 
 
@@ -221,7 +215,7 @@ class Portfolio:
 
 policies=Portfolio()
 #c=policies.ids([2401101])
-a=policies.durationIf()
+a=policies.age1()
 b=policies.un
 
 #b=policies.shape
