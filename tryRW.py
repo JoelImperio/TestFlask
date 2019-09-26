@@ -9,11 +9,11 @@ from MyPyliferisk import MortalityTable,qx
 from MyPyliferisk.mortalitytables import EKM05i
 
 
-policies=Portfolio()
-hyp=Hypo(shape=policies.shape,run=5)
+#policies=Portfolio()
+#hyp=Hypo(shape=policies.shape)
 
 
-a=policies.p
+#a=policies.p
 #b=policies.ids([301,2501,3101])
 #c=policies.p
 
@@ -31,3 +31,10 @@ a=policies.p
 #print("additionPandas--- %s seconds ---" %'%.20f'%  (time.time() - start_time))
 
 #test
+
+
+tariff = MortalityTable(nt=EKM05i)
+experience = MortalityTable(nt=EKM05i, perc=85)
+
+# Print the omega (limiting age) of the both tables:
+
