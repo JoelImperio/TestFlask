@@ -16,15 +16,13 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from MyPyliferisk.mortalitytables import *
-import numpy as np
 
 # Mortality table class ----------------
 
 class MortalityTable:
-    def __init__(self, l_x=[], vq_x=[], q_x=[], i=[], nt=None, perc=100):
+    def __init__(self, l_x=[], q_x=[], i=[], nt=None, perc=100):
         self.lx = l_x
         self.qx = q_x
-        self.vqx = vq_x
         self.dx = []
         self.ex = []
         self.w = 0
@@ -75,7 +73,7 @@ class MortalityTable:
                 self.ex.append(0.5 + sum(self.lx[g + 1:-1]) / lx_g) #[g+1:-2] according notes from ucm
 
     def view(self, start=0, end=10, var='lx'):
-        column  = {'qx': self.qx, 'vqx':self.vqx, 'lx': self.lx, 'dx': self.dx, 'ex': self.ex, 'nt': self.nt, \
+        column  = {'qx': self.qx, 'lx': self.lx, 'dx': self.dx, 'ex': self.ex, 'nt': self.nt, \
                    'Dx': self.Dx, 'Nx': self.Nx, 'Cx': self.Cx, 'Mx': self.Mx, 'nEx': self.nEx}
         table_str = ''
         index = start
@@ -90,10 +88,9 @@ class MortalityTable:
 
         
 class Actuarial:
-    def __init__(self, l_x=[], q_x=[], vq_x=[], nt=None, i=None, perc=100):
+    def __init__(self, l_x=[], q_x=[], nt=None, i=None, perc=100):
         self.lx = l_x
         self.qx = q_x
-        self.vqx = vq_x
         self.dx = []
         self.ex = []
         self.w = 0
@@ -165,7 +162,7 @@ class Actuarial:
                 self.Mx.append(sum(self.Cx[m:-1])) # [m:-2] according notes from ucm
 
     def view(self, start = 0, end = 10, var = 'lx'):
-        column  = {'qx': self.qx, 'vq_x': self.vqx, 'lx': self.lx, 'dx': self.dx, 'ex': self.ex, 'nt': self.nt, \
+        column  = {'qx': self.qx, 'lx': self.lx, 'dx': self.dx, 'ex': self.ex, 'nt': self.nt, \
                    'Dx': self.Dx, 'Nx': self.Nx, 'Cx': self.Cx, 'Mx': self.Mx, 'nEx': self.nEx}
         table_str = ''
         index = start
@@ -191,26 +188,6 @@ def qx(mt, x):
         return mt.qx[x]
     else:
         return 0
-    
-    
-    
-tariff = MortalityTable(nt=EKM95)
-zz= np.arange(10) 
-print(tariff.qx[4])
-vqx = np.vectorize(qx)
-
-
-vec_qx = np.vectorize(tariff.qx)
-
-
-#def vqx(mt,x):
-#    
-#    vqx = np.vectorize(qx)
-#    if x < len(mt.vqx):
-#        return mt.vqx[x]
-#    else:
-#        return 0
-
 
 def lx(mt, x):
     """ lx : Returns the number of survivors at begining of age x """    
