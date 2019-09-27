@@ -81,13 +81,13 @@ def portfolioPreProcessing(p):
     
     p['POLDTDEB']= pd.to_datetime(p['POLDTDEB'].astype(str), format='%Y%m%d').dt.date
     p['POLDTEXP']= pd.to_datetime(p['POLDTEXP'].astype(str), format='%Y%m%d').dt.date
-#    p['POLDTNAIS1']= pd.to_datetime(p['POLDTNAIS1'].astype(str), format='%Y%m%d').dt.date
+    p['CLIDTNAISS']= pd.to_datetime(p['CLIDTNAISS'].astype(str), format='%Y%m%d').dt.date
     
     p['ProjectionMonths']=((pd.to_datetime(p['DateFinCalcul'])-pd.to_datetime(p['DateCalcul']))/np.timedelta64(1,'M')).apply(np.ceil)+1
     p['DurationIfInitial']=((pd.to_datetime(p['DateCalcul'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.ceil)
     allocationClassPGG()
 
-    p['Age1AtEntry']=((pd.to_datetime(p['POLDTEXP'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'Y')).apply(np.ceil)
+    p['Age1AtEntry']=((pd.to_datetime(p['POLDTDEB'])-pd.to_datetime(p['CLIDTNAISS']))/np.timedelta64(1,'Y')).apply(np.ceil)
 
     return p
 
@@ -209,6 +209,23 @@ class Portfolio:
         return np.floor(age)
 
 
+
+    def age2(self):
+        
+        ageInitial=self.p['Age2AtEntry'].to_numpy()
+        
+        ageInitial=ageInitial[:,np.newaxis,np.newaxis]
+        
+        increment=np.arange(0,policies.shape[1]/12,1/12)
+        increment=increment[np.newaxis,:,np.newaxis]
+            
+        age=self.un
+        
+        age=age*ageInitial
+        
+        age=age+increment
+        
+        return np.floor(age)
 
 
 #####ICI pour faire des tests sur la class##########################################################
