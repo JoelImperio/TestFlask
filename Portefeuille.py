@@ -68,6 +68,8 @@ def portfolioPreProcessing(p):
 
     #Certaines dates d'échéances tombe un jour qui n'existe pas
     p.loc[p['PMBPOL'].isin([1602101,609403,2161101,2162601,297004]), 'POLDTEXP'] = '20190228'
+    
+    #
 
 #Formatage des colonnes et création des colonnes utiles    
 
@@ -79,10 +81,19 @@ def portfolioPreProcessing(p):
     
     p['POLDTDEB']= pd.to_datetime(p['POLDTDEB'].astype(str), format='%Y%m%d').dt.date
     p['POLDTEXP']= pd.to_datetime(p['POLDTEXP'].astype(str), format='%Y%m%d').dt.date
+    p['CLIDTNAISS']= pd.to_datetime(p['CLIDTNAISS'].astype(str), format='%Y%m%d').dt.date
+    
+#   Force date naissance 2 à 01.01.1800 si une tête
+    p.loc[p.POLNBTETE==1, 'CLIDTNAISS2'] = 18000101
+    p['CLIDTNAISS2']= pd.to_datetime(p['CLIDTNAISS2'].astype(str), format='%Y%m%d').dt.date
+   
+    
     p['ProjectionMonths']=((pd.to_datetime(p['DateFinCalcul'])-pd.to_datetime(p['DateCalcul']))/np.timedelta64(1,'M')).apply(np.ceil)+1
     p['DurationIfInitial']=((pd.to_datetime(p['DateCalcul'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.ceil)
     allocationClassPGG()
 
+    p['Age1AtEntry']=((pd.to_datetime(p['POLDTDEB'])-pd.to_datetime(p['CLIDTNAISS']))/np.timedelta64(1,'Y')).apply(np.ceil) 
+    p['Age2AtEntry']=((pd.to_datetime(p['POLDTDEB'])-pd.to_datetime(p['CLIDTNAISS2']))/np.timedelta64(1,'Y')).apply(np.ceil)
 
     return p
 
@@ -184,21 +195,50 @@ class Portfolio:
         durIf=durIf+increment
         
         return durIf
+    
+    
+    def age1(self):
         
+        ageInitial=self.p['Age1AtEntry'].to_numpy()
         
+        ageInitial=ageInitial[:,np.newaxis,np.newaxis]
+        
+        increment=np.arange(0,policies.shape[1]/12,1/12)
+        increment=increment[np.newaxis,:,np.newaxis]
+            
+        age=self.un
+        
+        age=age*ageInitial
+        
+        age=age+increment
+        
+        return np.floor(age)
 
 
 
-
-
-
+    def age2(self):
+        
+        ageInitial=self.p['Age2AtEntry'].to_numpy()
+        
+        ageInitial=ageInitial[:,np.newaxis,np.newaxis]
+        
+        increment=np.arange(0,policies.shape[1]/12,1/12)
+        increment=increment[np.newaxis,:,np.newaxis]
+            
+        age=self.un
+        
+        age=age*ageInitial
+        
+        age=age+increment
+        
+        return np.floor(age)
 
 
 #####ICI pour faire des tests sur la class##########################################################
 
 policies=Portfolio()
 #c=policies.ids([2401101])
-a=policies.durationIf()
+a=policies.age1()
 b=policies.un
 
 #b=policies.shape
@@ -207,7 +247,6 @@ b=policies.un
 #e=policies.shape
 #f=policies.rate()
 
-z=Portfolio(runs=[1,5])
 
     
 
