@@ -6,12 +6,17 @@ import os, os.path
 from Portefeuille import Portfolio
 from Parametres import Hypo
 
-from MyPyliferisk import MortalityTable,qx
+from MyPyliferisk import MortalityTable,vqx,qx
 from MyPyliferisk.mortalitytables import EKM05i
+
 
 
 tariff = MortalityTable(nt=EKM05i)
 
-print(tariff.qx[50])
-t = 0
-pd.to_datetime(t.astype(str), format='%Y%m%d').dt.date
+
+
+vtariff = np.vectorize(tariff.qx()) 
+
+u = np.arange(10).astype(int)
+
+

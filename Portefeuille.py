@@ -83,12 +83,10 @@ def portfolioPreProcessing(p):
     p['POLDTEXP']= pd.to_datetime(p['POLDTEXP'].astype(str), format='%Y%m%d').dt.date
     p['CLIDTNAISS']= pd.to_datetime(p['CLIDTNAISS'].astype(str), format='%Y%m%d').dt.date
     
-#    Condition à changé (il faut trouver une meilleur solution) ici je force la date naiss2 à 01.01.1800
-    condlist = [p['CLIDTNAISS2']==0, p['CLIDTNAISS2']> 0]
-    choicelist = [18000101,p['CLIDTNAISS2']]
-    p['CLIDTNAISS2']=np.select(condlist, choicelist)
+#   Force date naissance 2 à 01.01.1800 si une tête
+    p.loc[p.POLNBTETE==1, 'CLIDTNAISS2'] = 18000101
     p['CLIDTNAISS2']= pd.to_datetime(p['CLIDTNAISS2'].astype(str), format='%Y%m%d').dt.date
-    
+   
     
     p['ProjectionMonths']=((pd.to_datetime(p['DateFinCalcul'])-pd.to_datetime(p['DateCalcul']))/np.timedelta64(1,'M')).apply(np.ceil)+1
     p['DurationIfInitial']=((pd.to_datetime(p['DateCalcul'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.ceil)
