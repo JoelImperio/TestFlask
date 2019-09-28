@@ -71,7 +71,8 @@ def portfolioPreProcessing(p):
     #Certaines dates d'échéances tombe un jour qui n'existe pas
     p.loc[p['PMBPOL'].isin([1602101,609403,2161101,2162601,297004]), 'POLDTEXP'] = '20190228'
     
-    #
+    #Lorsque la police a une tête l'age du deuxième assuré est 0 donc il né à la date début de la police (ensuite 999 ans)
+    p.loc[p.POLNBTETE==1, 'CLIDTNAISS2'] = p.loc[p.POLNBTETE==1, 'POLDTDEB']
 
 #Formatage des colonnes et création des colonnes utiles    
 
@@ -84,6 +85,9 @@ def portfolioPreProcessing(p):
     p['POLDTDEB']= pd.to_datetime(p['POLDTDEB'].astype(str), format='%Y%m%d').dt.date
     p['POLDTEXP']= pd.to_datetime(p['POLDTEXP'].astype(str), format='%Y%m%d').dt.date
     p['CLIDTNAISS']= pd.to_datetime(p['CLIDTNAISS'].astype(str), format='%Y%m%d').dt.date
+    
+
+     
     p['CLIDTNAISS2']= pd.to_datetime(p['CLIDTNAISS2'].astype(str), format='%Y%m%d').dt.date
    
     
@@ -93,7 +97,7 @@ def portfolioPreProcessing(p):
 
     p['Age1AtEntry']=((pd.to_datetime(p['POLDTDEB'])-pd.to_datetime(p['CLIDTNAISS']))/np.timedelta64(1,'Y')).apply(np.ceil) 
     p['Age2AtEntry']=((pd.to_datetime(p['POLDTDEB'])-pd.to_datetime(p['CLIDTNAISS2']))/np.timedelta64(1,'Y')).apply(np.ceil)
-    p.loc[p.POLNBTETE==1, 'Age2AtEntry'] = 0
+
     
     return p
 
@@ -198,35 +202,28 @@ class Portfolio:
     
     
     def age(self,ass=1):
-        
-        if ass==1:
-            ageInitial=self.p['Age1AtEntry'].to_numpy()
-        elif ass==2:
-            ageInitial=self.p['Age2AtEntry'].to_numpy()
-        else:
-            return print('Les contrats ont 1 ou 2 assurés')
+
+        ageInitial=self.p['Age{}AtEntry'.format(ass)].to_numpy()
         
         ageInitial=ageInitial[:,np.newaxis,np.newaxis]
         
         increment=np.linspace(0,policies.shape[1]/12, num=policies.shape[1])
         increment=increment[np.newaxis,:,np.newaxis]
             
-        age=self.zero
+        age=self.zero       
+        age=age+ageInitial         
+        age=np.where(age==0,age+999,age+increment)
         
-        if ageInitial==0:
-            age=ageInitial
-        else:
-            age=age+ageInitial         
-            age=age+increment
         
         return np.floor(age)
 
     
-    def qx(self,table=EKM05i, exp=100):
+    def qx(self,table=EKM05i, exp=100, ass=1):
          
         mt=MortalityTable(nt=table, perc=exp)
         aQx=pd.DataFrame(mt.qx).to_numpy()
-        myAge=(self.age1()).astype(int)
+        myAge=(self.age(ass)).astype(int)
+        myAge=np.where(myAge>mt.w,mt.w-1,myAge)
         
         return np.take(aQx,myAge)   
 
@@ -235,7 +232,7 @@ class Portfolio:
 
 policies=Portfolio()
 
-#Les fonctions de la class
+#Les fonctions de la class Portfolio()
 a=policies.tout
 b=policies.p
 c=policies.runs
@@ -248,14 +245,7 @@ i=policies.zero
 j=policies.vide
 k=policies.template
 l=policies.durationIf()
-m=policies.age()
-n=policies.qx(table=EKM05i, exp=100)
-
-
-
-
-
-
-
+m=policies.age(2)
+n=policies.qx(table=EKM05i, exp=100,ass=1)
 
 
