@@ -183,6 +183,7 @@ class Portfolio:
 
 #####DEBUT DES VARIABLES DE CALCUL DES PROJECTIONS#################################################
 
+#Retourne un vecteur du nombre de mois que la police est en vigeur
     def durationIf(self):
         
         durationInitial=self.p['DurationIfInitial'].to_numpy()
@@ -192,19 +193,16 @@ class Portfolio:
         increment=np.arange(0,policies.shape[1],1)
         increment=increment[np.newaxis,:,np.newaxis]
             
-        durIf=self.un
-        
-        durIf=durIf*durationInitial
-        
+        durIf=self.un       
+        durIf=durIf*durationInitial        
         durIf=durIf+increment
         
         return durIf
     
-    
+#Retourne le vecteur des ages pour l'assuré 1 ou 2 (defaut assuré 1)   
     def age(self,ass=1):
 
-        ageInitial=self.p['Age{}AtEntry'.format(ass)].to_numpy()
-        
+        ageInitial=self.p['Age{}AtEntry'.format(ass)].to_numpy()        
         ageInitial=ageInitial[:,np.newaxis,np.newaxis]
         
         increment=np.linspace(0,policies.shape[1]/12, num=policies.shape[1])
@@ -213,15 +211,17 @@ class Portfolio:
         age=self.zero       
         age=age+ageInitial         
         age=np.where(age==0,age+999,age+increment)
-        
-        
+
         return np.floor(age)
 
-    
+#Retourne un vecteur des qx dimensionné correctement pour une table de mortalité, 
+# une expérience (100 = 100% de la table) et pour l'assuré 1 ou 2  
     def qx(self,table=EKM05i, exp=100, ass=1):
          
         mt=MortalityTable(nt=table, perc=exp)
+        
         aQx=pd.DataFrame(mt.qx).to_numpy()
+        
         myAge=(self.age(ass)).astype(int)
         myAge=np.where(myAge>mt.w,mt.w-1,myAge)
         
