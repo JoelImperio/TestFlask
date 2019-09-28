@@ -1,6 +1,8 @@
 
 import pandas as pd
 import numpy as np
+from MyPyliferisk import MortalityTable
+from MyPyliferisk.mortalitytables import EKM05i
 import time
 import os, os.path
 path = os.path.dirname(os.path.abspath(__file__))
@@ -232,6 +234,14 @@ class Portfolio:
         age=age+increment
         
         return np.floor(age)
+    
+    def qx(self,table=EKM05i, exp=100):
+         
+        mt=MortalityTable(nt=table, perc=exp)
+        aQx=pd.DataFrame(mt.qx).to_numpy()
+        myAge=(self.age1()).astype(int)
+        
+        return np.take(aQx,myAge)   
 
 
 #####ICI pour faire des tests sur la class##########################################################
@@ -239,7 +249,7 @@ class Portfolio:
 policies=Portfolio()
 #c=policies.ids([2401101])
 a=policies.age1()
-b=policies.un
+b=policies.qx()
 
 #b=policies.shape
 #c=policies.ids([301,2501])
