@@ -6,17 +6,13 @@ import os, os.path
 from Portefeuille import Portfolio
 from Parametres import Hypo
 
-from MyPyliferisk import MortalityTable,vqx,qx
-from MyPyliferisk.mortalitytables import EKM05i
 
 
 
-tariff = MortalityTable(nt=EKM05i)
-
-
-
-vtariff = np.vectorize(tariff.qx()) 
-
-u = np.arange(10).astype(int)
-
-
+# Python program for
+# iterating array values
+# using external loop
+ 
+ 
+c = np.arange(10.)
+print(np.add(c[:-1], c[1:], c[1:]))

@@ -1,6 +1,6 @@
 from Portefeuille import Portfolio
 from Parametres import Hypo
-<<<<<<< HEAD
+
 import numpy as np
 import pandas as pd
 
@@ -30,15 +30,23 @@ class FU(Portfolio):
 
 
 
-#Il faut vectorisé ici la fonction des qx
+#Calcul des inforce
 
     def inforce(self):
         
-        self.un = self.one()
-        qx1 = tariff.qx[self.age1()] * self.un
-        qx2 = tariff.qx[self.age2()] * self.un
+#        qxann = policies.qx(table=GKF95, exp=100,ass=1)
+        qxmens = 1-(1-policies.qx(table=GKF95, exp=27.06,ass=1))**(1/12)
         
-        return qx1, qx2
+#        vectUN = policies.un
+#        
+#        nbmort = 
+        
+#        vectCor = np.multiply(vectUN[:-1], vectUN[1:], vectUN[1:])
+        
+#        inf = qxmens+ lapsemens
+#        resultat = np.multiply(inf[:-1], inf[1:], inf[1:])
+        
+        return qxmens
 
 
 
@@ -46,7 +54,8 @@ class FU(Portfolio):
 sp=FU()       
 b=sp.un
 c=sp.vide
-<<<<<<< HEAD
+kk=policies.un
+
 #d=sp.p
 bbb = FU.inforce(policies)
 z = FU.inforce(policies)

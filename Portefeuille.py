@@ -197,7 +197,7 @@ class Portfolio:
         durIf=durIf*durationInitial        
         durIf=durIf+increment
         
-        return durIf
+        return np.floor(durIf/12)
     
 #Retourne le vecteur des ages pour l'assuré 1 ou 2 (defaut assuré 1)   
     def age(self,ass=1):
@@ -222,10 +222,12 @@ class Portfolio:
         
         aQx=pd.DataFrame(mt.qx).to_numpy()
         
-        myAge=(self.age(ass)).astype(int)
+        myAge=(self.age(ass)).astype(int) + (self.durationIf()).astype(int)
         myAge=np.where(myAge>mt.w,mt.w-1,myAge)
         
         return np.take(aQx,myAge)   
+
+
 
 
 #####ICI pour faire des tests sur la class##########################################################
@@ -233,19 +235,19 @@ class Portfolio:
 policies=Portfolio()
 
 #Les fonctions de la class Portfolio()
-a=policies.tout
-b=policies.p
-c=policies.runs
-d=policies.shape
+#a=policies.tout
+#b=policies.p
+#c=policies.runs
+#d=policies.shape
 #e=policies.mod([8,9])
-#f=policies.ids([301])
+policies.ids([872401])
 #g=policies.groupe(['MI3.5'])
-h=policies.un
-i=policies.zero
-j=policies.vide
-k=policies.template
-l=policies.durationIf()
-m=policies.age(2)
-n=policies.qx(table=EKM05i, exp=100,ass=1)
+#h=policies.un
+#i=policies.zero
+#j=policies.vide
+#k=policies.template
+#l=policies.durationIf()
+#m=policies.age(2)
+#n=policies.qx(table=EKM05i, exp=100,ass=1)
 
 
