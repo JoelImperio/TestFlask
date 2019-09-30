@@ -116,7 +116,7 @@ class Hypo:
         model=self.templateAllYear()
         model=model.iloc[:self.shape[1]]
         
-        allrates=self.h.iloc[2:6,1:38].transpose()
+        allrates=self.h.iloc[2:6,1:39].transpose()
         
         allrates=pd.merge(model,allrates, left_on=0,right_on=2,how='left')
         allrates=allrates.fillna(0)
@@ -273,46 +273,42 @@ class Hypo:
 #myRun=[1,5]
 myRun=[0,1,2,3,4,5]
 policies=Portfolio(runs=myRun)
-policies.mod([8,9])
+#policies.mod([8,9])
 #policies.ids([2401101])
 
 shape=policies.shape
 
 hyp=Hypo(MyShape=shape, Run=myRun)
 
-###Ce que la classe peut faire
+###Les fonctions de la class
 
-#a=hyp.fraisGestion()
-#b=hyp.fraisGestionPlacement()
-#c=hyp.rate()
-#d=hyp.pbRate()
-#e=hyp.lapse(policies)
-#f=hyp.ipt()
-#g=hyp.dcAccident()
-#h=hyp.exo()
-#i=hyp.itt()
-#j=hyp.hospi()
-#k=hyp.dc()
-#l=hyp.fraisVisite()
-#m=hyp.reduction(policies)
-#n=hyp.commissions(policies)
+a=hyp.fraisGestion()
+b=hyp.fraisGestionPlacement()
+c=hyp.rate()
+d=hyp.pbRate()
+e=hyp.lapse(policies)
+f=hyp.ipt()
+g=hyp.dcAccident()
+h=hyp.exo()
+i=hyp.itt()
+j=hyp.hospi()
+k=hyp.dc()
+l=hyp.fraisVisite()
+m=hyp.reduction(policies)
+n=hyp.commissions(policies)
+
+
+
+
+
+
+
 
 ###Visualiser un vecteur np en réduisant une dimension
 #data=n
 #aa=pd.DataFrame(data[:,:,1])
 
 
-#A mettre en place:
-#    - Taux--> e/o
-#    - TauxPB--> e/o
-#    - frais Gestion --> e/o
-#    - frais gestion placement--> e/o
-#    - Lapse--> e/o
-#    - Reduction-->e/o
-#    - Sinistralité-->e/o
-#    - Commissions--> e/o
-
-#Attention revoir les rate() il y a une erreur
 
 
 

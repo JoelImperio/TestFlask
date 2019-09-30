@@ -1,6 +1,8 @@
 
 import pandas as pd
 import numpy as np
+from MyPyliferisk import MortalityTable
+from MyPyliferisk.mortalitytables import EKM05i
 import time
 import os, os.path
 path = os.path.dirname(os.path.abspath(__file__))
@@ -69,7 +71,8 @@ def portfolioPreProcessing(p):
     #Certaines dates d'échéances tombe un jour qui n'existe pas
     p.loc[p['PMBPOL'].isin([1602101,609403,2161101,2162601,297004]), 'POLDTEXP'] = '20190228'
     
-    #
+    #Lorsque la police a une tête l'age du deuxième assuré est 0 donc il né à la date début de la police (ensuite 999 ans)
+    p.loc[p.POLNBTETE==1, 'CLIDTNAISS2'] = p.loc[p.POLNBTETE==1, 'POLDTDEB']
 
 #Formatage des colonnes et création des colonnes utiles    
 
@@ -83,18 +86,19 @@ def portfolioPreProcessing(p):
     p['POLDTEXP']= pd.to_datetime(p['POLDTEXP'].astype(str), format='%Y%m%d').dt.date
     p['CLIDTNAISS']= pd.to_datetime(p['CLIDTNAISS'].astype(str), format='%Y%m%d').dt.date
     
-#   Force date naissance 2 à 01.01.1800 si une tête
-    p.loc[p.POLNBTETE==1, 'CLIDTNAISS2'] = 18000101
+
+     
     p['CLIDTNAISS2']= pd.to_datetime(p['CLIDTNAISS2'].astype(str), format='%Y%m%d').dt.date
    
     
-    p['ProjectionMonths']=((pd.to_datetime(p['DateFinCalcul'])-pd.to_datetime(p['DateCalcul']))/np.timedelta64(1,'M')).apply(np.ceil)+1
+    p['ProjectionMonths']=((pd.to_datetime(p['DateFinCalcul'])-pd.to_datetime(p['DateCalcul']))/np.timedelta64(1,'M')).apply(np.ceil)
     p['DurationIfInitial']=((pd.to_datetime(p['DateCalcul'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.ceil)
     allocationClassPGG()
 
     p['Age1AtEntry']=((pd.to_datetime(p['POLDTDEB'])-pd.to_datetime(p['CLIDTNAISS']))/np.timedelta64(1,'Y')).apply(np.ceil) 
     p['Age2AtEntry']=((pd.to_datetime(p['POLDTDEB'])-pd.to_datetime(p['CLIDTNAISS2']))/np.timedelta64(1,'Y')).apply(np.ceil)
 
+    
     return p
 
 p=portfolioPreProcessing(p)
@@ -179,6 +183,7 @@ class Portfolio:
 
 #####DEBUT DES VARIABLES DE CALCUL DES PROJECTIONS#################################################
 
+#Retourne un vecteur du nombre de mois que la police est en vigeur
     def durationIf(self):
         
         durationInitial=self.p['DurationIfInitial'].to_numpy()
@@ -188,68 +193,59 @@ class Portfolio:
         increment=np.arange(0,policies.shape[1],1)
         increment=increment[np.newaxis,:,np.newaxis]
             
-        durIf=self.un
-        
-        durIf=durIf*durationInitial
-        
+        durIf=self.un       
+        durIf=durIf*durationInitial        
         durIf=durIf+increment
         
         return durIf
     
-    
-    def age1(self):
-        
-        ageInitial=self.p['Age1AtEntry'].to_numpy()
-        
+#Retourne le vecteur des ages pour l'assuré 1 ou 2 (defaut assuré 1)   
+    def age(self,ass=1):
+
+        ageInitial=self.p['Age{}AtEntry'.format(ass)].to_numpy()        
         ageInitial=ageInitial[:,np.newaxis,np.newaxis]
         
-        increment=np.arange(0,policies.shape[1]/12,1/12)
+        increment=np.linspace(0,policies.shape[1]/12, num=policies.shape[1])
         increment=increment[np.newaxis,:,np.newaxis]
             
-        age=self.un
-        
-        age=age*ageInitial
-        
-        age=age+increment
-        
+        age=self.zero       
+        age=age+ageInitial         
+        age=np.where(age==0,age+999,age+increment)
+
         return np.floor(age)
 
-
-
-    def age2(self):
+#Retourne un vecteur des qx dimensionné correctement pour une table de mortalité, 
+# une expérience (100 = 100% de la table) et pour l'assuré 1 ou 2  
+    def qx(self,table=EKM05i, exp=100, ass=1):
+         
+        mt=MortalityTable(nt=table, perc=exp)
         
-        ageInitial=self.p['Age2AtEntry'].to_numpy()
+        aQx=pd.DataFrame(mt.qx).to_numpy()
         
-        ageInitial=ageInitial[:,np.newaxis,np.newaxis]
+        myAge=(self.age(ass)).astype(int)
+        myAge=np.where(myAge>mt.w,mt.w-1,myAge)
         
-        increment=np.arange(0,policies.shape[1]/12,1/12)
-        increment=increment[np.newaxis,:,np.newaxis]
-            
-        age=self.un
-        
-        age=age*ageInitial
-        
-        age=age+increment
-        
-        return np.floor(age)
+        return np.take(aQx,myAge)   
 
 
 #####ICI pour faire des tests sur la class##########################################################
 
 policies=Portfolio()
-#c=policies.ids([2401101])
-a=policies.age1()
-b=policies.un
 
-#b=policies.shape
-#c=policies.ids([301,2501])
-#d=policies.un
-#e=policies.shape
-#f=policies.rate()
-
-
-    
-
-
+#Les fonctions de la class Portfolio()
+a=policies.tout
+b=policies.p
+c=policies.runs
+d=policies.shape
+#e=policies.mod([8,9])
+#f=policies.ids([301])
+#g=policies.groupe(['MI3.5'])
+h=policies.un
+i=policies.zero
+j=policies.vide
+k=policies.template
+l=policies.durationIf()
+m=policies.age(2)
+n=policies.qx(table=EKM05i, exp=100,ass=1)
 
 

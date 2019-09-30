@@ -1,25 +1,16 @@
 #!/usr/bin/python
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
 # Instructions:
 # - Important: The first item indicate the age when the table starts.
-#  			   For example, UK43 table is 0 for the first 30 ages. 
 # - The probability is qx * 1000.
+
 import pandas as pd
 import os, os.path
 path = os.path.dirname(os.path.abspath(__file__))
  
 
-##Pour executer depuis ce script
-#df=pd.ExcelFile('TablesMortalite.xlsx').parse("Tables")
-
 df=pd.ExcelFile(path  + '/TablesMortalite.xlsx').parse("Tables")
-
-#df=pd.ExcelFile(r'MyPyliferisk\TablesMortalite.xlsx').parse("Tables")
 df=df.fillna(1)
+
 
 def getMT(mt):
     mt=mt.tolist()
