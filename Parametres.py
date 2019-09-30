@@ -270,8 +270,8 @@ class Hypo:
 
 #####ICI pour faire des tests sur la class##########################################################
 
-myRun=[1,5]
-#myRun=[0,1,2,3,4,5]
+#myRun=[1,5]
+myRun=[0,1,2,3,4,5]
 policies=Portfolio(runs=myRun)
 policies.mod([8,9])
 #policies.ids([2401101])

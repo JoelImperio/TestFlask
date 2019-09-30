@@ -3,7 +3,7 @@ from Parametres import Hypo
 import numpy as np
 import pandas as pd
 
-from MyPyliferisk import MortalityTable,vqx
+from MyPyliferisk import MortalityTable,qx
 from MyPyliferisk.mortalitytables import EKM95, EKF95
 
 
@@ -21,19 +21,24 @@ class FU(Portfolio):
         self.p=self.mod(self.mods)
         
 
+
+#Il faut vectorisé ici la fonction des qx
+
     def inforce(self):
         
-        tariff2 = np.vectorize(qx)
+        self.un = self.one()
+        qx1 = tariff.qx[self.age1()] * self.un
+        qx2 = tariff.qx[self.age2()] * self.un
         
-        rqx = self.age1()
-        
-        return rqx
+        return qx1, qx2
+
+
 
 sp=FU()       
 b=sp.un
 c=sp.vide
 #d=sp.p
-
+bbb = FU.inforce(policies)
 z = FU.inforce(policies)
 
 #print(tariff.qx[10])
