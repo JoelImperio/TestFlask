@@ -38,10 +38,11 @@ class FU(Portfolio):
         inf = self.un
 
         qxmens = 1-(1-policies.qx(table=GKF95, exp=27.06,ass=1))**(1/12)
-        lapses = 1-(1-hyp.lapse(policies))**(1/12)
+        lapsemens = 1-(1-hyp.lapse(policies))**(1/12)
 
         
         nbSurr = policies.zeros()
+        nbDeath = policies.zeros()
         no_pol_if = policies.zeros()
         no_pol_if[:,0,:] = 1
 
@@ -49,9 +50,10 @@ class FU(Portfolio):
         for i in range(1,np.size(policies,1)):
             
             
-            nbSurr[:,i,:] = no_pol_if[:,i-1,:] * lapses[:,i,:] * (1-(qxmens[:,i,:]/2))
             
-            no_pol_if[:,i,:] = no_pol_if[:,i-1,:] - nbSurr[:,i,:]
+            nbDeath[:,i,:] = no_pol_if[:,i-1,:] * qxmens[:,i,:]
+            nbSurr[:,i,:] = (no_pol_if[:,i-1,:] - nbDeath[:,i,:]) * lapsemens[:,i,:]
+            no_pol_if[:,i,:] = no_pol_if[:,i-1,:] - nbSurr[:,i,:] - nbDeath[:,i,:]
             
 #            no_pol_iffadd=np.add(no_pol_if[:,(i-1),:]+0.01, no_pol_if[:,i:,:], no_pol_if[:,i:,:])
 
