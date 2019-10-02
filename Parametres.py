@@ -281,22 +281,24 @@ shape=policies.shape
 hyp=Hypo(MyShape=shape, Run=myRun)
 
 ###Les fonctions de la class
+#Ne pas tout activer car consomme enormément de mémoire RAM
 
-a=hyp.fraisGestion()
-b=hyp.fraisGestionPlacement()
-c=hyp.rate()
-d=hyp.pbRate()
-e=hyp.lapse(policies)
-f=hyp.ipt()
-g=hyp.dcAccident()
-h=hyp.exo()
-i=hyp.itt()
-j=hyp.hospi()
-k=hyp.dc()
-l=hyp.fraisVisite()
-m=hyp.reduction(policies)
-n=hyp.commissions(policies)
 
+#a=hyp.fraisGestion()
+#b=hyp.fraisGestionPlacement()
+#c=hyp.rate()
+#d=hyp.pbRate()
+#e=hyp.lapse(policies)
+#f=hyp.ipt()
+#g=hyp.dcAccident()
+#h=hyp.exo()
+#i=hyp.itt()
+#j=hyp.hospi()
+#k=hyp.dc()
+#l=hyp.fraisVisite()
+#m=hyp.reduction(policies)
+#n=hyp.commissions(policies)
+##
 
 
 

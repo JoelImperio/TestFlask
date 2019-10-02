@@ -166,6 +166,16 @@ class Portfolio:
         nbrPeriodes= int(self.p['ProjectionMonths'].max())
         nbrRuns=int(len(self.runs))
         return np.ones([nbrPolices,nbrPeriodes,nbrRuns])
+    
+# Test pour pouvoir calculé de manière recusrive
+    def oneplusone(self):
+        nbrPolices=int(len(self.p))
+        nbrPeriodes= int(self.p['ProjectionMonths'].max())
+        nbrRuns=int(len(self.runs))
+        return np.ones([nbrPolices,nbrPeriodes+1,nbrRuns])
+    
+    
+    
 
 #Permet de créer un vecteur rempli de 0 pour la taille de portefeuille et la durée de projection  
     def zeros(self):             
@@ -184,6 +194,7 @@ class Portfolio:
 #####DEBUT DES VARIABLES DE CALCUL DES PROJECTIONS#################################################
 
 #Retourne un vecteur du nombre de mois que la police est en vigeur
+#        JO : Je l'ai modifié afin d'avoir le nombre d'année, à voir plus tard si le nb de mois est nécessaire
     def durationIf(self):
         
         durationInitial=self.p['DurationIfInitial'].to_numpy()
@@ -241,6 +252,7 @@ policies=Portfolio()
 #d=policies.shape
 #e=policies.mod([8,9])
 policies.ids([872401])
+
 #g=policies.groupe(['MI3.5'])
 #h=policies.un
 #i=policies.zero

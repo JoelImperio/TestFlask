@@ -13,6 +13,9 @@ from Parametres import Hypo
 # iterating array values
 # using external loop
  
- 
+
+
+
 c = np.arange(10.)
-print(np.add(c[:-1], c[1:], c[1:]))
+print(c)
+print(np.multiply(c[:-1], c[1:]/10, c[1:]))
