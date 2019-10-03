@@ -34,25 +34,26 @@ class FU(Portfolio):
 
     def inforce(self):
         
-        
-        inf = self.un
+#       ligne de code qui évite un code d'erreur
+        qxmens = np.array(-1, dtype=np.complex)
+        qxmens = 1-(1-self.qx(table=GKF95, exp=27.06,ass=1))**(1/12)
+        lapsemens = 1-(1-hyp.lapse(self))**(1/12)
 
-        qxmens = 1-(1-policies.qx(table=GKF95, exp=27.06,ass=1))**(1/12)
-        lapsemens = 1-(1-hyp.lapse(policies))**(1/12)
-
         
-        nbSurr = policies.zeros()
-        nbDeath = policies.zeros()
-        no_pol_if = policies.zeros()
+        nbSurr = self.zeros()
+        nbDeath = self.zeros()
+        no_pol_if = self.zeros()
         no_pol_if[:,0,:] = 1
 
 
-        for i in range(1,np.size(policies,1)):
+        for i in range(1,np.size(self,1)):
             
             
             
             nbDeath[:,i,:] = no_pol_if[:,i-1,:] * qxmens[:,i,:]
-            nbSurr[:,i,:] = (no_pol_if[:,i-1,:] - nbDeath[:,i,:]) * lapsemens[:,i,:]
+#            nbSurr[:,i,:] = (no_pol_if[:,i-1,:] - nbDeath[:,i,:]) * lapsemens[:,i,:]
+            
+            nbSurr[:,i,:] = no_pol_if[:,i-1,:] * lapsemens[:,i,:] * (1- (qxmens[:,i,:]/2))
             no_pol_if[:,i,:] = no_pol_if[:,i-1,:] - nbSurr[:,i,:] - nbDeath[:,i,:]
             
 #            no_pol_iffadd=np.add(no_pol_if[:,(i-1),:]+0.01, no_pol_if[:,i:,:], no_pol_if[:,i:,:])
@@ -65,13 +66,30 @@ class FU(Portfolio):
 
 
 
+    def premium(self):
+        
+        primes = self.zeros()
+        fract = self.fractionnement()
+        payement = self.zeros()
+        
+        condlist = [fract ==1,fract ==2,fract ==4,fract ==6,fract ==12]
+                   
+        
+        choicelist = [payement[:,0,:],commissionsRates[:,1,:],commissionsRates[:,2,:], \
+                      commissionsRates[:,3,:],commissionsRates[:,4,:]]
+        
+        myCommissions=np.select(condlist, choicelist)
+        
+        
+        return fract
 
-sp=FU()       
-b=sp.un
-c=sp.vide
-kk=policies.un
+
+#sp=FU()       
+#b=sp.un
+#c=sp.vide
+#kk=policies.un
 
 #d=sp.p
-bbb = FU.inforce(policies)
-z = FU.inforce(policies)
+#bbb = FU.inforce(policies)
+#z = FU.inforce(policies)
 

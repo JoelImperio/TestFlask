@@ -95,9 +95,14 @@ def portfolioPreProcessing(p):
     p['DurationIfInitial']=((pd.to_datetime(p['DateCalcul'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.ceil)
     allocationClassPGG()
 
-    p['Age1AtEntry']=((pd.to_datetime(p['POLDTDEB'])-pd.to_datetime(p['CLIDTNAISS']))/np.timedelta64(1,'Y')).apply(np.ceil) 
-    p['Age2AtEntry']=((pd.to_datetime(p['POLDTDEB'])-pd.to_datetime(p['CLIDTNAISS2']))/np.timedelta64(1,'Y')).apply(np.ceil)
+# JO   Problème Exemple police 872401 : Prophet = 55 ans et Python = 56 ans
+# JO   Problème résolu en changeant np.ceil en np.floor. A mon avis par la suite il faudra utiliser np.ceil 
+    p['Age1AtEntry']=((pd.to_datetime(p['POLDTDEB'])-pd.to_datetime(p['CLIDTNAISS']))/np.timedelta64(1,'Y')).apply(np.floor)
+    p['Age2AtEntry']=((pd.to_datetime(p['POLDTDEB'])-pd.to_datetime(p['CLIDTNAISS2']))/np.timedelta64(1,'Y')).apply(np.floor)
 
+
+#Creation vecteur des mois de la date début afin de savoir quand les paiement ont lieu selon fractionnement
+    p['MonthStart'] = pd.to_datetime(p['POLDTDEB']).dt.month
     
     return p
 
@@ -237,6 +242,14 @@ class Portfolio:
         myAge=np.where(myAge>mt.w,mt.w-1,myAge)
         
         return np.take(aQx,myAge)   
+
+
+# JO surement pas nécessaire TEST
+    def fractionnement(self):
+        
+        fract=self.p['PMBFRACT'].to_numpy()
+
+        return fract
 
 
 

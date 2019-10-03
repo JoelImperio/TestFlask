@@ -15,7 +15,5 @@ from Parametres import Hypo
  
 
 
-
-c = np.arange(10.)
-print(c)
-print(np.multiply(c[:-1], c[1:]/10, c[1:]))
+for i in range(1,np.size(policies,1)):
+    eghj[:,i:,] = eghj[:,i,:]
