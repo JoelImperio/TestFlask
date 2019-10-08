@@ -68,6 +68,8 @@ def portfolioPreProcessing(p):
 
 #Traitement des anomalies dans les données
 
+    pd.options.display.float_format = '{:.2f}'.format
+    
     #Certaines dates d'échéances tombe un jour qui n'existe pas
     p.loc[p['PMBPOL'].isin([1602101,609403,2161101,2162601,297004]), 'POLDTEXP'] = '20190228'
     
@@ -77,6 +79,7 @@ def portfolioPreProcessing(p):
 #Formatage des colonnes et création des colonnes utiles    
 
     p['DateCalcul']=pd.to_datetime(dateCalcul)
+    
 
 ##On pense que la solution en commentaire est meilleure mais ptophet effectue l'autre
 #    p['DateFinCalcul']=p['POLDTEXP']
@@ -92,17 +95,21 @@ def portfolioPreProcessing(p):
    
     
     p['ProjectionMonths']=((pd.to_datetime(p['DateFinCalcul'])-pd.to_datetime(p['DateCalcul']))/np.timedelta64(1,'M')).apply(np.ceil)
-    p['DurationIfInitial']=((pd.to_datetime(p['DateCalcul'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.ceil)
+    
+# JO Problème polices 872401 : prophet duration if = 41 , python = 42. Résolu en changeant ceil par floor   
+    p['DurationIfInitial']=((pd.to_datetime(p['DateCalcul'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.floor)
     allocationClassPGG()
 
-# JO   Problème Exemple police 872401 : Prophet = 55 ans et Python = 56 ans
-# JO   Problème résolu en changeant np.ceil en np.floor. A mon avis par la suite il faudra utiliser np.ceil 
-    p['Age1AtEntry']=((pd.to_datetime(p['POLDTDEB'])-pd.to_datetime(p['CLIDTNAISS']))/np.timedelta64(1,'Y')).apply(np.floor)
-    p['Age2AtEntry']=((pd.to_datetime(p['POLDTDEB'])-pd.to_datetime(p['CLIDTNAISS2']))/np.timedelta64(1,'Y')).apply(np.floor)
+
+    p['Age1AtEntry']=((pd.to_datetime(p['POLDTDEB'])-pd.to_datetime(p['CLIDTNAISS']))/np.timedelta64(1,'Y')).apply(np.ceil)
+    p['Age2AtEntry']=((pd.to_datetime(p['POLDTDEB'])-pd.to_datetime(p['CLIDTNAISS2']))/np.timedelta64(1,'Y')).apply(np.ceil)
 
 
 #Creation vecteur des mois de la date début afin de savoir quand les paiement ont lieu selon fractionnement
     p['MonthStart'] = pd.to_datetime(p['POLDTDEB']).dt.month
+    
+    
+
     
     return p
 
@@ -213,16 +220,17 @@ class Portfolio:
         durIf=durIf*durationInitial        
         durIf=durIf+increment
         
-        return np.floor(durIf/12)
+        return durIf
     
-#Retourne le vecteur des ages pour l'assuré 1 ou 2 (defaut assuré 1)   
+#Retourne le vecteur des ages pour l'assuré 1 ou 2 (defaut assuré 1) 
+# JO Problème age était pendant 12 mois le même depuis t=0, mais cela va dépendre de durif. ajout de durif dans le calcul
     def age(self,ass=1):
 
         ageInitial=self.p['Age{}AtEntry'.format(ass)].to_numpy()        
         ageInitial=ageInitial[:,np.newaxis,np.newaxis]
         
-        increment=np.linspace(0,policies.shape[1]/12, num=policies.shape[1])
-        increment=increment[np.newaxis,:,np.newaxis]
+        increment = np.floor(np.float64((self.durationIf()/12) - (1/12)+0.00001))
+        
             
         age=self.zero       
         age=age+ageInitial         
@@ -232,15 +240,18 @@ class Portfolio:
 
 #Retourne un vecteur des qx dimensionné correctement pour une table de mortalité, 
 # une expérience (100 = 100% de la table) et pour l'assuré 1 ou 2  
+# JO problème car le changement d'âge avait lieu avec un décalage d'un mois comparé a prophet (donc j'ai enlevé un mois dans le durif et rajouter 0.0001 = problème d'arrondi à régler)
     def qx(self,table=EKM05i, exp=100, ass=1):
          
         mt=MortalityTable(nt=table, perc=exp)
         
         aQx=pd.DataFrame(mt.qx).to_numpy()
-        
-        myAge=(self.age(ass)).astype(int) + (self.durationIf()).astype(int)
+        dur = np.floor(np.float64((self.durationIf()/12) - (1/12)+0.00001))
+
+
+        myAge=(self.age(ass)).astype(int) 
         myAge=np.where(myAge>mt.w,mt.w-1,myAge)
-        
+   
         return np.take(aQx,myAge)   
 
 
@@ -266,6 +277,8 @@ policies=Portfolio()
 #e=policies.mod([8,9])
 policies.ids([872401])
 
+#policies.ids([75203])
+#policies.ids([317401])
 #g=policies.groupe(['MI3.5'])
 #h=policies.un
 #i=policies.zero

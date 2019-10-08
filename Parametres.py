@@ -168,9 +168,9 @@ class Hypo:
         dur=p.durationIf()
         
 
-        condlist = [dur<12,dur<24,dur<36,dur<48,dur<60, 
-                    dur<72,dur<84,dur<96,dur<108, 
-                    dur>=108]
+        condlist = [dur<=12,dur<=24,dur<=36,dur<=48,dur<=60, 
+                    dur<=72,dur<=84,dur<=96,dur<=108, 
+                    dur>108]
         choicelist = [lapseRates[:,0,:],lapseRates[:,1,:],lapseRates[:,2,:], 
                       lapseRates[:,3,:],lapseRates[:,4,:],lapseRates[:,5,:], 
                       lapseRates[:,6,:],lapseRates[:,7,:],lapseRates[:,8,:], 
