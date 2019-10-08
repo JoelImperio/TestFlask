@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import unittest as ut
-import coverage
+from coverage import coverage
 import os, os.path
 path = os.path.dirname(os.path.abspath(__file__))
 from MyPyliferisk import MortalityTable,qx
@@ -38,7 +38,7 @@ hTest=pd.ExcelFile(path  + '/TablesProphet 2018-12_Test.xls').parse("Hypothèses
 pt=Portfolio(po=pTest)
 ht=Hypo(hy=hTest,MyShape=pt.shape)
 
-cov=coverage.Coverage()
+cov=coverage.coverage()
 cov.start()
 
 #Test général sur la structure et la cohérence du modèle

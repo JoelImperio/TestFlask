@@ -206,14 +206,14 @@ class Portfolio:
 #####DEBUT DES VARIABLES DE CALCUL DES PROJECTIONS#################################################
 
 #Retourne un vecteur du nombre de mois que la police est en vigeur
-#        JO : Je l'ai modifié afin d'avoir le nombre d'année, à voir plus tard si le nb de mois est nécessaire
+
     def durationIf(self):
         
         durationInitial=self.p['DurationIfInitial'].to_numpy()
         
         durationInitial=durationInitial[:,np.newaxis,np.newaxis]
         
-        increment=np.arange(0,policies.shape[1],1)
+        increment=np.arange(0,self.shape[1],1)
         increment=increment[np.newaxis,:,np.newaxis]
             
         durIf=self.un       
@@ -224,6 +224,7 @@ class Portfolio:
     
 #Retourne le vecteur des ages pour l'assuré 1 ou 2 (defaut assuré 1) 
 # JO Problème age était pendant 12 mois le même depuis t=0, mais cela va dépendre de durif. ajout de durif dans le calcul
+# JO problème car le changement d'âge avait lieu avec un décalage d'un mois comparé a prophet (donc j'ai enlevé un mois dans le durif et rajouter 0.0001 = problème d'arrondi à régler)
     def age(self,ass=1):
 
         ageInitial=self.p['Age{}AtEntry'.format(ass)].to_numpy()        
@@ -231,7 +232,6 @@ class Portfolio:
         
         increment = np.floor(np.float64((self.durationIf()/12) - (1/12)+0.00001))
         
-            
         age=self.zero       
         age=age+ageInitial         
         age=np.where(age==0,age+999,age+increment)
@@ -240,29 +240,42 @@ class Portfolio:
 
 #Retourne un vecteur des qx dimensionné correctement pour une table de mortalité, 
 # une expérience (100 = 100% de la table) et pour l'assuré 1 ou 2  
-# JO problème car le changement d'âge avait lieu avec un décalage d'un mois comparé a prophet (donc j'ai enlevé un mois dans le durif et rajouter 0.0001 = problème d'arrondi à régler)
+
     def qx(self,table=EKM05i, exp=100, ass=1):
          
         mt=MortalityTable(nt=table, perc=exp)
         
         aQx=pd.DataFrame(mt.qx).to_numpy()
-        dur = np.floor(np.float64((self.durationIf()/12) - (1/12)+0.00001))
-
-
+        
         myAge=(self.age(ass)).astype(int) 
         myAge=np.where(myAge>mt.w,mt.w-1,myAge)
    
         return np.take(aQx,myAge)   
 
 
-# JO surement pas nécessaire TEST
+# JO changement pour avoir des fractionnement formaté en 3D
     def fractionnement(self):
         
-        fract=self.p['PMBFRACT'].to_numpy()
-
+        fract = self.un
+        fract = fract * self.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
+        
         return fract
 
 
+# JO Ajout vecteur de 1 ou 0 si il y a paiement de prime ou non
+    def mypayement(self):
+        
+        payement = self.zeros()
+
+        check1 = (self.fractionnement() * (self.durationIf() + 11) /12)
+        check2 = np.floor((self.fractionnement() * (self.durationIf() + 11) /12))
+        
+        condlist = [check1 - check2 == 0, check1 - check2 != 0]
+        choicelist = [payement[:,:,:]==0, payement[:,:,:] ==1 ]
+        
+        myPayement=np.select(condlist, choicelist)
+
+        return myPayement
 
 
 #####ICI pour faire des tests sur la class##########################################################
@@ -275,7 +288,7 @@ policies=Portfolio()
 #c=policies.runs
 #d=policies.shape
 #e=policies.mod([8,9])
-policies.ids([872401])
+#policies.ids([872401])
 
 #policies.ids([75203])
 #policies.ids([317401])
