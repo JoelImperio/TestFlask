@@ -76,6 +76,12 @@ class FU(Portfolio):
         return isactive
 
 
+
+    def inforce(self):
+        
+        return FU.nbinforce(self)[0]
+
+
 # JO création d'un vecteur d'inforce décallé d'un mois : no_pol_ifsm  
     def inforceSM(self):      
 
@@ -96,10 +102,6 @@ class FU(Portfolio):
         
         return premium
 
-
-    def inforce(self):
-        
-        return FU.nbinforce(self)[0]
 
 
 
@@ -131,6 +133,18 @@ class FU(Portfolio):
     
     def totClaim(self):
         return FU.surrClaim(self) + FU.deathClaim(self)
+    
+    
+    def mathexp(self):
+        pass
+        
+    
+    def renexp(self):
+# JO créer array inflation        
+        inflation = 1.0125**(np.arange(np.size(self,1))[np.newaxis,:,np.newaxis]/12)
+
+        return (hyp.fraisGestion(self)/12)* inflation * FU.inforceSM(self)
+        
 
 #sp=FU()       
 #b=sp.un
