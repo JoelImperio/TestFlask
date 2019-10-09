@@ -278,6 +278,14 @@ class Portfolio:
         return myPayement
 
 
+    def nbassure(self):
+        
+        nombreass = self.p['POLNBTETE'].to_numpy()[:,np.newaxis,np.newaxis] * self.un
+        
+        return nombreass
+    
+    
+    
 #####ICI pour faire des tests sur la class##########################################################
 
 policies=Portfolio()
