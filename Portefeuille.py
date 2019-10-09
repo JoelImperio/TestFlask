@@ -253,6 +253,27 @@ class Portfolio:
         return np.take(aQx,myAge)   
 
 
+
+    def qxmensuel(self):
+# JO ligne de code qui évite un code d'erreur   
+        qxmens = np.array(-1, dtype=np.complex)
+    
+# JO Calcul qx mensuel du 1er assuré
+        qxmens1 = 1-(1-self.qx(exp=41.73,ass=1))**(1/12)
+        qxmens1[:,0,:] = 0
+        
+# JO Calcul qx mensuel du 2ème assuré
+        qxmens2 = 1-(1-self.qx(exp=41.73,ass=2))**(1/12)
+        qxmens2[:,0,:] = 0
+        
+# JO calcul du qx total si il y a 2 têtes et prend le qx du 1er assuré s'il y a une tête
+        condlist = [self.nbassure() ==1, self.nbassure() ==2]
+        choicelist = [qxmens1 , qxmens1 + qxmens2 - qxmens1*qxmens2 ]
+        qxmens=np.select(condlist, choicelist)
+
+        return qxmens
+
+
 # JO changement pour avoir des fractionnement formaté en 3D
     def fractionnement(self):
         
@@ -285,6 +306,7 @@ class Portfolio:
         return nombreass
     
     
+
     
 #####ICI pour faire des tests sur la class##########################################################
 
