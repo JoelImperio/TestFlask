@@ -49,7 +49,7 @@ class Hypo:
         return model.transpose()
     
 # Retourne les frais de gestion par police
-    def fraisGestion(self):
+    def fraisGestion(self, policies):
         
         fixfee=self.h.iloc[49,3]
         
@@ -59,7 +59,12 @@ class Hypo:
         adminCost[:,:,4]=fixfee*self.securityMarginMarge
         adminCost[:,:,5]=fixfee*self.securityMarginBio
         #Dimensionner pour les runs en appel    
-        adminCost=adminCost[:,:,self.run] 
+        adminCost=adminCost[:,:,self.run]
+        
+# JO J'ai ajouter cela pour dimensionner les frais de gestion afin qu'on obtienne les frais pour le sous portefeuille
+        sp=p.p.loc[p.p['PMBPOL'].isin(policies.p['PMBPOL'].values )]        
+        pol=list(sp.index.values)
+        adminCost=np.take(adminCost, pol,axis=0)
         
         return adminCost
     
