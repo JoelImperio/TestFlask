@@ -98,7 +98,7 @@ class FU(Portfolio):
     def premium(self):
         
         premInc = self.p['POLPRTOT'][:,np.newaxis,np.newaxis] * policies.un
-        premium = FU.inforceSM(self) * premInc * self.mypayement()
+        premium = FU.inforceSM(self) * premInc * self.mypayement()/self.fractionnement()
         
         return premium
 

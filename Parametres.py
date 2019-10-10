@@ -263,12 +263,15 @@ class Hypo:
         
         dur=p.durationIf()      
       
-
+# JO Rectification : PROPHET n'as que 3 ans de commission + commission de gestion. Ici il y'avait 4 ans + gestion
         condlist = [dur<12,dur<24,dur<36, \
-                    dur<48,dur>=48]
+                    dur>=36]
         
         choicelist = [commissionsRates[:,0,:],commissionsRates[:,1,:],commissionsRates[:,2,:], \
-                      commissionsRates[:,3,:],commissionsRates[:,4,:]]
+        commissionsRates[:,4,:]]
+        
+#        choicelist = [commissionsRates[:,0,:],commissionsRates[:,1,:],commissionsRates[:,2,:], \
+#                      commissionsRates[:,3,:],commissionsRates[:,4,:]]  ANCIEN CALCUL
         
         myCommissions=np.select(condlist, choicelist)
 

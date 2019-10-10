@@ -87,28 +87,32 @@ def portfolioPreProcessing(p):
     
     p['POLDTDEB']= pd.to_datetime(p['POLDTDEB'].astype(str), format='%Y%m%d').dt.date
     p['POLDTEXP']= pd.to_datetime(p['POLDTEXP'].astype(str), format='%Y%m%d').dt.date
-    p['CLIDTNAISS']= pd.to_datetime(p['CLIDTNAISS'].astype(str), format='%Y%m%d').dt.date
+#    p['CLIDTNAISS']= pd.to_datetime(p['CLIDTNAISS'].astype(str), format='%Y%m%d').dt.date
     
 
      
-    p['CLIDTNAISS2']= pd.to_datetime(p['CLIDTNAISS2'].astype(str), format='%Y%m%d').dt.date
+#    p['CLIDTNAISS2']= pd.to_datetime(p['CLIDTNAISS2'].astype(str), format='%Y%m%d').dt.date
    
     
     p['ProjectionMonths']=((pd.to_datetime(p['DateFinCalcul'])-pd.to_datetime(p['DateCalcul']))/np.timedelta64(1,'M')).apply(np.ceil)
     
-# JO Problème polices 872401 : prophet duration if = 41 , python = 42. Résolu en changeant ceil par floor   
-    p['DurationIfInitial']=((pd.to_datetime(p['DateCalcul'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.floor)
+# JO Problème polices 872401 : prophet duration if = 41 , python = 42. 
+# CODE DCS : DURATIONIF_M = (YEAR(EXTRACT_DATE)- annee_deb) * 12 + month(extract_date) - MOIS_DEB +1 
+
+    p['DurationIfInitial']=(pd.to_datetime(p['DateCalcul']).dt.year - pd.to_datetime(p['POLDTDEB']).dt.year)*12 + pd.to_datetime(p['DateCalcul']).dt.month - pd.to_datetime(p['POLDTDEB']).dt.month + 1
+    
+#    p['DurationIfInitial']=((pd.to_datetime(p['DateCalcul'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.ceil)
     allocationClassPGG()
 
-
-    p['Age1AtEntry']=((pd.to_datetime(p['POLDTDEB'])-pd.to_datetime(p['CLIDTNAISS']))/np.timedelta64(1,'Y')).apply(np.ceil)
-    p['Age2AtEntry']=((pd.to_datetime(p['POLDTDEB'])-pd.to_datetime(p['CLIDTNAISS2']))/np.timedelta64(1,'Y')).apply(np.ceil)
-
-
-#Creation vecteur des mois de la date début afin de savoir quand les paiement ont lieu selon fractionnement
-    p['MonthStart'] = pd.to_datetime(p['POLDTDEB']).dt.month
+# JO serait clairement plus correct mais dans les DCS le code est : AGE_AT_ENTRY = Annee_deb - Annee_naiss1
+#    p['Age1AtEntry']=((pd.to_datetime(p['POLDTDEB'])-pd.to_datetime(p['CLIDTNAISS']))/np.timedelta64(1,'Y')).apply(np.ceil)
+#    p['Age2AtEntry']=((pd.to_datetime(p['POLDTDEB'])-pd.to_datetime(p['CLIDTNAISS2']))/np.timedelta64(1,'Y')).apply(np.ceil)
     
     
+    p['Age1AtEntry']=pd.to_datetime(p['POLDTDEB']).dt.year-pd.to_datetime(p['CLIDTNAISS'].astype(str), format='%Y%m%d').dt.year
+    p['Age2AtEntry']=pd.to_datetime(p['POLDTDEB']).dt.year-pd.to_datetime(p['CLIDTNAISS2'].astype(str), format='%Y%m%d').dt.year
+   
+
 
     
     return p
@@ -290,6 +294,9 @@ class Portfolio:
         choicelist = [payement[:,:,:]==0, payement[:,:,:] ==1 ]
         
         myPayement=np.select(condlist, choicelist)
+# JO on ne reçoit pas de paiement à t=0 POURQUOI ??? Question à se poser sur quand est-ce qu'on reçoit la prime (début ou fin de mois)
+        myPayement[:,0,:] = 0
+        
         return myPayement
 
 
@@ -318,10 +325,11 @@ policies=Portfolio()
 #b=policies.p
 #c=policies.runs
 #d=policies.shape
-#e=policies.mod([8,9])
+#e=policies.mod([9])
 #policies.ids([872401])
-
+#policies.ids([2501801])
 #policies.ids([75203])
+#policies.ids([893801])
 #policies.ids([317401])
 #g=policies.groupe(['MI3.5'])
 #h=policies.un
