@@ -87,11 +87,31 @@ from Parametres import Hypo
 #condlist = [timelastp == 0, timelastp != 0]
 #choicelist = [rencours == 0 , rencours]
 #rencours=np.select(condlist, choicelist)
+Run=[0,1,2,3,4,5]  
+policies.run=Run    
+policies.h = h
+
+cl=p.p['PMBMOD']
         
+commissionsRates=policies.h.iloc[61:85,1:7]
+commissionsRates.columns = commissionsRates.iloc[0]
+commissionsRates=commissionsRates.drop(commissionsRates.index[0])
+commissionsRates=commissionsRates.set_index('Modalité').transpose()
+commissionsRates=np.asarray(commissionsRates[cl].transpose().to_numpy(), dtype=np.float64)
+commissionsRates=commissionsRates[:,:, np.newaxis, np.newaxis]
         
+dur=p.durationIf()      
+      
 
+condlist = [dur<12,dur<24,dur<36, dur<48,dur>=48]
+        
+choicelist = [commissionsRates[:,0,:],commissionsRates[:,1,:],commissionsRates[:,2,:], commissionsRates[:,3,:],commissionsRates[:,4,:]]
+        
+myCommissions=np.select(condlist, choicelist)
 
-
-txsin = hyp.fraisVisite()
-primcpl = ((policies.zeros() + 60)/policies.fractionnement()) * txsin * FU.mypayement(policies) * FU.inforceSM(policies)
-primcpl = primcpl * FU.isactive(policies)
+myCommissions=myCommissions[:,:,policies.run]
+sp=p.p.loc[p.p['PMBPOL'].isin(policies.p['PMBPOL'].values )]      
+pol=list(sp.index.values)
+        
+        #Dimensionner pour les runs et le portefeuille en appel    
+myCommissions=np.take(myCommissions, pol,axis=0)

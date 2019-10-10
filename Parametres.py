@@ -256,7 +256,9 @@ class Hypo:
         commissionsRates.columns = commissionsRates.iloc[0]
         commissionsRates=commissionsRates.drop(commissionsRates.index[0])
         commissionsRates=commissionsRates.set_index('Modalité').transpose()
-        commissionsRates=commissionsRates[cl].transpose().to_numpy()
+        commissionsRates=np.asarray(commissionsRates[cl].transpose().to_numpy(), dtype=np.float64)
+
+#        commissionsRates=commissionsRates[cl].transpose().to_numpy()   ANCIENNE VERSION
         commissionsRates=commissionsRates[:,:,np.newaxis,np.newaxis]
         
         dur=p.durationIf()      
@@ -270,13 +272,13 @@ class Hypo:
         
         myCommissions=np.select(condlist, choicelist)
 
-        
+        myCommissions=myCommissions[:,:,self.run]
         sp=p.p.loc[p.p['PMBPOL'].isin(policies.p['PMBPOL'].values )]      
         pol=list(sp.index.values)
         
         #Dimensionner pour les runs et le portefeuille en appel    
         myCommissions=np.take(myCommissions, pol,axis=0)
-        myCommissions=myCommissions[:,:,self.run]
+        
         
         return myCommissions
 
