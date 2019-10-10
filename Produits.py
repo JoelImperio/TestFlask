@@ -194,7 +194,7 @@ class FU(Portfolio):
     
     def commTot(self):
         
-        commissions = hyp.commissions(self)
+        commissions = np.asarray(hyp.commissions(self), dtype=np.float64) * FU.premium(self)
         
         return commissions
 #* FU.inforceSM(self)
