@@ -81,6 +81,11 @@ class Hypo:
         #Dimensionner pour les runs en appel    
         investCost=investCost[:,:,self.run]
         
+# JO J'ai ajouter cela pour dimensionner les frais de gestion afin qu'on obtienne les frais pour le sous portefeuille     
+        sp=p.p.loc[p.p['PMBPOL'].isin(policies.p['PMBPOL'].values )]        
+        pol=list(sp.index.values)
+        investCost=np.take(investCost, pol,axis=0)
+        
         return investCost
     
     def templateSinistrality(self,a):
@@ -112,7 +117,12 @@ class Hypo:
     def dc(self):
         return self.templateSinistrality(19)
     def fraisVisite(self):
-        return self.templateSinistrality(20)
+# JO ajout pour formater tableau numpy
+        fraisvis = self.templateSinistrality(20)
+        sp=p.p.loc[p.p['PMBPOL'].isin(policies.p['PMBPOL'].values )]        
+        pol=list(sp.index.values)
+        fraisvis=np.take(fraisvis, pol,axis=0)
+        return fraisvis
     
 # Cette fonction retourne un vecteur avec les taux d'intérêt mensuel 
     def rate(self):

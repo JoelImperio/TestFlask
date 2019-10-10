@@ -97,7 +97,7 @@ class FU(Portfolio):
 # JO primes inforce
     def premium(self):
         
-        premInc = int(self.p['POLPRTOT'])
+        premInc = self.p['POLPRTOT'][:,np.newaxis,np.newaxis] * policies.un
         premium = FU.inforceSM(self) * premInc * self.mypayement()
         
         return premium
@@ -140,12 +140,57 @@ class FU(Portfolio):
         
     
     def renexp(self):
-# JO créer array inflation        
-        inflation = 1.0125**(np.arange(np.size(self,1))[np.newaxis,:,np.newaxis]/12)
-
-        return (hyp.fraisGestion(self)/12)* inflation * FU.inforceSM(self)
         
-
+        inflation = self.inflation()
+        renexp_pp = (hyp.fraisGestion(self)/12)* inflation 
+        
+        renexp  = np.roll(renexp_pp, [1], axis=(1)) * FU.inforceSM(self)
+        renexp = renexp * FU.isactive(self)
+        
+        return renexp
+        
+    
+    def risqueEncour(self):
+# JO temps écoulé en année depuis le dernie payement timelastp
+        timelastp = self.fractionnement()*(self.durationIf()+11)/12 - np.floor(self.fractionnement() * (self.durationIf()+11)/12 )
+        timelastp[:,0,:] = 0
+        
+        timelastp  = np.roll(timelastp, [-1], axis=(1))
+        
+        premInc = self.p['POLPRTOT'][:,np.newaxis,np.newaxis] * policies.un
+# JO premium charge de 20% CHIFFRE EN DUR A MODIFIER !!!
+        rencours = (premInc * (1-timelastp)/self.fractionnement()) * (1-0.2)
+        
+        condlist = [timelastp == 0, timelastp != 0]
+        choicelist = [rencours == 0 , rencours]
+        rencours=np.select(condlist, choicelist)
+        
+        
+        return rencours
+    
+    
+    def adjmathres(self):
+# JO risque en cours décalé
+        risqudec = np.roll(FU.risqueEncour(self), [1], axis=(1))
+        
+        primcpl = ((self.zeros() + 60)/self.fractionnement()) * FU.mypayement(self) * FU.inforceSM(self)
+        primcpl = primcpl * FU.isactive(self)
+        mathres = (FU.premium(self) - primcpl) * (1-0.2)- FU.surrClaim(self) + risqudec * FU.inforceSM(self)
+        mathres = FU.isactive(self) * mathres
+        
+        return mathres
+    
+    def placementexp(self):
+        
+        placementexp = FU.adjmathres(self) * hyp.fraisGestionPlacement()/1200
+        
+        return placementexp
+    
+    
+    def totexp(self):
+        
+        return FU.placementexp(self) + FU.renexp(self) 
+#* FU.inforceSM(self)
 #sp=FU()       
 #b=sp.un
 #c=sp.vide

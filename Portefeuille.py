@@ -219,7 +219,6 @@ class Portfolio:
         durIf=self.un       
         durIf=durIf*durationInitial        
         durIf=durIf+increment
-        
         return durIf
     
 #Retourne le vecteur des ages pour l'assuré 1 ou 2 (defaut assuré 1) 
@@ -235,7 +234,6 @@ class Portfolio:
         age=self.zero       
         age=age+ageInitial         
         age=np.where(age==0,age+999,age+increment)
-
         return np.floor(age)
 
 #Retourne un vecteur des qx dimensionné correctement pour une table de mortalité, 
@@ -249,7 +247,6 @@ class Portfolio:
         
         myAge=(self.age(ass)).astype(int) 
         myAge=np.where(myAge>mt.w,mt.w-1,myAge)
-   
         return np.take(aQx,myAge)   
 
 
@@ -270,7 +267,6 @@ class Portfolio:
         condlist = [self.nbassure() ==1, self.nbassure() ==2]
         choicelist = [qxmens1 , qxmens1 + qxmens2 - qxmens1*qxmens2 ]
         qxmens=np.select(condlist, choicelist)
-
         return qxmens
 
 
@@ -279,7 +275,6 @@ class Portfolio:
         
         fract = self.un
         fract = fract * self.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
-        
         return fract
 
 
@@ -295,17 +290,19 @@ class Portfolio:
         choicelist = [payement[:,:,:]==0, payement[:,:,:] ==1 ]
         
         myPayement=np.select(condlist, choicelist)
-
         return myPayement
 
 
     def nbassure(self):
         
         nombreass = self.p['POLNBTETE'].to_numpy()[:,np.newaxis,np.newaxis] * self.un
-        
         return nombreass
     
-    
+# JO Création d'un vecteur d'inflation A CHANGER VALEUR EN DUR !!!
+    def inflation(self):
+        
+        inflation = 1.0125**(np.arange(np.size(self,1))[np.newaxis,:,np.newaxis]/12)
+        return inflation
 
     
 #####ICI pour faire des tests sur la class##########################################################

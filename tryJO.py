@@ -74,40 +74,24 @@ from Parametres import Hypo
 
 
 
-
-
-
-
-
-
-
-
-
-
+#
+## JO temps écoulé en année depuis le dernie payement timelastp
+#timelastp = policies.fractionnement()*(policies.durationIf()+11)/12 - np.floor(policies.fractionnement() * (policies.durationIf()+11)/12 )
+#timelastp[:,0,:] = 0
+#        
+#timelastp  = np.roll(timelastp, [-1], axis=(1))
+#        
+#premInc = policies.p['POLPRTOT'][:,np.newaxis,np.newaxis] * policies.un
+## JO premium charge de 20% CHIFFRE EN DUR A MODIFIER !!!
+#rencours = (premInc * (1-timelastp)/policies.fractionnement()) * (1-0.2)
+#condlist = [timelastp == 0, timelastp != 0]
+#choicelist = [rencours == 0 , rencours]
+#rencours=np.select(condlist, choicelist)
         
-payement = policies.zeros()
-fract = policies.un * policies.fractionnement()[:,np.newaxis,np.newaxis]
-check1 = (fract * (policies.durationIf() + 11) /12)
-check2 = np.floor((fract * (policies.durationIf() + 11) /12))
         
-condlist = [check1 - check2 == 0, check1 - check2 != 0]
-choicelist = [payement[:,:,:]==0, payement[:,:,:] ==1 ]
-        
-myPayement=np.select(condlist, choicelist)
 
 
 
-
-
-durationInitial=policies.p['DurationIfInitial'].to_numpy()
-        
-durationInitial=durationInitial[:,np.newaxis,np.newaxis]
-        
-increment=np.arange(0,policies.shape[1],1)
-increment=increment[np.newaxis,:,np.newaxis]
-            
-durIf=policies.un       
-durIf=durIf*durationInitial        
-durIf=durIf+increment
-
-
+txsin = hyp.fraisVisite()
+primcpl = ((policies.zeros() + 60)/policies.fractionnement()) * txsin * FU.mypayement(policies) * FU.inforceSM(policies)
+primcpl = primcpl * FU.isactive(policies)
