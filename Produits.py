@@ -157,7 +157,7 @@ class FU(Portfolio):
         
         timelastp  = np.roll(timelastp, [-1], axis=(1))
         
-        premInc = self.p['POLPRTOT'][:,np.newaxis,np.newaxis] * policies.un
+        premInc = self.p['POLPRTOT'][:,np.newaxis,np.newaxis] * self.un
 # JO premium charge de 20% CHIFFRE EN DUR A MODIFIER !!!
         rencours = (premInc * (1-timelastp)/self.fractionnement()) * (1-0.2)
         
@@ -168,7 +168,7 @@ class FU(Portfolio):
         
         return rencours
     
-    
+# JO reserve mathématique adjusté pour calculé les dépenses lié au placement (mod89 = uniquement les risques en cours)
     def adjmathres(self):
 # JO risque en cours décalé
         risqudec = np.roll(FU.risqueEncour(self), [1], axis=(1))
@@ -190,6 +190,13 @@ class FU(Portfolio):
     def totexp(self):
         
         return FU.placementexp(self) + FU.renexp(self) 
+    
+    
+    def commTot(self):
+        
+        commissions = hyp.commissions(self)
+        
+        return commissions
 #* FU.inforceSM(self)
 #sp=FU()       
 #b=sp.un

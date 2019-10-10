@@ -303,6 +303,10 @@ class Portfolio:
         
         inflation = 1.0125**(np.arange(np.size(self,1))[np.newaxis,:,np.newaxis]/12)
         return inflation
+    
+
+    
+    
 
     
 #####ICI pour faire des tests sur la class##########################################################

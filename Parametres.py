@@ -117,7 +117,7 @@ class Hypo:
     def dc(self):
         return self.templateSinistrality(19)
     def fraisVisite(self):
-# JO ajout pour formater tableau numpy
+# JO ajout pour dimensionner tableau numpy
         fraisvis = self.templateSinistrality(20)
         sp=p.p.loc[p.p['PMBPOL'].isin(policies.p['PMBPOL'].values )]        
         pol=list(sp.index.values)
