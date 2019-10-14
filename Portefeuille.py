@@ -109,9 +109,27 @@ def portfolioPreProcessing(p):
 #    p['Age2AtEntry']=((pd.to_datetime(p['POLDTDEB'])-pd.to_datetime(p['CLIDTNAISS2']))/np.timedelta64(1,'Y')).apply(np.ceil)
     
     
-    p['Age1AtEntry']=pd.to_datetime(p['POLDTDEB']).dt.year-pd.to_datetime(p['CLIDTNAISS'].astype(str), format='%Y%m%d').dt.year
-    p['Age2AtEntry']=pd.to_datetime(p['POLDTDEB']).dt.year-pd.to_datetime(p['CLIDTNAISS2'].astype(str), format='%Y%m%d').dt.year
-   
+# JO il faut ajouter le "subterfuge" de PhM pour obtenir le même age
+    
+    moisnaiss1 = pd.to_datetime(p['CLIDTNAISS'].astype(str), format='%Y%m%d').dt.month
+    journaiss1 = pd.to_datetime(p['CLIDTNAISS'].astype(str), format='%Y%m%d').dt.day
+    annenaiss1 = pd.to_datetime(p['CLIDTNAISS'].astype(str), format='%Y%m%d').dt.year
+    moisdeb = pd.to_datetime(p['POLDTDEB']).dt.month
+    jourdeb = pd.to_datetime(p['POLDTDEB']).dt.day
+    
+    moisnaiss2 = pd.to_datetime(p['CLIDTNAISS2'].astype(str), format='%Y%m%d').dt.month
+    journaiss2 = pd.to_datetime(p['CLIDTNAISS2'].astype(str), format='%Y%m%d').dt.day
+    annenaiss2 = pd.to_datetime(p['CLIDTNAISS2'].astype(str), format='%Y%m%d').dt.year
+    
+    naiss1 = np.where(moisnaiss1 * 100 + journaiss1  >= moisdeb * 100 + jourdeb , annenaiss1  + 1, annenaiss1)
+    naiss2 = np.where(moisnaiss2 * 100 + journaiss2 >= moisdeb * 100 + jourdeb ,annenaiss2 + 1, annenaiss2)
+    
+    p['Age1AtEntry']=pd.to_datetime(p['POLDTDEB']).dt.year-naiss1
+    p['Age2AtEntry']=pd.to_datetime(p['POLDTDEB']).dt.year-naiss2
+    
+
+    
+
 
 
     
@@ -237,7 +255,7 @@ class Portfolio:
         
         age=self.zero       
         age=age+ageInitial         
-        age=np.where(age==0,age+999,age+increment)
+        age=np.where(age<=0,age+999,age+increment)
         return np.floor(age)
 
 #Retourne un vecteur des qx dimensionné correctement pour une table de mortalité, 
@@ -325,7 +343,10 @@ policies=Portfolio()
 #b=policies.p
 #c=policies.runs
 #d=policies.shape
-#e=policies.mod([9])
+#e=policies.mod([8,9])
+
+#policies.ids([911101])
+
 #policies.ids([872401])
 #policies.ids([2501801])
 #policies.ids([75203])

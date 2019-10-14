@@ -120,23 +120,72 @@ from Parametres import Hypo
 
 
 
+#
+#
+#durationiftheck = ((pd.to_datetime(policies.p['DateCalcul'])-pd.to_datetime(policies.p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.ceil)
+#
+#
+#
+#
+#
+#ageInitial=policies.p['Age{}AtEntry'.format(1)].to_numpy()        
+#ageInitial=ageInitial[:,np.newaxis,np.newaxis]
+#        
+#increment = np.floor(np.float64((policies.durationIf()/12) - (1/12)+0.00001))
+#        
+#age=policies.zero       
+#age=age+ageInitial         
+#age=np.where(age==0,age+999,age+increment)
 
 
-durationiftheck = ((pd.to_datetime(policies.p['DateCalcul'])-pd.to_datetime(policies.p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.ceil)
 
 
 
+qxmens = policies.qxmensuel()
+myPayement = policies.mypayement()  
 
+lapseann = np.asarray(hyp.lapse(policies), dtype=np.float64)
+lapsemens = np.asarray(1-(1-hyp.lapse(policies))**(1/policies.fractionnement()), dtype=np.float64)
 
-ageInitial=policies.p['Age{}AtEntry'.format(1)].to_numpy()        
-ageInitial=ageInitial[:,np.newaxis,np.newaxis]
+nbSurr = policies.zeros()
+nbDeath = policies.zeros()
+no_pol_if = policies.zeros()
+no_pol_if[:,0,:] = 1
+no_pol_ifsm = policies.zeros()
+no_pol_ifsm[:,1,:] = 1
+no_mats = policies.zeros()
+# pour calculer inforce on a besoin de no_death -> besoin de inforceSM -> no_mats
         
-increment = np.floor(np.float64((policies.durationIf()/12) - (1/12)+0.00001))
-        
-age=policies.zero       
-age=age+ageInitial         
-age=np.where(age==0,age+999,age+increment)
+
+mat_rate = FU.mate_rate(policies)
 
 
 
+for i in range(1,np.size(policies,1)-1):
+    
+    no_mats[:,i,:] = no_pol_if[:,i-1,:] * mat_rate[:,i,:]
+    no_pol_ifsm[:,i,:] = no_pol_if[:,i-1,:] - no_mats[:,i,:]
+    
+# JO Prophet affiche ce calcul mais l'effectue sans prendre en compte lapsemens A VERIFIER
+    nbDeath[:,i,:] = no_pol_ifsm[:,i,:] * qxmens[:,i,:] * (1- (lapsemens[:,i,:] * myPayement[:,i+1,:])/2)
+    
+#            nbDeath[:,i,:] = no_pol_if[:,i-1,:] * qxmens[:,i,:]
+    nbSurr[:,i,:] = no_pol_ifsm[:,i-1,:]  * lapsemens[:,i,:] * (1- qxmens[:,i,:]/2) * myPayement[:,i+1,:] 
+    no_pol_if[:,i,:] = no_pol_if[:,i-1,:] - nbSurr[:,i,:] - nbDeath[:,i,:]
+
+no_pol_if[no_pol_if <= 0] = 0
+nbSurr[nbSurr < 0] = 0
+
+# JO ajout de la condition sur l'âge
+#        condlist = [self.age() < 65, self.age() >= 65]
+#        choicelist = [no_pol_if , no_pol_if ==0]
+#        
+#        no_pol_if=np.select(condlist, choicelist)
+
+no_pol_if = no_pol_if * FU.isactive(policies)
+
+# JO force la dernière valeur à 0, sinon = 1 POURQUOI ? A CHANGER !!!
+no_pol_if[:,np.size(policies,1)-1,:] = 0
+     
+ 
 
