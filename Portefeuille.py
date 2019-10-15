@@ -72,12 +72,13 @@ def agesInitial():
     
     dateDebut= pd.to_datetime(p['POLDTDEB'].astype(str), format='%Y%m%d')
     
-    dtNaiss1=np.where(date1.dt.month * 100 + date1.dt.day  >= dateDebut.dt.month * 100 + dateDebut.dt.day , date1.dt.year  + 1, date1.dt.year)
+    dtNaiss1=np.where(date1.dt.month * 100 + date1.dt.day  > dateDebut.dt.month * 100 + dateDebut.dt.day , date1.dt.year  + 1, date1.dt.year)
     
-    dtNaiss2=np.where(date2.dt.month * 100 + date2.dt.day  >= dateDebut.dt.month * 100 + dateDebut.dt.day , date2.dt.year  + 1, date2.dt.year)
+    dtNaiss2=np.where(date2.dt.month * 100 + date2.dt.day  > dateDebut.dt.month * 100 + dateDebut.dt.day , date2.dt.year  + 1, date2.dt.year)
     
     p['Age1AtEntry']=dateDebut.dt.year-dtNaiss1
     p['Age2AtEntry']=dateDebut.dt.year-dtNaiss2   
+
 
 #Permet de formater la dataframe des polices avant d'entrer dans la classe
 def portfolioPreProcessing(p):
@@ -91,7 +92,6 @@ def portfolioPreProcessing(p):
     p.loc[p.POLNBTETE==1, 'CLIDTNAISS2'] = p.loc[p.POLNBTETE==1, 'POLDTDEB']
 
     agesInitial()
-
 
 #Formatage des colonnes et création des colonnes utiles    
 
@@ -112,7 +112,9 @@ def portfolioPreProcessing(p):
     
     p['ProjectionMonths']=((pd.to_datetime(p['DateFinCalcul'])-pd.to_datetime(p['DateCalcul']))/np.timedelta64(1,'M')).apply(np.ceil)
     
-    p['DurationIfInitial']=((pd.to_datetime(p['DateCalcul'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.ceil)
+#    p['DurationIfInitial']=((pd.to_datetime(p['DateCalcul'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.ceil)
+
+    p['DurationIfInitial']=(pd.to_datetime(p['DateCalcul']).dt.year - pd.to_datetime(p['POLDTDEB']).dt.year)*12 + pd.to_datetime(p['DateCalcul']).dt.month - pd.to_datetime(p['POLDTDEB']).dt.month + 1  
     
     allocationClassPGG()
 
@@ -264,8 +266,8 @@ policies=Portfolio()
 #i=policies.zero
 #j=policies.vide
 #k=policies.template
-#l=policies.durationIf()
+l=policies.durationIf()
 m=policies.age(2)
 n=policies.qx(table=EKM05i, exp=100,ass=1)
 
-
+a=policies.p.to_csv(r'controle.csv')

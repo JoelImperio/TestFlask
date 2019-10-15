@@ -1,0 +1,5 @@
+
+
+- La date de fin de calcul est une date fixe dans Prophet, nous pensons qu'il faut mettre la date d'échéance de la dernière police.
+
+-
