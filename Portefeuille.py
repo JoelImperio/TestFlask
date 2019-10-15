@@ -62,6 +62,22 @@ def allocationClassPGG():
     p.loc[p['ClassPGGinit'].isin(['EP','MI']),'ClassPGG']= \
     p.loc[p['ClassPGGinit'].isin(['EP','MI']),'ClassPGGinit'].map(str)+ \
     p.loc[p['ClassPGGinit'].isin(['EP','MI']),'PMBTXINT'].map(str)
+    
+#Calcul de l'âge initial
+def agesInitial():
+    
+    date1=pd.to_datetime(p['CLIDTNAISS'].astype(str), format='%Y%m%d')
+    
+    date2=pd.to_datetime(p['CLIDTNAISS2'].astype(str), format='%Y%m%d')
+    
+    dateDebut= pd.to_datetime(p['POLDTDEB'].astype(str), format='%Y%m%d')
+    
+    dtNaiss1=np.where(date1.dt.month * 100 + date1.dt.day  >= dateDebut.dt.month * 100 + dateDebut.dt.day , date1.dt.year  + 1, date1.dt.year)
+    
+    dtNaiss2=np.where(date2.dt.month * 100 + date2.dt.day  >= dateDebut.dt.month * 100 + dateDebut.dt.day , date2.dt.year  + 1, date2.dt.year)
+    
+    p['Age1AtEntry']=dateDebut.dt.year-dtNaiss1
+    p['Age2AtEntry']=dateDebut.dt.year-dtNaiss2   
 
 #Permet de formater la dataframe des polices avant d'entrer dans la classe
 def portfolioPreProcessing(p):
@@ -73,6 +89,9 @@ def portfolioPreProcessing(p):
     
     #Lorsque la police a une tête l'age du deuxième assuré est 0 donc il né à la date début de la police (ensuite 999 ans)
     p.loc[p.POLNBTETE==1, 'CLIDTNAISS2'] = p.loc[p.POLNBTETE==1, 'POLDTDEB']
+
+    agesInitial()
+
 
 #Formatage des colonnes et création des colonnes utiles    
 
@@ -92,11 +111,11 @@ def portfolioPreProcessing(p):
    
     
     p['ProjectionMonths']=((pd.to_datetime(p['DateFinCalcul'])-pd.to_datetime(p['DateCalcul']))/np.timedelta64(1,'M')).apply(np.ceil)
+    
     p['DurationIfInitial']=((pd.to_datetime(p['DateCalcul'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.ceil)
+    
     allocationClassPGG()
 
-    p['Age1AtEntry']=((pd.to_datetime(p['POLDTDEB'])-pd.to_datetime(p['CLIDTNAISS']))/np.timedelta64(1,'Y')).apply(np.ceil) 
-    p['Age2AtEntry']=((pd.to_datetime(p['POLDTDEB'])-pd.to_datetime(p['CLIDTNAISS2']))/np.timedelta64(1,'Y')).apply(np.ceil)
 
     
     return p
@@ -233,18 +252,19 @@ class Portfolio:
 policies=Portfolio()
 
 #Les fonctions de la class Portfolio()
-a=policies.tout
-b=policies.p
-c=policies.runs
-d=policies.shape
+
+#a=policies.tout
+#b=policies.p
+#c=policies.runs
+#d=policies.shape
 #e=policies.mod([8,9])
 #f=policies.ids([301])
 #g=policies.groupe(['MI3.5'])
-h=policies.un
-i=policies.zero
-j=policies.vide
-k=policies.template
-l=policies.durationIf()
+#h=policies.un
+#i=policies.zero
+#j=policies.vide
+#k=policies.template
+#l=policies.durationIf()
 m=policies.age(2)
 n=policies.qx(table=EKM05i, exp=100,ass=1)
 
