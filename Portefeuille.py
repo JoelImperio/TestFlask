@@ -131,7 +131,7 @@ p=portfolioPreProcessing(p)
 
 class Portfolio:
     
-
+    ageNan=999
     
     def __init__(self,po=p,runs=[0,1,2,3,4,5], \
                  LapseNew=True,RateNew=True,SinistralityNew=True,CommissionNew=True,CostNew=True):
@@ -234,7 +234,7 @@ class Portfolio:
         
         age=self.zero       
         age=age+ageInitial         
-        age=np.where(age==999,age,age+duration)
+        age=np.where(age==self.ageNan,age,age+duration)
 
         return age
 
@@ -249,8 +249,18 @@ class Portfolio:
         myAge=(self.age(ass)).astype(int)
         myAge=np.where(myAge>mt.w,mt.w-1,myAge)
         
-        return np.take(aQx,myAge)   
+        myQx=np.take(aQx,myAge)
 
+        return np.where(self.age(ass) == self.ageNan,1-(mt.qx[mt.w-1]/(exp/100)),myQx)
+    
+
+    def qxMens(self,tableM=EKM05i, expM=100, assM=1):
+        
+        qx=1-(1-self.qx(table=tableM,exp=expM,ass=assM))**(1/12)
+        
+        qx[:,0,:] = 0
+        
+        return qx
 
 #####ICI pour faire des tests sur la class##########################################################
 
@@ -258,21 +268,21 @@ policies=Portfolio()
 
 #Les fonctions de la class Portfolio()
 
-#a=policies.tout
-#b=policies.p
-#c=policies.runs
-#d=policies.shape
+a=policies.tout
+b=policies.p
+c=policies.runs
+d=policies.shape
 #e=policies.mod([8,9])
-f=policies.ids([2134901])
+#f=policies.ids([2134901])
 #g=policies.groupe(['MI3.5'])
-#h=policies.un
-#i=policies.zero
-#j=policies.vide
-#k=policies.template
+h=policies.un
+i=policies.zero
+j=policies.vide
+k=policies.template
 l=policies.durationIf()
 m=policies.age(1)
-n=policies.qx(table=EKM05i, exp=41.73,ass=1)
+n=policies.qx(table=EKM05i, exp=41.73,ass=2)
+o=policies.qxMens(tableM=EKM05i, expM=41.73,assM=2)
 
-z=policies.templateProjection()
 
-a=policies.p.to_csv(r'controle.csv')
+#a=policies.p.to_csv(r'controle.csv')
