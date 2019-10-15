@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from MyPyliferisk import MortalityTable
 from MyPyliferisk.mortalitytables import EKM05i
+from fractions import Fraction 
 import time
 import os, os.path
 path = os.path.dirname(os.path.abspath(__file__))
@@ -77,7 +78,8 @@ def agesInitial():
     dtNaiss2=np.where(date2.dt.month * 100 + date2.dt.day  > dateDebut.dt.month * 100 + dateDebut.dt.day , date2.dt.year  + 1, date2.dt.year)
     
     p['Age1AtEntry']=dateDebut.dt.year-dtNaiss1
-    p['Age2AtEntry']=dateDebut.dt.year-dtNaiss2   
+    p['Age2AtEntry']=dateDebut.dt.year-dtNaiss2
+    p.loc[p.Age2AtEntry==0,'Age2AtEntry']=999
 
 
 #Permet de formater la dataframe des polices avant d'entrer dans la classe
@@ -113,7 +115,7 @@ def portfolioPreProcessing(p):
     p['ProjectionMonths']=((pd.to_datetime(p['DateFinCalcul'])-pd.to_datetime(p['DateCalcul']))/np.timedelta64(1,'M')).apply(np.ceil)
     
 ##On pense que la différence en mois est plus correct que le calcul des DCS pour les duration IF
-#    p['myDurationIfInitial']=((pd.to_datetime(p['DateCalcul'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.around)
+#    p['DurationIfInitial']=((pd.to_datetime(p['DateCalcul'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.around)
     p['DurationIfInitial']=(pd.to_datetime(p['DateCalcul']).dt.year - pd.to_datetime(p['POLDTDEB']).dt.year)*12 \
     + pd.to_datetime(p['DateCalcul']).dt.month - pd.to_datetime(p['POLDTDEB']).dt.month + 1  
     
@@ -227,14 +229,14 @@ class Portfolio:
         ageInitial=self.p['Age{}AtEntry'.format(ass)].to_numpy()        
         ageInitial=ageInitial[:,np.newaxis,np.newaxis]
         
-        increment=np.linspace(0,policies.shape[1]/12, num=policies.shape[1])
-        increment=increment[np.newaxis,:,np.newaxis]
-            
+        duration=self.durationIf()-1
+        duration=(duration-np.mod(duration,12))/12
+        
         age=self.zero       
         age=age+ageInitial         
-        age=np.where(age==0,age+999,age+increment)
+        age=np.where(age==999,age,age+duration)
 
-        return np.floor(age)
+        return age
 
 #Retourne un vecteur des qx dimensionné correctement pour une table de mortalité, 
 # une expérience (100 = 100% de la table) et pour l'assuré 1 ou 2  
@@ -261,14 +263,16 @@ policies=Portfolio()
 #c=policies.runs
 #d=policies.shape
 #e=policies.mod([8,9])
-#f=policies.ids([301])
+f=policies.ids([2134901])
 #g=policies.groupe(['MI3.5'])
 #h=policies.un
 #i=policies.zero
 #j=policies.vide
 #k=policies.template
 l=policies.durationIf()
-m=policies.age(2)
-n=policies.qx(table=EKM05i, exp=100,ass=1)
+m=policies.age(1)
+n=policies.qx(table=EKM05i, exp=41.73,ass=1)
+
+z=policies.templateProjection()
 
 a=policies.p.to_csv(r'controle.csv')
