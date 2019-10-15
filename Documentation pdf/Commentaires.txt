@@ -2,4 +2,4 @@
 
 - La date de fin de calcul est une date fixe dans Prophet, nous pensons qu'il faut mettre la date d'échéance de la dernière police.
 
--
+- Les duration IF des DCS ne prenne pas en compte le nombre de jour dans polDateDebut, il nous semble plus correct de prendre la vrai différence en mois arrondi
