@@ -250,10 +250,11 @@ class Portfolio:
         myAge=np.where(myAge>mt.w,mt.w-1,myAge)
         
         myQx=np.take(aQx,myAge)
-
-        return np.where(self.age(ass) == self.ageNan,1-(mt.qx[mt.w-1]/(exp/100)),myQx)
+        
+        #Lorsque l'âge est à 999 ans le qx est forcé à 0
+        return np.where(self.age(ass) == self.ageNan,0,myQx)
     
-
+#Retourn la probabilité de décès mensuelle
     def qxMens(self,tableM=EKM05i, expM=100, assM=1):
         
         qx=1-(1-self.qx(table=tableM,exp=expM,ass=assM))**(1/12)
@@ -261,6 +262,17 @@ class Portfolio:
         qx[:,0,:] = 0
         
         return qx
+#Retourn la probabilité jointe de décès mensuel
+    def qxyMens(self,tableXY=EKM05i, expXY=100):
+        
+        qx=self.qxMens(tableM=tableXY, expM=expXY, assM=1)
+        
+        qy=self.qxMens(tableM=tableXY, expM=expXY, assM=2)
+        
+        return qx+qy-qx*qy
+
+        
+        
 
 #####ICI pour faire des tests sur la class##########################################################
 
@@ -275,14 +287,16 @@ d=policies.shape
 #e=policies.mod([8,9])
 #f=policies.ids([2134901])
 #g=policies.groupe(['MI3.5'])
-h=policies.un
-i=policies.zero
-j=policies.vide
-k=policies.template
-l=policies.durationIf()
-m=policies.age(1)
-n=policies.qx(table=EKM05i, exp=41.73,ass=2)
-o=policies.qxMens(tableM=EKM05i, expM=41.73,assM=2)
+#h=policies.un
+#i=policies.zero
+#j=policies.vide
+#k=policies.template
+#l=policies.durationIf()
+#m=policies.age(1)
+#n=policies.qx(table=EKM05i, exp=41.73,ass=2)
+#o=policies.qxMens(tableM=EKM05i, expM=41.73,assM=2)
+
+p=policies.qxyMens(tableXY=EKM05i, expXY=41.73)
 
 
 #a=policies.p.to_csv(r'controle.csv')
