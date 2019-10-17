@@ -63,7 +63,8 @@ class myFU(Portfolio):
 pol=myFU()
 hyp=myHypo()
 
-z=pol.ids([1735601])
+
+#z=pol.ids([1735601])
 #z=pol.mod([9])
 
 
