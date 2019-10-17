@@ -150,7 +150,7 @@ class Hypo:
         
         return ratesPB
 
-# Taux de rachat (anual rate) dimensionné pour les runs et polices   
+# Taux de rachat (selon le fractionnement) dimensionné pour les runs et polices lorsqu'un lapse est possible (uniquement le mois avant un paiement de prime)  
     def lapse(self,policies):
 
  
@@ -168,9 +168,9 @@ class Hypo:
         dur=p.durationIf()
         
 
-        condlist = [dur<12,dur<24,dur<36,dur<48,dur<60, 
-                    dur<72,dur<84,dur<96,dur<108, 
-                    dur>=108]
+        condlist = [dur<=12,dur<=24,dur<=36,dur<=48,dur<=60, 
+                    dur<=72,dur<=84,dur<=96,dur<=108, 
+                    dur>108]
         choicelist = [lapseRates[:,0,:],lapseRates[:,1,:],lapseRates[:,2,:], 
                       lapseRates[:,3,:],lapseRates[:,4,:],lapseRates[:,5,:], 
                       lapseRates[:,6,:],lapseRates[:,7,:],lapseRates[:,8,:], 
@@ -188,6 +188,13 @@ class Hypo:
         #Dimensionner pour les runs et le portefeuille en appel    
         mylapse=np.take(mylapse, pol,axis=0)
         mylapse=mylapse[:,:,self.run]
+        
+        #Prise en compte du taux fractionnel et de la mise en place avant un paiement
+        mylapse=1-(1-mylapse)**(1/policies.frac())
+        
+        mylapse= policies.isLapse()*mylapse
+        
+        
         
         return mylapse
 
@@ -288,8 +295,8 @@ class Hypo:
 #myRun=[1,5]
 myRun=[0,1,2,3,4,5]
 policies=Portfolio(runs=myRun)
-policies.mod([8,9])
-#policies.ids([2401101])
+#policies.mod([8,9])
+policies.ids([896002])
 
 shape=policies.shape
 
@@ -297,21 +304,21 @@ hyp=Hypo(MyShape=shape, Run=myRun)
 
 ###Les fonctions de la class
 
-a=hyp.fraisGestion()
-b=hyp.fraisGestionPlacement()
-c=hyp.rate()
-d=hyp.pbRate()
+#a=hyp.fraisGestion()
+#b=hyp.fraisGestionPlacement()
+#c=hyp.rate()
+#d=hyp.pbRate()
 e=hyp.lapse(policies)
-f=hyp.ipt()
-g=hyp.dcAccident()
-h=hyp.exo()
-i=hyp.itt()
-j=hyp.hospi()
-k=hyp.dc()
-l=hyp.fraisVisite()
-m=hyp.reduction(policies)
-n=hyp.commissions(policies)
-o=hyp.inflation()
+#f=hyp.ipt()
+#g=hyp.dcAccident()
+#h=hyp.exo()
+#i=hyp.itt()
+#j=hyp.hospi()
+#k=hyp.dc()
+#l=hyp.fraisVisite()
+#m=hyp.reduction(policies)
+#n=hyp.commissions(policies)
+#o=hyp.inflation()
 
 
 
@@ -321,8 +328,8 @@ o=hyp.inflation()
 
 
 ###Visualiser un vecteur np en réduisant une dimension
-#data=n
-#aa=pd.DataFrame(data[:,:,1])
+data=e
+aa=pd.DataFrame(data[:,:,1])
 
 
 

@@ -294,6 +294,22 @@ class Portfolio:
         myPayement[:,0,:] = 0
         
         return myPayement
+#Retourn un 1 lorsqu'il y a un lapse possible    
+    def isLapse(self):
+        lapse = self.zeros()
+        check1 = (self.frac() * (self.durationIf() + 12) /12)
+        check2 = np.floor((self.frac() * (self.durationIf() + 12) /12))
+
+        condlist = [check1 - check2 == 0, check1 - check2 != 0]
+        choicelist = [lapse[:,:,:]==0, lapse[:,:,:] ==1 ]
+        
+        myLapse=np.select(condlist, choicelist)
+        # Le premier mois il n'y a pas de payement car la prime est payé en début de mois et les date de calcul sont en fin de mois
+        myLapse[:,0,:] = 0
+        
+        return myLapse
+    
+        
         
         
 
@@ -308,7 +324,7 @@ b=policies.p
 c=policies.runs
 d=policies.shape
 #e=policies.mod([8,9])
-#f=policies.ids([1735601])
+f=policies.ids([896002])
 #g=policies.groupe(['MI3.5'])
 #h=policies.un
 #i=policies.zero
@@ -320,7 +336,8 @@ d=policies.shape
 #o=policies.qxMens(tableM=EKM05i, expM=41.73,assM=2)
 #p=policies.qxyMens(tableXY=EKM05i, expXY=41.73)
 #q=policies.frac()
-#r=policies.isPremPay()
+r=policies.isPremPay()
+s=policies.isLapse()
 
 
 #a=policies.p.to_csv(r'controle.csv')
