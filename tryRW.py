@@ -36,6 +36,7 @@ class myFU(Portfolio):
 
 
 
+
 pol=myFU()
 hyp=myHypo()
 
