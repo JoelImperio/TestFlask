@@ -146,6 +146,7 @@ class Portfolio:
 
 
 #        from Parametres import Hypo
+#        self.dc=Hypo(MyShape=self.shape,Run=self.runs, New=SinistralityNew)
 #        self.lapse=Hypo(MyShape=self.shape,Run=runs,New=LapseNew).lapse()    
 #        self.waver=Hypo(MyShape=self.shape,Run=runs,New=LapseNew)
 #        self.rate=Hypo(MyShape=self.shape,Run=runs,New=RateNew)
@@ -254,6 +255,13 @@ class Portfolio:
         #Lorsque l'âge est à 999 ans le qx est forcé à 0
         return np.where(self.age(ass) == self.ageNan,0,myQx)
     
+    def qxExp(self,tableExp=EKM05i, assExp=1):
+        
+        qx=self.qx(table=tableExp,ass=assExp)*self.dc
+        
+        return qx
+    
+    
 #Retourn la probabilité de décès mensuelle
     def qxMens(self,tableM=EKM05i, expM=100, assM=1):
         
@@ -339,6 +347,7 @@ f=policies.ids([896002])
 #q=policies.frac()
 r=policies.isPremPay()
 s=policies.isLapse()
+#t=policies.qxExp()
 
 
 #a=policies.p.to_csv(r'controle.csv')

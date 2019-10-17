@@ -46,6 +46,7 @@ class myFU(Portfolio):
         
         #Nous pensons que cette variante est plus correct car dans le mod 9 la police continue jusqu'à 65 ans du plus jeune assuré
         #Il faut ajouté le code commenté pour prendre en compte le changement
+        
 #        mod=self.p['PMBMOD'].to_numpy()        
 #        entryAge2[entryAge2==0]=999
 #        ageAtEntry[mod==9]=np.minimum(entryAge1[mod==9],entryAge2[mod==9])
@@ -79,12 +80,22 @@ class myFU(Portfolio):
         nbrMaturities=self.zero
         nbrPolIfSM=self.zero
         
+        matRate=self.zero
+        matRate=matRate[self.polTermM()==self.durationIf()]=1
+        
         for i in range(1,self.shape[1]):
+            
+            nbrMaturities[:,i,:]=nbrPolIf[:,i-1,:]*matRate[:,i,:]
+            
+            nbrPolIfSM[:,i,:]=nbrPolIf[:,i-1,:]-nbrMaturities[:,i,:]
+            
+            nbrDeath[:,i,:]=nbrPolIfSM[:,i,:]*self.qxyMens()
+            
             nbrPolIf=self.un
             nbrDeath=self.zero
             nbrSurrender=self.zero
-            nbrMaturities=self.zero
-            nbrPolIfSM=self.zero            
+            nbrMaturities
+                        
             
         
         return self

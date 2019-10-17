@@ -292,11 +292,11 @@ class Hypo:
 
 #####ICI pour faire des tests sur la class##########################################################
 
-#myRun=[1,5]
-myRun=[0,1,2,3,4,5]
+myRun=[1,5]
+#myRun=[0,1,2,3,4,5]
 policies=Portfolio(runs=myRun)
 #policies.mod([8,9])
-policies.ids([896002])
+#policies.ids([896002])
 
 shape=policies.shape
 
@@ -308,13 +308,13 @@ hyp=Hypo(MyShape=shape, Run=myRun)
 #b=hyp.fraisGestionPlacement()
 #c=hyp.rate()
 #d=hyp.pbRate()
-e=hyp.lapse(policies)
+#e=hyp.lapse(policies)
 #f=hyp.ipt()
 #g=hyp.dcAccident()
 #h=hyp.exo()
 #i=hyp.itt()
 #j=hyp.hospi()
-#k=hyp.dc()
+k=hyp.dc()
 #l=hyp.fraisVisite()
 #m=hyp.reduction(policies)
 #n=hyp.commissions(policies)
@@ -328,8 +328,8 @@ e=hyp.lapse(policies)
 
 
 ###Visualiser un vecteur np en réduisant une dimension
-data=e
-aa=pd.DataFrame(data[:,:,1])
+#data=e
+#aa=pd.DataFrame(data[:,:,1])
 
 
 
