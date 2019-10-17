@@ -30,7 +30,7 @@ class Hypo:
             self.h=hy1
         self.securityMarginMarge=1+self.h.iloc[53,2]
         self.securityMarginBio=1+self.h.iloc[54,2]
-        self.inflation=1+self.h.iloc[55,2]
+
 
 # Retourne une template formaté pour tous les runs    
     def templateAllrun(self):             
@@ -265,6 +265,21 @@ class Hypo:
         
         return myCommissions
 
+#Taux mensuel d'inflation dimensionné pour les runs et polices
+
+    def inflation(self):
+        
+        inflationRate=self.h.iloc[55,2]
+        
+        inflationRate=inflationRate+self.un
+        
+        increment=np.arange(0,self.shape[1])[np.newaxis,:,np.newaxis]
+            
+        inflationMensuel= inflationRate**(increment/12)
+        
+        
+        return inflationMensuel
+
     
 
 
@@ -273,7 +288,7 @@ class Hypo:
 #myRun=[1,5]
 myRun=[0,1,2,3,4,5]
 policies=Portfolio(runs=myRun)
-#policies.mod([8,9])
+policies.mod([8,9])
 #policies.ids([2401101])
 
 shape=policies.shape
@@ -296,6 +311,7 @@ k=hyp.dc()
 l=hyp.fraisVisite()
 m=hyp.reduction(policies)
 n=hyp.commissions(policies)
+o=hyp.inflation()
 
 
 

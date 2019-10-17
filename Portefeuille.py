@@ -262,6 +262,7 @@ class Portfolio:
         qx[:,0,:] = 0
         
         return qx
+    
 #Retourn la probabilité jointe de décès mensuel
     def qxyMens(self,tableXY=EKM05i, expXY=100):
         
@@ -270,7 +271,29 @@ class Portfolio:
         qy=self.qxMens(tableM=tableXY, expM=expXY, assM=2)
         
         return qx+qy-qx*qy
+    
+#Retourn une matrice avec le fractionnement constant   
+    def frac(self):
+        
+        fract = self.un * self.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
+        return fract
+    
+#Retourn un 1 lorsqu'il y a un payement de prime
+    def isPremPay(self):
+        
+        payement = self.zeros()
+        check1 = (self.frac() * (self.durationIf() + 11) /12)
+        check2 = np.floor((self.frac() * (self.durationIf() + 11) /12))
 
+        condlist = [check1 - check2 == 0, check1 - check2 != 0]
+        choicelist = [payement[:,:,:]==0, payement[:,:,:] ==1 ]
+        
+        myPayement=np.select(condlist, choicelist)
+        
+        # Le premier mois il n'y a pas de payement car la prime est payé en début de mois et les date de calcul sont en fin de mois
+        myPayement[:,0,:] = 0
+        
+        return myPayement
         
         
 
@@ -285,7 +308,7 @@ b=policies.p
 c=policies.runs
 d=policies.shape
 #e=policies.mod([8,9])
-#f=policies.ids([2134901])
+#f=policies.ids([1735601])
 #g=policies.groupe(['MI3.5'])
 #h=policies.un
 #i=policies.zero
@@ -295,8 +318,9 @@ d=policies.shape
 #m=policies.age(1)
 #n=policies.qx(table=EKM05i, exp=41.73,ass=2)
 #o=policies.qxMens(tableM=EKM05i, expM=41.73,assM=2)
-
-p=policies.qxyMens(tableXY=EKM05i, expXY=41.73)
+#p=policies.qxyMens(tableXY=EKM05i, expXY=41.73)
+#q=policies.frac()
+#r=policies.isPremPay()
 
 
 #a=policies.p.to_csv(r'controle.csv')
