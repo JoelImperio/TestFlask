@@ -26,7 +26,6 @@ class myHypo(Hypo):
             
 
 
-
 class myFU(Portfolio):
     mods=[8,9]
     
@@ -35,7 +34,7 @@ class myFU(Portfolio):
         self.p=self.mod(self.mods)
         self.ageMax=65
 
-
+#Durée du contrat en mois
     def polTermM(self):
         
         entryAge1= self.p['Age1AtEntry'].to_numpy()
@@ -60,16 +59,49 @@ class myFU(Portfolio):
 
         return polTerm
 
+#Retourn un 1 tant que la police est active et 0 lorsque dépasse le terme   
+    def isActive(self):
+        term=self.polTermM()
+        dur=self.durationIf()
+        
+        active=self.un
+        
+        active[dur>term]=0
+        
+        return active
+        
+
+    def loop(self):
+        
+        nbrPolIf=self.un
+        nbrDeath=self.zero
+        nbrSurrender=self.zero
+        nbrMaturities=self.zero
+        nbrPolIfSM=self.zero
+        
+        for i in range(1,self.shape[1]):
+            nbrPolIf=self.un
+            nbrDeath=self.zero
+            nbrSurrender=self.zero
+            nbrMaturities=self.zero
+            nbrPolIfSM=self.zero            
+            
+        
+        return self
+        
+
+
 pol=myFU()
 hyp=myHypo()
 
 
-#z=pol.ids([1735601])
+z=pol.ids([1107301])
 #z=pol.mod([9])
 
 
 a=pol.polTermM()
-
+b=pol.isActive()
+c=pol.durationIf()
 
 
 
