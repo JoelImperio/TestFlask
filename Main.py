@@ -319,6 +319,9 @@ class Portfolio:
         myLapse[:,0,:] = 0
         
         return myLapse
+    
+    def lapse(self,anHypo,anPortfolio):
+        return anHypo.lapse(anPortfolio)
 
 
 
@@ -626,23 +629,23 @@ myPolicies=Portfolio()
 
 #Les fonctions de la class Portfolio()
 
-ya=myPolicies.tout
-yb=myPolicies.p
-yc=myPolicies.runs
-yd=myPolicies.shape
-ye=myPolicies.un
-yf=myPolicies.zero
-yg=myPolicies.vide
-yh=myPolicies.template
-yi=myPolicies.durationIf()
-yj=myPolicies.age(1)
-yk=myPolicies.qx(table=EKM05i, exp=41.73,ass=2)
-yl=myPolicies.qxMens(tableM=EKM05i, expM=41.73,assM=2)
-ym=myPolicies.qxyMens(tableXY=EKM05i, expXY=41.73)
-yn=myPolicies.frac()
-yo=myPolicies.isPremPay()
-yp=myPolicies.isLapse()
-yq=myPolicies.dc
+#ya=myPolicies.tout
+#yb=myPolicies.p
+#yc=myPolicies.runs
+#yd=myPolicies.shape
+#ye=myPolicies.un
+#yf=myPolicies.zero
+#yg=myPolicies.vide
+#yh=myPolicies.template
+#yi=myPolicies.durationIf()
+#yj=myPolicies.age(1)
+#yk=myPolicies.qx(table=EKM05i, exp=41.73,ass=2)
+#yl=myPolicies.qxMens(tableM=EKM05i, expM=41.73,assM=2)
+#ym=myPolicies.qxyMens(tableXY=EKM05i, expXY=41.73)
+#yn=myPolicies.frac()
+#yo=myPolicies.isPremPay()
+#yp=myPolicies.isLapse()
+
 
 
 def testerHypo():
@@ -676,7 +679,7 @@ hyp=Hypo(MyShape=shape, Run=myRun)
 #zn=hyp.commissions(myPol)
 #zo=hyp.inflation()
 
-
+a=myPolicies.lapse(hyp,myPol)
 
 
 ###Visualiser un vecteur np en réduisant une dimension
