@@ -29,17 +29,23 @@ def portfolioExtractionToCSV():
 #Attention enlever à la copie du test
     return p.to_csv(r'Portefeuille\Portfolio.csv'), p.to_csv(r'Tests\Portfolio_Test.csv')
 
+#Extraction du portefeuille de polices
+    
+#portfolioExtractionToCSV()
+
+
 #Inputs global
 dateCalcul='20181231'
 dateFinCalcul='20521231' #A mon avis doit être remplacer par date expiration des polices
 
-#Extraction du portefeuille de polices
-#portfolioExtractionToCSV()
 
-p=pd.read_csv(path+'/Portefeuille\Portfolio.csv')
+
+
+
+
 
 #Permet de crée une colonne avec la classPGG
-def allocationClassPGG():
+def allocationClassPGG(p):
     p['zero']=0   
     dico=dict(zip(p['PMBMOD'],p['zero']))        
     #Les listes de numéro représente les mod a allouer dans la catégorie
@@ -68,7 +74,7 @@ def allocationClassPGG():
     p.loc[p['ClassPGGinit'].isin(['EP','MI']),'PMBTXINT'].map(str)
     
 #Calcul de l'âge initial
-def agesInitial():
+def agesInitial(p):
     
     date1=pd.to_datetime(p['CLIDTNAISS'].astype(str), format='%Y%m%d')
     
@@ -96,7 +102,7 @@ def portfolioPreProcessing(p):
     #Lorsque la police a une tête l'age du deuxième assuré est 0 donc il né à la date début de la police (ensuite 999 ans)
     p.loc[p.POLNBTETE==1, 'CLIDTNAISS2'] = p.loc[p.POLNBTETE==1, 'POLDTDEB']
 
-    agesInitial()
+    agesInitial(p)
 
 #Formatage des colonnes et création des colonnes utiles    
 
@@ -122,26 +128,70 @@ def portfolioPreProcessing(p):
     p['DurationIfInitial']=(pd.to_datetime(p['DateCalcul']).dt.year - pd.to_datetime(p['POLDTDEB']).dt.year)*12 \
     + pd.to_datetime(p['DateCalcul']).dt.month - pd.to_datetime(p['POLDTDEB']).dt.month + 1  
     
-    allocationClassPGG()
+    allocationClassPGG(p)
 
 
     
     return p
 
-p=portfolioPreProcessing(p)
 
 
-#Création de la class Portefeuille
+##############################################################################################################################
 
-class Portfolio:
+
+##############################################################################################################################
+        
+    
+##############################################################################################################################
+##############################################################################################################################
+
+
+
+
+##############################################################################################################################
+#CHARGEMENT DES FICHIERS INPUTS
+#- Hypothèses N et N-1
+#- Portefeule N et N-1
+def chargementINPUTS(PortefeuilleEtHypothèses):
+    return self,PortefeuilleEtHypothèses
+##############################################################################################################################
+
+hypN=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypothèses")
+hypN_1=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypothèses")
+
+porN=pd.read_csv(path+'/Portefeuille\Portfolio.csv')
+porN=portfolioPreProcessing(porN)
+
+porN_1=pd.read_csv(path+'/Portefeuille\Portfolio.csv')
+porN_1=portfolioPreProcessing(porN_1)
+   
+
+##############################################################################################################################
+##############################################################################################################################
+
+
+#Importation d'une intance de Portfolio
+#pol=Portfolio()
+
+#Création de la class Hypothèse
+
+class Hypo:
     
     ageNan=999
-    
-    def __init__(self,po=p,runs=[0,1,2,3,4,5], \
-                 LapseNew=True,RateNew=True,SinistralityNew=True,CommissionNew=True,CostNew=True):
-        self.tout=po    
-        self.p=po
-        self.runs=runs
+    allRuns=[0,1,2,3,4,5]    
+    __slot__=('un','vide','zero','run','shape')
+
+    def __init__(self,hy=hypN,hy1=hypN_1,po=porN, po1=porN_1,\
+                 Run=allRuns, hypoNew=True, portfolioNew=True):
+        
+        if portfolioNew:
+            self.tout=po 
+            self.p=po
+        else:
+            self.tout=po1
+            self.p=po1
+            
+        self.runs=Run
         self.un=self.one()
         self.zero=self.zeros()
         self.vide=self.vides()
@@ -149,18 +199,18 @@ class Portfolio:
         self.shape=list(self.un.shape)
 
 
-#        self.dc=Hypo(MyShape=self.shape,Run=self.runs, New=SinistralityNew)
-#        self.lapse=Hypo(MyShape=self.shape,Run=runs,New=LapseNew).lapse()    
-#        self.waver=Hypo(MyShape=self.shape,Run=runs,New=LapseNew)
-#        self.rate=Hypo(MyShape=self.shape,Run=runs,New=RateNew)
-#        self.ratePb=Hypo(MyShape=self.shape,Run=runs,New=RateNew)
-#        self.sinistrality=Hypo(MyShape=self.shape,Run=runs,New=SinistralityNew)
-#        self.commissions=Hypo(MyShape=self.shape,Run=runs,New=CommissionNew)
-#        self.fixeCost=Hypo(MyShape=self.shape,Run=runs,New=CostNew)
-#        self.investCost=Hypo(MyShape=self.shape,Run=runs,New=CostNew)
+################################################     
 
+        if hypoNew:
+            self.h=hy
+        else:
+            self.h=hy1
 
-    
+        self.securityMarginMarge=1+self.h.iloc[53,2]
+        self.securityMarginBio=1+self.h.iloc[54,2]
+
+################################################  
+
 #Permet de retourner un sous-portefeuille sélectionné de la liste de mods=[]
     def mod(self,mods):
        sp=self.p.loc[self.p['PMBMOD'].isin(mods)]
@@ -208,7 +258,256 @@ class Portfolio:
         myTemplate=pd.date_range(start=self.p['DateCalcul'].min(), end=self.p['DateFinCalcul'].max(), freq='M')
         myTemplate=pd.DataFrame(myTemplate).set_index(0).transpose()            
         return myTemplate
+        
+# Retourne une template formaté pour tous les runs avec des 0  
+    def templateAllrun(self):             
+        myShape=self.shape
+        myShape[2]=int(len(self.allRuns))
+        result=np.zeros(myShape)
+        return np.copy(result)
+    
+# Retourne une template formaté pour tous les runs de 1   
+    def oneAllrun(self):             
+        myShape=self.shape
+        myShape[2]=int(len(self.allRuns))
+        result=np.ones(myShape)
+        return np.copy(result)
 
+
+# Retourne une template avec les années chaque mois
+    def templateAllYear(self):
+        
+        model=self.template
+        model=model.copy()
+        model.columns=model.columns.year
+        return model.transpose()
+    
+# Retourne les frais de gestion par police
+    def fraisGestion(self):
+        
+        fixfee=self.h.iloc[49,3]
+        
+        adminCost=self.templateAllrun()
+        
+        adminCost[:,:,:4]=fixfee
+        adminCost[:,:,4]=fixfee*self.securityMarginMarge
+        adminCost[:,:,5]=fixfee*self.securityMarginBio
+        #Dimensionner pour les runs en appel    
+        adminCost=adminCost[:,:,self.runs] 
+        
+        return adminCost
+    
+    
+    def fraisGestionPlacement(self):
+        
+        fixfee=self.h.iloc[50,3]
+
+        investCost=self.templateAllrun()
+        
+        investCost[:,:,:4]=fixfee
+        investCost[:,:,4]=fixfee*self.securityMarginMarge
+        investCost[:,:,5]=fixfee*self.securityMarginBio
+        #Dimensionner pour les runs en appel    
+        investCost=investCost[:,:,self.runs]
+        
+        return investCost
+    
+    def templateSinistrality(self,a):
+        
+        bestEstimate=self.h.iloc[a,3]
+        bePlusMarge=self.h.iloc[a,4]
+        bioEtFrais=self.h.iloc[a,5]
+
+        sin=self.templateAllrun()
+        
+        sin[:,:,:4]=bestEstimate
+        sin[:,:,4]=bePlusMarge
+        sin[:,:,5]=bioEtFrais
+        #Dimensionner pour les runs en appel    
+        sin=sin[:,:,self.runs]
+        
+        return sin
+
+    def ipt(self):
+        return self.templateSinistrality(14)
+    def dcAccident(self):
+        return self.templateSinistrality(15)
+    def exo(self):
+        return self.templateSinistrality(16)
+    def itt(self):
+        return self.templateSinistrality(17)
+    def hospi(self):
+        return self.templateSinistrality(18)
+    def dc(self):
+        return self.templateSinistrality(19)
+    def fraisVisite(self):
+        return self.templateSinistrality(20)
+    
+# Cette fonction retourne un vecteur avec les taux d'intérêt mensuel 
+    def rate(self):
+      
+        rates=self.templateAllrun()       
+        model=self.templateAllYear()
+        model=model.iloc[:self.shape[1]]
+        
+        allrates=self.h.iloc[2:6,1:39].transpose()
+        
+        allrates=pd.merge(model,allrates, left_on=0,right_on=2,how='left')
+        allrates=allrates.fillna(0)
+        allrates=allrates.iloc[:,2:].to_numpy()
+        
+        #Conversion en taux mensuel
+        allMensualrates=(1+allrates)**(1/12)-1
+        allMensualrates=allMensualrates[np.newaxis,:,:]
+        
+        #Quel run pour quel courbe        
+        runBE=[0,5,2,3]
+        runRL=1
+        runMG=4
+        #Remplir la template pour chaque runs        
+        rates[:,:,runBE]=allMensualrates[:,:,0,np.newaxis]
+        rates[:,:,runMG]=allMensualrates[:,:,1]
+        rates[:,:,runRL]=allMensualrates[:,:,2]
+        #Dimensionner pour les runs en appel    
+        rates=rates[:,:,self.runs]
+        
+        return rates
+
+# Taux de pd annuel pour chaque mois de projection   
+    def pbRate(self):
+        
+        fixratePB=self.h.iloc[45,2]/100
+        
+        rate=self.rate()
+        
+        ratesPB=((1+rate)**12-1)-fixratePB
+        
+        return ratesPB
+
+# Taux de rachat (selon le fractionnement) dimensionné pour les runs et polices lorsqu'un lapse est possible (uniquement le mois avant un paiement de prime)  
+    def lapse(self):
+
+ 
+        lapseSensiMoins=self.h.iloc[56,2]
+        lapseSensiPlus=self.h.iloc[57,2]       
+        cl=self.p['ClassPGGinit']
+        
+        lapseRates=self.h.iloc[23:32,1:12]
+        lapseRates.columns = lapseRates.iloc[0]
+        lapseRates=lapseRates.drop(lapseRates.index[0])
+        lapseRates=lapseRates.set_index('Year').transpose()
+        lapseRates=lapseRates[cl].transpose().to_numpy()
+        lapseRates=lapseRates[:,:,np.newaxis,np.newaxis]
+
+        dur=self.durationIf()
+        dur=dur[:,:,0][:,:,np.newaxis]*self.oneAllrun()
+        
+
+        condlist = [dur<=12,dur<=24,dur<=36,dur<=48,dur<=60, 
+                    dur<=72,dur<=84,dur<=96,dur<=108, 
+                    dur>108]
+        choicelist = [lapseRates[:,0,:],lapseRates[:,1,:],lapseRates[:,2,:], 
+                      lapseRates[:,3,:],lapseRates[:,4,:],lapseRates[:,5,:], 
+                      lapseRates[:,6,:],lapseRates[:,7,:],lapseRates[:,8,:], 
+                      lapseRates[:,9,:] ]
+        mylapse=np.select(condlist, choicelist)
+
+        
+        mylapse[:,:,[3,5]]=mylapse[:,:,[3,5]]*lapseSensiMoins
+        mylapse[:,:,2]=mylapse[:,:,2]*lapseSensiPlus
+       
+        #Dimensionner pour les runs et le portefeuille en appel    
+        mylapse=mylapse[:,:,self.runs]
+        
+        #Prise en compte du taux fractionnel et de la mise en place avant un paiement
+        mylapse=1-(1-mylapse)**(1/self.frac())
+        
+        mylapse= self.isLapse()*mylapse
+        
+        return mylapse
+
+# Taux de réduction (anual rate) dimensionné pour les runs et polices  
+    def reduction(self):
+
+# A vérifier si même sensibilité que rachat 
+        lapseSensiMoins=self.h.iloc[56,2]
+        lapseSensiPlus=self.h.iloc[57,2] 
+        
+        cl=self.p['ClassPGGinit']
+        reductionRates=self.h.iloc[34:43,1:12]
+        reductionRates.columns = reductionRates.iloc[0]
+        reductionRates=reductionRates.drop(reductionRates.index[0])
+        reductionRates=reductionRates.set_index('Year').transpose()
+        reductionRates=reductionRates[cl].transpose().to_numpy()
+        reductionRates=reductionRates[:,:,np.newaxis,np.newaxis]
+
+        dur=self.durationIf()
+        dur=dur[:,:,0][:,:,np.newaxis]*self.oneAllrun()       
+      
+
+        condlist = [dur<=12,dur<=24,dur<=36,dur<=48,dur<=60, 
+                    dur<=72,dur<=84,dur<=96,dur<=108, 
+                    dur>108]
+        choicelist = [reductionRates[:,0,:],reductionRates[:,1,:],reductionRates[:,2,:], 
+                      reductionRates[:,3,:],reductionRates[:,4,:],reductionRates[:,5,:], 
+                      reductionRates[:,6,:],reductionRates[:,7,:],reductionRates[:,8,:], 
+                      reductionRates[:,9,:] ]
+        myReduction=np.select(condlist, choicelist)
+
+        
+        myReduction[:,:,[3,5]]=myReduction[:,:,[3,5]]*lapseSensiMoins
+        myReduction[:,:,2]=myReduction[:,:,2]*lapseSensiPlus
+       
+              
+        
+        #Dimensionner pour les runs et le portefeuille en appel    
+        myReduction=myReduction[:,:,self.runs]
+        
+        return myReduction
+
+# Taux de commissions (anual rate) dimensionné pour les runs et polices (inclus les commissions de gestion)     
+    def commissions(self):
+        
+        cl=self.p['PMBMOD']
+        
+        commissionsRates=self.h.iloc[61:85,1:7]
+        commissionsRates.columns = commissionsRates.iloc[0]
+        commissionsRates=commissionsRates.drop(commissionsRates.index[0])
+        commissionsRates=commissionsRates.set_index('Modalité').transpose()
+        commissionsRates=commissionsRates[cl].transpose().to_numpy()
+        commissionsRates=commissionsRates[:,:,np.newaxis,np.newaxis]
+        
+        dur=self.durationIf()      
+        dur=dur[:,:,0][:,:,np.newaxis]*self.oneAllrun()    
+
+        condlist = [dur<12,dur<24,dur<36, \
+                    dur<48,dur>=48]
+        
+        choicelist = [commissionsRates[:,0,:],commissionsRates[:,1,:],commissionsRates[:,2,:], \
+                      commissionsRates[:,3,:],commissionsRates[:,4,:]]
+        
+        myCommissions=np.select(condlist, choicelist)
+        
+        #Dimensionner pour les runs et le portefeuille en appel
+        myCommissions=myCommissions[:,:,self.runs]
+        
+        return myCommissions
+
+#Taux mensuel d'inflation dimensionné pour les runs et polices
+
+    def inflation(self):
+        
+        inflationRate=self.h.iloc[55,2]
+        
+        inflationRate=inflationRate+self.un
+        
+        increment=np.arange(0,self.shape[1])[np.newaxis,:,np.newaxis]
+            
+        inflationMensuel= inflationRate**(increment/12)
+        
+        
+        return inflationMensuel
+    
 #####DEBUT DES VARIABLES DE CALCUL DES PROJECTIONS#################################################
 
 #Retourne un vecteur du nombre de mois que la police est en vigeur
@@ -226,6 +525,66 @@ class Portfolio:
         durIf=durIf+increment
         
         return durIf
+
+#Retourn une matrice avec le fractionnement constant   
+    def frac(self):
+        
+        fract = self.un * self.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
+        return fract
+
+#Retourn un 1 lorsqu'il y a un lapse possible    
+    def isLapse(self):
+        lapse = self.zeros()
+        check1 = (self.frac() * (self.durationIf() + 12) /12)
+        check2 = np.floor((self.frac() * (self.durationIf() + 12) /12))
+
+        condlist = [check1 - check2 == 0, check1 - check2 != 0]
+        choicelist = [lapse[:,:,:]==0, lapse[:,:,:] ==1 ]
+        
+        myLapse=np.select(condlist, choicelist)
+        # Le premier mois il n'y a pas de payement car la prime est payé en début de mois et les date de calcul sont en fin de mois
+        myLapse[:,0,:] = 0
+        
+        return myLapse
+
+#Retourn un 1 lorsqu'il y a un payement de prime
+    def isPremPay(self):
+        
+        payement = self.zeros()
+        check1 = (self.frac() * (self.durationIf() + 11) /12)
+        check2 = np.floor((self.frac() * (self.durationIf() + 11) /12))
+
+        condlist = [check1 - check2 == 0, check1 - check2 != 0]
+        choicelist = [payement[:,:,:]==0, payement[:,:,:] ==1 ]
+        
+        myPayement=np.select(condlist, choicelist)
+        
+        # Le premier mois il n'y a pas de payement car la prime est payé en début de mois et les date de calcul sont en fin de mois
+        myPayement[:,0,:] = 0
+        
+        return myPayement
+
+##############################################################################################################################
+##############################################################################################################################
+        
+    
+##############################################################################################################################
+##############################################################################################################################
+
+
+
+
+
+#Création de la class Portefeuille
+
+class Portfolio(Hypo):
+    
+    def __init__(self,hy=hypN,hy1=hypN_1,po=porN, po1=porN_1,\
+                 Run=[0,1,2,3,4,5], hypoNew=True, portfolioNew=True):      
+        super().__init__()
+
+
+#####DEBUT DES VARIABLES DE CALCUL DES PROJECTIONS#################################################
     
 #Retourne le vecteur des ages pour l'assuré 1 ou 2 (defaut assuré 1)   
     def age(self,ass=1):
@@ -282,46 +641,9 @@ class Portfolio:
         qy=self.qxMens(tableM=tableXY, expM=expXY, assM=2)
         
         return qx+qy-qx*qy
-    
-#Retourn une matrice avec le fractionnement constant   
-    def frac(self):
         
-        fract = self.un * self.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
-        return fract
-    
-#Retourn un 1 lorsqu'il y a un payement de prime
-    def isPremPay(self):
-        
-        payement = self.zeros()
-        check1 = (self.frac() * (self.durationIf() + 11) /12)
-        check2 = np.floor((self.frac() * (self.durationIf() + 11) /12))
 
-        condlist = [check1 - check2 == 0, check1 - check2 != 0]
-        choicelist = [payement[:,:,:]==0, payement[:,:,:] ==1 ]
-        
-        myPayement=np.select(condlist, choicelist)
-        
-        # Le premier mois il n'y a pas de payement car la prime est payé en début de mois et les date de calcul sont en fin de mois
-        myPayement[:,0,:] = 0
-        
-        return myPayement
-#Retourn un 1 lorsqu'il y a un lapse possible    
-    def isLapse(self):
-        lapse = self.zeros()
-        check1 = (self.frac() * (self.durationIf() + 12) /12)
-        check2 = np.floor((self.frac() * (self.durationIf() + 12) /12))
 
-        condlist = [check1 - check2 == 0, check1 - check2 != 0]
-        choicelist = [lapse[:,:,:]==0, lapse[:,:,:] ==1 ]
-        
-        myLapse=np.select(condlist, choicelist)
-        # Le premier mois il n'y a pas de payement car la prime est payé en début de mois et les date de calcul sont en fin de mois
-        myLapse[:,0,:] = 0
-        
-        return myLapse
-    
-    def lapse(self,anHypo,anPortfolio):
-        return anHypo.lapse(anPortfolio)
 
 
 
@@ -335,293 +657,64 @@ class Portfolio:
 
 
     
-#Chargement des fichiers inputs contenant les hypothèses
-hypN=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypothèses")
-hypN_1=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypothèses")
 
-#Importation d'une intance de Portfolio
-pol=Portfolio()
-
-#Création de la class Hypothèse
-
-class Hypo:
-    
-    __slot__=('un','vide','zero','run','shape')
-
-    def __init__(self,hy=hypN,hy1=hypN_1,MyShape=[],Run=[0,1,2,3,4,5], New=True):
-        self.run=Run
-        self.shape=MyShape
-        self.un=np.ones(shape)
-        self.vide=np.empty_like(self.un)
-        self.zero=np.zeros_like(self.un)
-        if New:
-            self.h=hy
-        else:
-            self.h=hy1
-        self.securityMarginMarge=1+self.h.iloc[53,2]
-        self.securityMarginBio=1+self.h.iloc[54,2]
-
-
-# Retourne une template formaté pour tous les runs    
-    def templateAllrun(self):             
-        myShape=self.shape
-        myShape[2]=(pol.shape)[2]
-        result=np.zeros(myShape)
-        return np.copy(result)
-        
-
-# Retourne une template avec les années chaque mois
-    def templateAllYear(self):
-        
-        model=pol.template
-        model=model.copy()
-        model.columns=model.columns.year
-        return model.transpose()
-    
-# Retourne les frais de gestion par police
-    def fraisGestion(self):
-        
-        fixfee=self.h.iloc[49,3]
-        
-        adminCost=self.templateAllrun()
-        
-        adminCost[:,:,:4]=fixfee
-        adminCost[:,:,4]=fixfee*self.securityMarginMarge
-        adminCost[:,:,5]=fixfee*self.securityMarginBio
-        #Dimensionner pour les runs en appel    
-        adminCost=adminCost[:,:,self.run] 
-        
-        return adminCost
-    
-    
-    def fraisGestionPlacement(self):
-        
-        fixfee=self.h.iloc[50,3]
-
-        investCost=self.templateAllrun()
-        
-        investCost[:,:,:4]=fixfee
-        investCost[:,:,4]=fixfee*self.securityMarginMarge
-        investCost[:,:,5]=fixfee*self.securityMarginBio
-        #Dimensionner pour les runs en appel    
-        investCost=investCost[:,:,self.run]
-        
-        return investCost
-    
-    def templateSinistrality(self,a):
-        
-        bestEstimate=self.h.iloc[a,3]
-        bePlusMarge=self.h.iloc[a,4]
-        bioEtFrais=self.h.iloc[a,5]
-
-        sin=self.templateAllrun()
-        
-        sin[:,:,:4]=bestEstimate
-        sin[:,:,4]=bePlusMarge
-        sin[:,:,5]=bioEtFrais
-        #Dimensionner pour les runs en appel    
-        sin=sin[:,:,self.run]
-        
-        return sin
-
-    def ipt(self):
-        return self.templateSinistrality(14)
-    def dcAccident(self):
-        return self.templateSinistrality(15)
-    def exo(self):
-        return self.templateSinistrality(16)
-    def itt(self):
-        return self.templateSinistrality(17)
-    def hospi(self):
-        return self.templateSinistrality(18)
-    def dc(self):
-        return self.templateSinistrality(19)
-    def fraisVisite(self):
-        return self.templateSinistrality(20)
-    
-# Cette fonction retourne un vecteur avec les taux d'intérêt mensuel 
-    def rate(self):
-      
-        rates=self.templateAllrun()       
-        model=self.templateAllYear()
-        model=model.iloc[:self.shape[1]]
-        
-        allrates=self.h.iloc[2:6,1:39].transpose()
-        
-        allrates=pd.merge(model,allrates, left_on=0,right_on=2,how='left')
-        allrates=allrates.fillna(0)
-        allrates=allrates.iloc[:,2:].to_numpy()
-        
-        #Conversion en taux mensuel
-        allMensualrates=(1+allrates)**(1/12)-1
-        allMensualrates=allMensualrates[np.newaxis,:,:]
-        
-        #Quel run pour quel courbe        
-        runBE=[0,5,2,3]
-        runRL=1
-        runMG=4
-        #Remplir la template pour chaque runs        
-        rates[:,:,runBE]=allMensualrates[:,:,0,np.newaxis]
-        rates[:,:,runMG]=allMensualrates[:,:,1]
-        rates[:,:,runRL]=allMensualrates[:,:,2]
-        #Dimensionner pour les runs en appel    
-        rates=rates[:,:,self.run]
-        
-        return rates
-
-# Taux de pd annuel pour chaque mois de projection   
-    def pbRate(self):
-        
-        fixratePB=self.h.iloc[45,2]/100
-        
-        rate=self.rate()
-        
-        ratesPB=((1+rate)**12-1)-fixratePB
-        
-        return ratesPB
-
-# Taux de rachat (selon le fractionnement) dimensionné pour les runs et polices lorsqu'un lapse est possible (uniquement le mois avant un paiement de prime)  
-    def lapse(self,policies):
-
- 
-        lapseSensiMoins=self.h.iloc[56,2]
-        lapseSensiPlus=self.h.iloc[57,2]       
-        cl=pol.p['ClassPGGinit']
-        
-        lapseRates=self.h.iloc[23:32,1:12]
-        lapseRates.columns = lapseRates.iloc[0]
-        lapseRates=lapseRates.drop(lapseRates.index[0])
-        lapseRates=lapseRates.set_index('Year').transpose()
-        lapseRates=lapseRates[cl].transpose().to_numpy()
-        lapseRates=lapseRates[:,:,np.newaxis,np.newaxis]
-
-        dur=pol.durationIf()
-        
-
-        condlist = [dur<=12,dur<=24,dur<=36,dur<=48,dur<=60, 
-                    dur<=72,dur<=84,dur<=96,dur<=108, 
-                    dur>108]
-        choicelist = [lapseRates[:,0,:],lapseRates[:,1,:],lapseRates[:,2,:], 
-                      lapseRates[:,3,:],lapseRates[:,4,:],lapseRates[:,5,:], 
-                      lapseRates[:,6,:],lapseRates[:,7,:],lapseRates[:,8,:], 
-                      lapseRates[:,9,:] ]
-        mylapse=np.select(condlist, choicelist)
-
-        
-        mylapse[:,:,[3,5]]=mylapse[:,:,[3,5]]*lapseSensiMoins
-        mylapse[:,:,2]=mylapse[:,:,2]*lapseSensiPlus
-       
-        
-        sp=pol.p.loc[pol.p['PMBPOL'].isin(policies.p['PMBPOL'].values )]        
-        poli=list(sp.index.values)
-        
-        #Dimensionner pour les runs et le portefeuille en appel    
-        mylapse=np.take(mylapse, poli,axis=0)
-        mylapse=mylapse[:,:,self.run]
-        
-        #Prise en compte du taux fractionnel et de la mise en place avant un paiement
-        mylapse=1-(1-mylapse)**(1/policies.frac())
-        
-        mylapse= policies.isLapse()*mylapse
-        
-        
-        
-        return mylapse
-
-# Taux de réduction (anual rate) dimensionné pour les runs et polices  
-    def reduction(self,policies):
-
-# A vérifier si même sensibilité que rachat 
-        lapseSensiMoins=self.h.iloc[56,2]
-        lapseSensiPlus=self.h.iloc[57,2] 
-        
-        cl=pol.p['ClassPGGinit']
-        reductionRates=self.h.iloc[34:43,1:12]
-        reductionRates.columns = reductionRates.iloc[0]
-        reductionRates=reductionRates.drop(reductionRates.index[0])
-        reductionRates=reductionRates.set_index('Year').transpose()
-        reductionRates=reductionRates[cl].transpose().to_numpy()
-        reductionRates=reductionRates[:,:,np.newaxis,np.newaxis]
-
-        dur=pol.durationIf()      
-      
-
-        condlist = [dur<=12,dur<=24,dur<=36,dur<=48,dur<=60, 
-                    dur<=72,dur<=84,dur<=96,dur<=108, 
-                    dur>108]
-        choicelist = [reductionRates[:,0,:],reductionRates[:,1,:],reductionRates[:,2,:], 
-                      reductionRates[:,3,:],reductionRates[:,4,:],reductionRates[:,5,:], 
-                      reductionRates[:,6,:],reductionRates[:,7,:],reductionRates[:,8,:], 
-                      reductionRates[:,9,:] ]
-        myReduction=np.select(condlist, choicelist)
-
-        
-        myReduction[:,:,[3,5]]=myReduction[:,:,[3,5]]*lapseSensiMoins
-        myReduction[:,:,2]=myReduction[:,:,2]*lapseSensiPlus
-       
-        
-        sp=pol.p.loc[pol.p['PMBPOL'].isin(policies.p['PMBPOL'].values )]      
-        poli=list(sp.index.values)
-        
-        #Dimensionner pour les runs et le portefeuille en appel    
-        myReduction=np.take(myReduction, poli,axis=0)
-        myReduction=myReduction[:,:,self.run]
-        
-        return myReduction
-
-# Taux de commissions (anual rate) dimensionné pour les runs et polices (inclus les commissions de gestion)     
-    def commissions(self,policies):
-        
-        cl=pol.p['PMBMOD']
-        
-        commissionsRates=self.h.iloc[61:85,1:7]
-        commissionsRates.columns = commissionsRates.iloc[0]
-        commissionsRates=commissionsRates.drop(commissionsRates.index[0])
-        commissionsRates=commissionsRates.set_index('Modalité').transpose()
-        commissionsRates=commissionsRates[cl].transpose().to_numpy()
-        commissionsRates=commissionsRates[:,:,np.newaxis,np.newaxis]
-        
-        dur=pol.durationIf()      
-      
-
-        condlist = [dur<12,dur<24,dur<36, \
-                    dur<48,dur>=48]
-        
-        choicelist = [commissionsRates[:,0,:],commissionsRates[:,1,:],commissionsRates[:,2,:], \
-                      commissionsRates[:,3,:],commissionsRates[:,4,:]]
-        
-        myCommissions=np.select(condlist, choicelist)
-
-        
-        sp=pol.p.loc[pol.p['PMBPOL'].isin(policies.p['PMBPOL'].values )]      
-        poli=list(sp.index.values)
-        
-        #Dimensionner pour les runs et le portefeuille en appel    
-        myCommissions=np.take(myCommissions, poli,axis=0)
-        myCommissions=myCommissions[:,:,self.run]
-        
-        return myCommissions
-
-#Taux mensuel d'inflation dimensionné pour les runs et polices
-
-    def inflation(self):
-        
-        inflationRate=self.h.iloc[55,2]
-        
-        inflationRate=inflationRate+self.un
-        
-        increment=np.arange(0,self.shape[1])[np.newaxis,:,np.newaxis]
-            
-        inflationMensuel= inflationRate**(increment/12)
-        
-        
-        return inflationMensuel    
-        
 #####ICI pour faire des tests sur la class##########################################################
+
+def testerHypo():
+    return 0
+
+myRun=[1,5]
+#myRun=[0,1,2,3,4,5]
+
+
+myHypo=Hypo(Run=myRun)
+
+myHypo.mod([8,9])
+#myHypo.ids([896002])
+#myHypo.groupe(['MI3.5'])
+
+
+###Les fonctions de la class
+
+#a=myHypo.tout
+#b=myHypo.p
+#
+#c=myHypo.runs
+#d=myHypo.shape
+#e=myHypo.un
+#f=myHypo.zero
+#g=myHypo.vide
+#h=myHypo.template
+
+#i=myHypo.fraisGestion()
+#j=myHypo.fraisGestionPlacement()
+#k=myHypo.rate()
+#l=myHypo.pbRate()
+#m=myHypo.lapse()
+#n=myHypo.ipt()
+#o=myHypo.dcAccident()
+#p=myHypo.exo()
+#q=myHypo.itt()
+#r=myHypo.hospi()
+#s=myHypo.dc()
+#t=myHypo.fraisVisite()
+
+#u=myHypo.reduction()
+#v=myHypo.commissions()
+w=myHypo.inflation()
+
+
+
+
+###Visualiser un vecteur np en réduisant une dimension
+data=m
+a=pd.DataFrame(data[:,:,1])
+
+
 def testerPortfolio():
     return 0
     
-myPolicies=Portfolio()
+#myPolicies=Portfolio()
 
 #myPolicies.mod([8,9])
 #myPolicies.ids([896002])
@@ -629,14 +722,7 @@ myPolicies=Portfolio()
 
 #Les fonctions de la class Portfolio()
 
-#ya=myPolicies.tout
-#yb=myPolicies.p
-#yc=myPolicies.runs
-#yd=myPolicies.shape
-#ye=myPolicies.un
-#yf=myPolicies.zero
-#yg=myPolicies.vide
-#yh=myPolicies.template
+
 #yi=myPolicies.durationIf()
 #yj=myPolicies.age(1)
 #yk=myPolicies.qx(table=EKM05i, exp=41.73,ass=2)
@@ -645,44 +731,4 @@ myPolicies=Portfolio()
 #yn=myPolicies.frac()
 #yo=myPolicies.isPremPay()
 #yp=myPolicies.isLapse()
-
-
-
-def testerHypo():
-    return 0
-
-myRun=[1,5]
-#myRun=[0,1,2,3,4,5]
-myPol=Portfolio(runs=myRun)
-myPol.mod([8,9])
-#myPol.ids([896002])
-
-shape=myPol.shape
-
-hyp=Hypo(MyShape=shape, Run=myRun)
-
-###Les fonctions de la class
-
-#za=hyp.fraisGestion()
-#zb=hyp.fraisGestionPlacement()
-#zc=hyp.rate()
-#zd=hyp.pbRate()
-#ze=hyp.lapse(myPol)
-#zf=hyp.ipt()
-#zg=hyp.dcAccident()
-#zh=hyp.exo()
-#zi=hyp.itt()
-#zj=hyp.hospi()
-#zk=hyp.dc()
-#zl=hyp.fraisVisite()
-#zm=hyp.reduction(myPol)
-#zn=hyp.commissions(myPol)
-#zo=hyp.inflation()
-
-a=myPolicies.lapse(hyp,myPol)
-
-
-###Visualiser un vecteur np en réduisant une dimension
-#data=e
-#aa=pd.DataFrame(data[:,:,1])
 

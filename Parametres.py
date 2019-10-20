@@ -304,6 +304,7 @@ hyp=Hypo(MyShape=shape, Run=myRun)
 
 ###Les fonctions de la class
 
+
 #a=hyp.fraisGestion()
 #b=hyp.fraisGestionPlacement()
 #c=hyp.rate()
@@ -314,11 +315,14 @@ hyp=Hypo(MyShape=shape, Run=myRun)
 #h=hyp.exo()
 #i=hyp.itt()
 #j=hyp.hospi()
-k=hyp.dc()
+#k=hyp.dc()
 #l=hyp.fraisVisite()
 #m=hyp.reduction(policies)
 #n=hyp.commissions(policies)
 #o=hyp.inflation()
+
+
+o=hyp.templateAllrun()
 
 
 
