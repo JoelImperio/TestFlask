@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import time
 import os, os.path
 path = os.path.dirname(os.path.abspath(__file__))
 
@@ -387,6 +388,7 @@ class Hypo:
         
         #Prise en compte du taux fractionnel et de la mise en place avant un paiement
         frac=self.frac()
+        #Fractionnement à 0 sont remplacer par 1
         frac[frac==0]=1
         mylapse=1-(1-mylapse)**(1/frac)
         
@@ -555,11 +557,15 @@ class Hypo:
 def testerHypo():
     return 0
 
+start_time = time.time()
+
+
+
 #myRun=[1,5]
-myRun=[0,1,2,3,4,5]
+#myRun=[0,1,2,3,4,5]
 
 
-myHypo=Hypo(Run=myRun)
+#myHypo=Hypo(Run=myRun)
 
 #myHypo.mod([8,9])
 #myHypo.ids([896002])
@@ -568,30 +574,31 @@ myHypo=Hypo(Run=myRun)
 
 ###Les fonctions de la class
 
-za=myHypo.tout
-zb=myHypo.p
-zc=myHypo.runs
-zd=myHypo.shape
-ze=myHypo.un
-zf=myHypo.zero
-zg=myHypo.vide
-zh=myHypo.templateAllYear()
-zi=myHypo.fraisGestion()
-zj=myHypo.fraisGestionPlacement()
-zk=myHypo.rate()
-zl=myHypo.pbRate()
-zm=myHypo.lapse()
-zn=myHypo.ipt()
-zo=myHypo.dcAccident()
-zp=myHypo.exo()
-zq=myHypo.itt()
-zr=myHypo.hospi()
-zs=myHypo.dc()
-zt=myHypo.fraisVisite()
-zu=myHypo.reduction()
-zv=myHypo.commissions()
-zw=myHypo.inflation()
+#za=myHypo.tout
+#zb=myHypo.p
+#zc=myHypo.runs
+#zd=myHypo.shape
+#ze=myHypo.un
+#zf=myHypo.zero
+#zg=myHypo.vide
+#zh=myHypo.templateAllYear()
+#zi=myHypo.fraisGestion()
+#zj=myHypo.fraisGestionPlacement()
+#zk=myHypo.rate()
+#zl=myHypo.pbRate()
+#zm=myHypo.lapse()
+#zn=myHypo.ipt()
+#zo=myHypo.dcAccident()
+#zp=myHypo.exo()
+#zq=myHypo.itt()
+#zr=myHypo.hospi()
+#zs=myHypo.dc()
+#zt=myHypo.fraisVisite()
+#zu=myHypo.reduction()
+#zv=myHypo.commissions()
+#zw=myHypo.inflation()
 
+print("ClassHypo--- %s seconds ---" %'%.20f'%  (time.time() - start_time))
 
 ###Visualiser un vecteur np en réduisant une dimension
 #data=m

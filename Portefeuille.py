@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
+from Parametres import Hypo
 from MyPyliferisk import MortalityTable
 from MyPyliferisk.mortalitytables import EKM05i
-from Main import Hypo
 import time
 import os, os.path
 path = os.path.dirname(os.path.abspath(__file__))
@@ -15,10 +15,11 @@ path = os.path.dirname(os.path.abspath(__file__))
 class Portfolio(Hypo):
 
     ageNan=999
+    allRuns=[0,1,2,3,4,5]
     tableExperience=EKM05i
     
-    def __init__(self):      
-        super().__init__()
+    def __init__(self,runs=allRuns):  
+        super().__init__(Run=runs)
 
 
 #####DEBUT DES VARIABLES DE CALCUL DES PROJECTIONS#################################################
@@ -54,28 +55,28 @@ class Portfolio(Hypo):
         #Lorsque l'âge est à 999 ans le qx est forcé à 0
         return np.where(self.age(ass) == self.ageNan,0,myQx)
     
-    def qxExp(self,tableExp=tableExperience, assExp=1):
+    def qxExp(self,assExp=1):
         
-        qx=self.qx(table=tableExp,ass=assExp)*self.dc
+        myQx=self.qx(ass=assExp)*self.dc()
         
-        return qx
+        return myQx
     
     
 #Retourn la probabilité de décès mensuelle
-    def qxExpMens(self,tableM=tableExperience, expM=100, assM=1):
+    def qxExpMens(self, ass=1):
         
-        qx=1-(1-self.qxExp(table=tableM,exp=expM,ass=assM))**(1/12)
+        qx=1-(1-self.qxExp(assExp=ass))**(1/12)
         
         qx[:,0,:] = 0
         
         return qx
     
 #Retourn la probabilité jointe de décès mensuel
-    def qxyExpMens(self,tableXY=EKM05i, expXY=100):
+    def qxyExpMens(self):
         
-        qx=self.qxExpMens(tableM=tableXY, expM=expXY, assM=1)
+        qx=self.qxExpMens(ass=1)
         
-        qy=self.qxExpMens(tableM=tableXY, expM=expXY, assM=2)
+        qy=self.qxExpMens(ass=2)
         
         return qx+qy-qx*qy
         
@@ -86,24 +87,27 @@ class Portfolio(Hypo):
 
 def testerPortfolio():
     return 0
+
+start_time = time.time()
     
-myRun=[1,5]
+#myRun=[1,5]
 #myRun=[0,1,2,3,4,5]
-
-
-myPolicies=Portfolio(Run=myRun)
+#
+#myPolicies=Portfolio(runs=myRun)
 
 #myPolicies.mod([8,9])
 #myPolicies.ids([896002])
-myPolicies.groupe(['MI3.5'])
+#myPolicies.groupe(['MI3.5'])
 
 #Les fonctions de la class Portfolio()
 
+#za=myPolicies.age(1)
+#zb=myPolicies.qx(table=EKM05i,exp=41.73,ass=2)
+#zc=myPolicies.qxExp(assExp=2)
+#zd=myPolicies.qxExpMens(ass=2)
+#ze=myPolicies.qxyExpMens()
 
-yj=myPolicies.age(1)
-#yk=myPolicies.qx(table=EKM05i, exp=41.73,ass=2)
-#yl=myPolicies.qxMens(tableM=EKM05i, expM=41.73,assM=2)
-#ym=myPolicies.qxyMens(tableXY=EKM05i, expXY=41.73)
+print("ClassPortefeuille--- %s seconds ---" %'%.20f'%  (time.time() - start_time))
 
 
 ###Visualiser un vecteur np en réduisant une dimension

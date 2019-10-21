@@ -1,11 +1,9 @@
 from Portefeuille import Portfolio
-from Parametres import Hypo
-
 import pandas as pd
 import numpy as np
 from MyPyliferisk import MortalityTable
 from MyPyliferisk.mortalitytables import EKM05i
-
+import time
 import os, os.path
 path = os.path.dirname(os.path.abspath(__file__))
 
@@ -17,8 +15,4 @@ class FU(Portfolio):
         super().__init__()
         self.p=self.mod(self.mods)
 
-
-sp=FU()       
-b=sp.un
-c=sp.vide
 

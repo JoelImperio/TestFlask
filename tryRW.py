@@ -1,6 +1,4 @@
 from Portefeuille import Portfolio
-from Parametres import Hypo
-
 import pandas as pd
 import numpy as np
 from MyPyliferisk import MortalityTable
@@ -9,21 +7,6 @@ from MyPyliferisk.mortalitytables import EKM05i
 import os, os.path
 path = os.path.dirname(os.path.abspath(__file__))
 
-
-#Chargement des fichiers inputs contenant les hypothèses
-h=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypothèses")
-h1=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypothèses")
-
-#Importation d'une intance de Portfolio
-p=Portfolio()
-
-
-
-class myHypo(Hypo):
-
-        def __init__(self):
-            super().__init__()
-            
 
 
 class myFU(Portfolio):
@@ -103,10 +86,9 @@ class myFU(Portfolio):
 
 
 pol=myFU()
-hyp=myHypo()
 
 
-z=pol.ids([1107301])
+#z=pol.ids([1107301])
 #z=pol.mod([9])
 
 
