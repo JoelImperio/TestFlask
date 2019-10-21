@@ -5,3 +5,5 @@
 - Les duration IF des DCS ne prenne pas en compte le nombre de jour dans polDateDebut, il nous semble plus correct de prendre la vrai différence en mois arrondi
 
 - Mod 8-9 PolTermM est en fonction de l'age1 at entry alors qu'il devrait être en fonction du min/max des ages at entry (pour le moment c'est la mod 8 qui est juste la 9 n'est pas correct)
+
+- Attention frac=0 dans les lapses

@@ -1,14 +1,7 @@
 import pandas as pd
 import numpy as np
-from MyPyliferisk import MortalityTable
-from MyPyliferisk.mortalitytables import EKM05i
-
-import time
 import os, os.path
 path = os.path.dirname(os.path.abspath(__file__))
-
-
-
 
 
 #Permet de recréer le fichier CSV du portefeuille en cas de modif de l'extraction
@@ -37,11 +30,6 @@ def portfolioExtractionToCSV():
 #Inputs global
 dateCalcul='20181231'
 dateFinCalcul='20521231' #A mon avis doit être remplacer par date expiration des polices
-
-
-
-
-
 
 
 #Permet de crée une colonne avec la classPGG
@@ -137,17 +125,6 @@ def portfolioPreProcessing(p):
 
 
 ##############################################################################################################################
-
-
-##############################################################################################################################
-        
-    
-##############################################################################################################################
-##############################################################################################################################
-
-
-
-
 ##############################################################################################################################
 #CHARGEMENT DES FICHIERS INPUTS
 #- Hypothèses N et N-1
@@ -170,15 +147,17 @@ porN_1=portfolioPreProcessing(porN_1)
 ##############################################################################################################################
 
 
-#Importation d'une intance de Portfolio
-#pol=Portfolio()
 
+##############################################################################################################################
+##############################################################################################################################
 #Création de la class Hypothèse
+##############################################################################################################################
+
 
 class Hypo:
     
-    ageNan=999
-    allRuns=[0,1,2,3,4,5]    
+    allRuns=[0,1,2,3,4,5]
+    
     __slot__=('un','vide','zero','run','shape')
 
     def __init__(self,hy=hypN,hy1=hypN_1,po=porN, po1=porN_1,\
@@ -190,17 +169,14 @@ class Hypo:
         else:
             self.tout=po1
             self.p=po1
-            
+           
         self.runs=Run
         self.un=self.one()
         self.zero=self.zeros()
         self.vide=self.vides()
         self.template= self.templateProjection()
         self.shape=list(self.un.shape)
-
-
 ################################################     
-
         if hypoNew:
             self.h=hy
         else:
@@ -209,7 +185,10 @@ class Hypo:
         self.securityMarginMarge=1+self.h.iloc[53,2]
         self.securityMarginBio=1+self.h.iloc[54,2]
 
-################################################  
+ 
+##############################################################################################################################
+##############################################################################################################################
+
 
 #Permet de retourner un sous-portefeuille sélectionné de la liste de mods=[]
     def mod(self,mods):
@@ -508,7 +487,9 @@ class Hypo:
         
         return inflationMensuel
     
+##############################################################################################################################
 #####DEBUT DES VARIABLES DE CALCUL DES PROJECTIONS#################################################
+##############################################################################################################################
 
 #Retourne un vecteur du nombre de mois que la police est en vigeur
     def durationIf(self):
@@ -575,85 +556,6 @@ class Hypo:
 
 
 
-#Création de la class Portefeuille
-
-class Portfolio(Hypo):
-    
-    def __init__(self,hy=hypN,hy1=hypN_1,po=porN, po1=porN_1,\
-                 Run=[0,1,2,3,4,5], hypoNew=True, portfolioNew=True):      
-        super().__init__()
-
-
-#####DEBUT DES VARIABLES DE CALCUL DES PROJECTIONS#################################################
-    
-#Retourne le vecteur des ages pour l'assuré 1 ou 2 (defaut assuré 1)   
-    def age(self,ass=1):
-
-        ageInitial=self.p['Age{}AtEntry'.format(ass)].to_numpy()        
-        ageInitial=ageInitial[:,np.newaxis,np.newaxis]
-        
-        duration=self.durationIf()-1
-        duration=(duration-np.mod(duration,12))/12
-        
-        age=self.zero       
-        age=age+ageInitial         
-        age=np.where(age==self.ageNan,age,age+duration)
-
-        return age
-
-#Retourne un vecteur des qx dimensionné correctement pour une table de mortalité, 
-# une expérience (100 = 100% de la table) et pour l'assuré 1 ou 2  
-    def qx(self,table=EKM05i, exp=100, ass=1):
-         
-        mt=MortalityTable(nt=table, perc=exp)
-        
-        aQx=pd.DataFrame(mt.qx).to_numpy()
-        
-        myAge=(self.age(ass)).astype(int)
-        myAge=np.where(myAge>mt.w,mt.w-1,myAge)
-        
-        myQx=np.take(aQx,myAge)
-        
-        #Lorsque l'âge est à 999 ans le qx est forcé à 0
-        return np.where(self.age(ass) == self.ageNan,0,myQx)
-    
-    def qxExp(self,tableExp=EKM05i, assExp=1):
-        
-        qx=self.qx(table=tableExp,ass=assExp)*self.dc
-        
-        return qx
-    
-    
-#Retourn la probabilité de décès mensuelle
-    def qxMens(self,tableM=EKM05i, expM=100, assM=1):
-        
-        qx=1-(1-self.qx(table=tableM,exp=expM,ass=assM))**(1/12)
-        
-        qx[:,0,:] = 0
-        
-        return qx
-    
-#Retourn la probabilité jointe de décès mensuel
-    def qxyMens(self,tableXY=EKM05i, expXY=100):
-        
-        qx=self.qxMens(tableM=tableXY, expM=expXY, assM=1)
-        
-        qy=self.qxMens(tableM=tableXY, expM=expXY, assM=2)
-        
-        return qx+qy-qx*qy
-        
-
-
-
-
-
-
-##############################################################################################################################
-##############################################################################################################################
-        
-    
-##############################################################################################################################
-##############################################################################################################################
 
 
     
@@ -678,14 +580,12 @@ myHypo.mod([8,9])
 
 #a=myHypo.tout
 #b=myHypo.p
-#
 #c=myHypo.runs
 #d=myHypo.shape
 #e=myHypo.un
 #f=myHypo.zero
 #g=myHypo.vide
 #h=myHypo.template
-
 #i=myHypo.fraisGestion()
 #j=myHypo.fraisGestionPlacement()
 #k=myHypo.rate()
@@ -698,37 +598,14 @@ myHypo.mod([8,9])
 #r=myHypo.hospi()
 #s=myHypo.dc()
 #t=myHypo.fraisVisite()
-
 #u=myHypo.reduction()
 #v=myHypo.commissions()
-w=myHypo.inflation()
-
-
+#w=myHypo.inflation()
 
 
 ###Visualiser un vecteur np en réduisant une dimension
-data=m
-a=pd.DataFrame(data[:,:,1])
+#data=m
+#a=pd.DataFrame(data[:,:,1])
 
 
-def testerPortfolio():
-    return 0
-    
-#myPolicies=Portfolio()
-
-#myPolicies.mod([8,9])
-#myPolicies.ids([896002])
-#myPolicies.groupe(['MI3.5'])
-
-#Les fonctions de la class Portfolio()
-
-
-#yi=myPolicies.durationIf()
-#yj=myPolicies.age(1)
-#yk=myPolicies.qx(table=EKM05i, exp=41.73,ass=2)
-#yl=myPolicies.qxMens(tableM=EKM05i, expM=41.73,assM=2)
-#ym=myPolicies.qxyMens(tableXY=EKM05i, expXY=41.73)
-#yn=myPolicies.frac()
-#yo=myPolicies.isPremPay()
-#yp=myPolicies.isLapse()
 
