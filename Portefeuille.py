@@ -6,6 +6,7 @@ from MyPyliferisk.mortalitytables import EKM05i
 import time
 import os, os.path
 path = os.path.dirname(os.path.abspath(__file__))
+start_time = time.time()
 
 ##############################################################################################################################
 #Création de la class Portefeuille
@@ -83,12 +84,13 @@ class Portfolio(Hypo):
        
     
 ##############################################################################################################################
+#############ICI pour faire des tests sur la class
 ##############################################################################################################################
 
 def testerPortfolio():
     return 0
 
-start_time = time.time()
+
     
 #myRun=[1,5]
 #myRun=[0,1,2,3,4,5]
@@ -107,7 +109,7 @@ start_time = time.time()
 #zd=myPolicies.qxExpMens(ass=2)
 #ze=myPolicies.qxyExpMens()
 
-print("ClassPortefeuille--- %s seconds ---" %'%.20f'%  (time.time() - start_time))
+print("ClassPortefeuille--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 
 ###Visualiser un vecteur np en réduisant une dimension

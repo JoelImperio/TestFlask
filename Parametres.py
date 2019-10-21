@@ -3,7 +3,7 @@ import numpy as np
 import time
 import os, os.path
 path = os.path.dirname(os.path.abspath(__file__))
-
+start_time = time.time()
 
 #Permet de recréer le fichier CSV du portefeuille en cas de modif de l'extraction
 def portfolioExtractionToCSV():
@@ -538,26 +538,13 @@ class Hypo:
         return myPayement
 
 ##############################################################################################################################
+#############ICI pour faire des tests sur la class
 ##############################################################################################################################
-        
-    
-##############################################################################################################################
-##############################################################################################################################
-
-
-
-
-
-
-
-    
-
-#####ICI pour faire des tests sur la class##########################################################
 
 def testerHypo():
     return 0
 
-start_time = time.time()
+
 
 
 
@@ -598,7 +585,7 @@ start_time = time.time()
 #zv=myHypo.commissions()
 #zw=myHypo.inflation()
 
-print("ClassHypo--- %s seconds ---" %'%.20f'%  (time.time() - start_time))
+print("ClassHypo--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 ###Visualiser un vecteur np en réduisant une dimension
 #data=m

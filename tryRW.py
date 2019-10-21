@@ -3,9 +3,10 @@ import pandas as pd
 import numpy as np
 from MyPyliferisk import MortalityTable
 from MyPyliferisk.mortalitytables import EKM05i
-
+import time
 import os, os.path
 path = os.path.dirname(os.path.abspath(__file__))
+start_time = time.time()
 
 
 
@@ -82,14 +83,19 @@ class myFU(Portfolio):
             
         
         return self
-        
+ 
+##############################################################################################################################
+#############ICI pour faire des tests sur la class
+##############################################################################################################################
+      
+def testerFU():
+    return self
 
 
 pol=myFU()
 
 
 #z=pol.ids([1107301])
-#z=pol.mod([9])
 
 
 a=pol.polTermM()
@@ -98,16 +104,7 @@ c=pol.durationIf()
 
 
 
-
-
-
-
-
-
-#start_time = time.time()
-#
-#
-#print("additionPandas--- %s seconds ---" %'%.20f'%  (time.time() - start_time))
+print("Class FU--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 
 

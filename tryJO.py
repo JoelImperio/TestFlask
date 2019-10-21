@@ -1,22 +1,25 @@
-import numpy as np
-import pandas as pd
-import time
-
-import os, os.path
 from Portefeuille import Portfolio
-from Parametres import Hypo
-
-from MyPyliferisk import MortalityTable,vqx,qx
+import pandas as pd
+import numpy as np
+from MyPyliferisk import MortalityTable
 from MyPyliferisk.mortalitytables import EKM05i
+import time
+import os, os.path
+path = os.path.dirname(os.path.abspath(__file__))
+start_time = time.time()
 
 
 
-tariff = MortalityTable(nt=EKM05i)
 
 
 
-vtariff = np.vectorize(tariff.qx()) 
 
-u = np.arange(10).astype(int)
+
+
+
+
+
+print("MyClasse--- %s sec" %'%.2f'%  (time.time() - start_time))
+
 
 
