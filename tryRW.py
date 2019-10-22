@@ -99,13 +99,20 @@ class MyFU(Portfolio):
         active[dur>term]=0
         
         return active
+    
+    def premium(self):
+        premInc=self.p['POLPRTOT'][:,np.newaxis,np.newaxis]/self.frac()
+        
+        prem=premInc*self.nbrPolIfSM*self.isPremPay()
+        
+        return prem
         
 
 ##############################################################################################################################
 #############ICI pour faire des tests sur la class
 ##############################################################################################################################
       
-def testerFU():
+def testerFU(self):
     return self
 
 
@@ -113,21 +120,20 @@ pol=MyFU()
 
 
 #z=pol.ids([896002])
-pol.mod([10])
 
 
 #a=pol.polTermM()
 #b=pol.isActive()
 #c=pol.durationIf()
 #d=pol.loop()
-e=pol.nbrPolIf
-f=pol.nbrPolIfSM
-g=pol.nbrMaturities
-h=pol.nbrDeath
-i=pol.nbrSurrender
+#e=pol.nbrPolIf
+#f=pol.nbrPolIfSM
+#g=pol.nbrMaturities
+#h=pol.nbrDeath
+#i=pol.nbrSurrender
+j=pol.premium()
 
-
-
+a=np.sum(j,axis=0)
 
 
 
