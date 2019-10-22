@@ -167,10 +167,7 @@ class Hypo:
             self.p=po1
            
         self.runs=Run
-        self.un=self.one()
-        self.zero=self.zeros()
-        self.vide=self.vides()
-        self.shape=list(self.un.shape)
+        self.shape=list(self.one().shape)
 ################################################     
         if hypoNew:
             self.h=hy
@@ -187,28 +184,25 @@ class Hypo:
 
 #Permet de retourner un sous-portefeuille sélectionné de la liste de mods=[]
     def mod(self,mods):
-       sp=self.p.loc[self.p['PMBMOD'].isin(mods)]
+       sp=self.tout.loc[self.tout['PMBMOD'].isin(mods)]
        self.update(sp)
        return sp
    
 #Permet de retourner un sous-portefeuille sélectionné de la liste de num=[]
     def ids(self,num):
-        sp=self.p.loc[self.p['PMBPOL'].isin(num)]
+        sp=self.tout.loc[self.tout['PMBPOL'].isin(num)]
         self.update(sp)
         return sp
 #Permet de retourner un sous-portefeuille sélectionné de la liste de gr=[]
     def groupe(self,gr):
-        sp=self.p.loc[self.p['ClassPGG'].isin(gr)]
+        sp=self.tout.loc[self.tout['ClassPGG'].isin(gr)]
         self.update(sp)
         return sp
 
 #Permet de mettre à jour le portefeuille avec le sous-portefeuille de traitement
     def update(self,subPortfolio):
         self.p=subPortfolio
-        self.un=self.one()
-        self.zero=self.zeros()
-        self.vide=self.vides()
-        self.shape=list(self.un.shape)
+        self.shape=list(self.one().shape)
         self.runs=self.runs
         
 #Permet de créer un vecteur  rempli de 1 pour la taille de portefeuille et la durée de projection  
@@ -216,15 +210,15 @@ class Hypo:
         nbrPolices=int(len(self.p))
         nbrPeriodes= int(self.p['ProjectionMonths'].max())
         nbrRuns=int(len(self.runs))
-        return np.ones([nbrPolices,nbrPeriodes,nbrRuns])
+        return np.copy(np.ones([nbrPolices,nbrPeriodes,nbrRuns]))
 
 #Permet de créer un vecteur rempli de 0 pour la taille de portefeuille et la durée de projection  
-    def zeros(self):             
-        return np.zeros_like(self.un)
+    def zero(self):             
+        return np.copy(np.zeros_like(self.one()))
     
 #Permet de créer un vecteur rempli VIDE pour la taille de portefeuille et la durée de projection  
-    def vides(self):             
-        return np.empty_like(self.un)
+    def vide(self):             
+        return np.copy(np.empty_like(self.one()))
 
 # Retourne une template formaté pour tous les runs avec des 0  
     def templateAllrun(self):             
@@ -469,7 +463,7 @@ class Hypo:
         
         inflationRate=self.h.iloc[55,2]
         
-        inflationRate=inflationRate+self.un
+        inflationRate=inflationRate+self.one()
         
         increment=np.arange(0,self.shape[1])[np.newaxis,:,np.newaxis]
             
@@ -492,7 +486,7 @@ class Hypo:
         increment=np.arange(0,self.shape[1],1)
         increment=increment[np.newaxis,:,np.newaxis]
             
-        durIf=self.un       
+        durIf=self.one()     
         durIf=durIf*durationInitial        
         durIf=durIf+increment
         
@@ -501,13 +495,13 @@ class Hypo:
 #Retourn une matrice avec le fractionnement constant   
     def frac(self):
         
-        fract = self.un * self.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
+        fract = self.one() * self.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
         return fract
 
 
 #Retourn un 1 lorsqu'il y a un lapse possible    
     def isLapse(self):
-        lapse = self.zeros()
+        lapse = self.zero()
         check1 = (self.frac() * (self.durationIf() + 12) /12)
         check2 = np.floor((self.frac() * (self.durationIf() + 12) /12))
 
@@ -523,7 +517,7 @@ class Hypo:
 #Retourn un 1 lorsqu'il y a un payement de prime
     def isPremPay(self):
         
-        payement = self.zeros()
+        payement = self.zero()
         check1 = (self.frac() * (self.durationIf() + 11) /12)
         check2 = np.floor((self.frac() * (self.durationIf() + 11) /12))
 
@@ -565,9 +559,9 @@ def testerHypo():
 #zb=myHypo.p
 #zc=myHypo.runs
 #zd=myHypo.shape
-#ze=myHypo.un
-#zf=myHypo.zero
-#zg=myHypo.vide
+#ze=myHypo.one()
+#zf=myHypo.zero()
+#zg=myHypo.vide()
 #zh=myHypo.templateAllYear()
 #zi=myHypo.fraisGestion()
 #zj=myHypo.fraisGestionPlacement()
@@ -591,5 +585,5 @@ print("ClassHypo--- %s sec" %'%.2f'%  (time.time() - start_time))
 #data=m
 #a=pd.DataFrame(data[:,:,1])
 
-
+#sp=porN.loc[porN['PMBPOL'].isin([896002])]
 

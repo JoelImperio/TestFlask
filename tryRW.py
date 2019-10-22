@@ -10,20 +10,65 @@ start_time = time.time()
 
 
 
-class myFU(Portfolio):
+class MyFU(Portfolio):
     mods=[8,9]
+    ageMax=65
     
     def __init__(self):
         super().__init__()
         self.p=self.mod(self.mods)
-        self.ageMax=65
+
+#Permet de relancer l'update() en intégrant des methodes de la sous-classe
+    def update(self,subPortfolio):
+        super().update(subPortfolio)
+        self.loop()
+
+#Cette Loop permets de passé sur l'entier des périodes de projection et renvoie l'ensemble des variables récusrives
+    def loop(self):
+        
+        nbrPolIf=self.one()
+        nbrDeath=self.zero()
+        nbrSurrender=self.zero()
+        nbrMaturities=self.zero()
+        nbrPolIfSM=self.zero()
+        
+        matRate=self.zero()
+        matRate[self.polTermM()+1==self.durationIf()]=1
+        
+        qxy=self.qxyExpMens()
+        lapse=self.lapse()
+        
+        
+        for i in range(1,self.shape[1]):
+            
+            nbrMaturities[:,i,:]=nbrPolIf[:,i-1,:]*matRate[:,i,:]
+            
+            nbrPolIfSM[:,i,:]=nbrPolIf[:,i-1,:]-nbrMaturities[:,i,:]
+            
+            nbrDeath[:,i,:]=nbrPolIfSM[:,i,:]*qxy[:,i,:]*(1-(lapse[:,i,:]*0.5))
+            
+            nbrSurrender[:,i,:]=nbrPolIfSM[:,i,:]*lapse[:,i,:]*(1-(qxy[:,i,:]*0.5))
+            
+            
+            nbrPolIf[:,i,:]=nbrPolIf[:,i-1,:]-nbrMaturities[:,i,:]-nbrDeath[:,i,:]-nbrSurrender[:,i,:]
+                        
+            
+        self.nbrPolIf=nbrPolIf
+        self.nbrPolIfSM=nbrPolIfSM
+        self.nbrMaturities=nbrMaturities
+        self.nbrDeath=nbrDeath
+        self.nbrSurrender=nbrSurrender
+        
+        
+        return self
+
 
 #Durée du contrat en mois
     def polTermM(self):
         
-        entryAge1= self.p['Age1AtEntry'].to_numpy()
+        entryAge1= np.copy(self.p['Age1AtEntry'].to_numpy())
         
-        entryAge2=self.p['Age2AtEntry'].to_numpy()
+        entryAge2=np.copy(self.p['Age2AtEntry'].to_numpy())
         
         entryAge2[entryAge2==999]=0
         ageAtEntry=np.maximum(entryAge1,entryAge2)
@@ -36,9 +81,9 @@ class myFU(Portfolio):
 #        ageAtEntry[mod==9]=np.minimum(entryAge1[mod==9],entryAge2[mod==9])
         
         
-        ageAtEntry=ageAtEntry[:,np.newaxis,np.newaxis]*self.un
+        ageAtEntry=ageAtEntry[:,np.newaxis,np.newaxis]*self.one()
         
-        ageTerm=self.ageMax*self.un
+        ageTerm=self.ageMax*self.one()
         
         polTerm=(ageTerm-ageAtEntry)*12
 
@@ -49,41 +94,13 @@ class myFU(Portfolio):
         term=self.polTermM()
         dur=self.durationIf()
         
-        active=self.un
+        active=self.one()
         
         active[dur>term]=0
         
         return active
         
 
-    def loop(self):
-        
-        nbrPolIf=self.un
-        nbrDeath=self.zero
-        nbrSurrender=self.zero
-        nbrMaturities=self.zero
-        nbrPolIfSM=self.zero
-        
-        matRate=self.zero
-        matRate=matRate[self.polTermM()==self.durationIf()]=1
-        
-        for i in range(1,self.shape[1]):
-            
-            nbrMaturities[:,i,:]=nbrPolIf[:,i-1,:]*matRate[:,i,:]
-            
-            nbrPolIfSM[:,i,:]=nbrPolIf[:,i-1,:]-nbrMaturities[:,i,:]
-            
-            nbrDeath[:,i,:]=nbrPolIfSM[:,i,:]*self.qxyMens()
-            
-            nbrPolIf=self.un
-            nbrDeath=self.zero
-            nbrSurrender=self.zero
-            nbrMaturities
-                        
-            
-        
-        return self
- 
 ##############################################################################################################################
 #############ICI pour faire des tests sur la class
 ##############################################################################################################################
@@ -92,25 +109,33 @@ def testerFU():
     return self
 
 
-pol=myFU()
+pol=MyFU()
 
 
-#z=pol.ids([1107301])
+#z=pol.ids([896002])
+pol.mod([10])
 
 
-a=pol.polTermM()
-b=pol.isActive()
-c=pol.durationIf()
+#a=pol.polTermM()
+#b=pol.isActive()
+#c=pol.durationIf()
+#d=pol.loop()
+e=pol.nbrPolIf
+f=pol.nbrPolIfSM
+g=pol.nbrMaturities
+h=pol.nbrDeath
+i=pol.nbrSurrender
+
+
+
+
+
+
+
+
 
 
 
 print("Class FU--- %s sec" %'%.2f'%  (time.time() - start_time))
-
-
-
-
-
-
-
 
 

@@ -34,11 +34,11 @@ class Portfolio(Hypo):
         duration=self.durationIf()-1
         duration=(duration-np.mod(duration,12))/12
         
-        age=self.zero       
+        age=self.zero()       
         age=age+ageInitial         
         age=np.where(age==self.ageNan,age,age+duration)
 
-        return age
+        return np.copy(age)
 
 #Retourne un vecteur des qx dimensionné correctement pour une table de mortalité, 
 # une expérience (100 = 100% de la table) et pour l'assuré 1 ou 2  
@@ -60,7 +60,7 @@ class Portfolio(Hypo):
         
         myQx=self.qx(ass=assExp)*self.dc()
         
-        return myQx
+        return np.copy(myQx)
     
     
 #Retourn la probabilité de décès mensuelle
@@ -93,12 +93,12 @@ def testerPortfolio():
 
     
 #myRun=[1,5]
-#myRun=[0,1,2,3,4,5]
-#
-#myPolicies=Portfolio(runs=myRun)
+myRun=[0,1,2,3,4,5]
+
+myPolicies=Portfolio(runs=myRun)
 
 #myPolicies.mod([8,9])
-#myPolicies.ids([896002])
+myPolicies.ids([896002])
 #myPolicies.groupe(['MI3.5'])
 
 #Les fonctions de la class Portfolio()
@@ -107,11 +107,12 @@ def testerPortfolio():
 #zb=myPolicies.qx(table=EKM05i,exp=41.73,ass=2)
 #zc=myPolicies.qxExp(assExp=2)
 #zd=myPolicies.qxExpMens(ass=2)
-#ze=myPolicies.qxyExpMens()
+ze=myPolicies.qxyExpMens()
+a=myPolicies.age(ass=2)
 
 print("ClassPortefeuille--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 
 ###Visualiser un vecteur np en réduisant une dimension
-#data=m
-#a=pd.DataFrame(data[:,:,1])
+data=a
+a=pd.DataFrame(data[:,:,1])
