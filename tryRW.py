@@ -144,17 +144,6 @@ z.to_csv(r'check.csv')
 print("Class FU--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 
-#entryAge1= np.copy(pol.p['Age1AtEntry'].to_numpy())
-#
-#entryAge2=np.copy(pol.p['Age2AtEntry'].to_numpy())
-#
-#a=abs(entryAge1-entryAge2)
-#a=a[a==4]
-#a=pol.age(ass=2)[:,0,0]
-#b=pol.age()[:,0,0]
-#
-#delta=abs(a-b)
-#delta=delta[delta==4]
 
 
 
