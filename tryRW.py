@@ -13,6 +13,11 @@ start_time = time.time()
 class MyFU(Portfolio):
     mods=[8,9]
     ageMax=65
+    complPremium=60
+#Lapse timing = 1 correspond aux lapse en début de mois et décès en fin de mois
+#Nous pensons que l'hypothèse meilleure serait lapse et décès en milieu de mois soit lapseTiming=0.5
+#    lapseTiming=0.5
+    lapseTiming=1
     
     def __init__(self):
         super().__init__()
@@ -37,6 +42,7 @@ class MyFU(Portfolio):
         
         qxy=self.qxyExpMens()
         lapse=self.lapse()
+        lapseTiming=1
         
         
         for i in range(1,self.shape[1]):
@@ -45,9 +51,10 @@ class MyFU(Portfolio):
             
             nbrPolIfSM[:,i,:]=nbrPolIf[:,i-1,:]-nbrMaturities[:,i,:]
             
-            nbrDeath[:,i,:]=nbrPolIfSM[:,i,:]*qxy[:,i,:]*(1-(lapse[:,i,:]*0.5))
+            nbrDeath[:,i,:]=nbrPolIfSM[:,i,:]*qxy[:,i,:]*(1-(lapse[:,i,:]*(1-lapseTiming)))
             
-            nbrSurrender[:,i,:]=nbrPolIfSM[:,i,:]*lapse[:,i,:]*(1-(qxy[:,i,:]*0.5))
+            nbrSurrender[:,i,:]=nbrPolIfSM[:,i,:]*lapse[:,i,:]*(1-(qxy[:,i,:]*lapseTiming))
+
             
             
             nbrPolIf[:,i,:]=nbrPolIf[:,i-1,:]-nbrMaturities[:,i,:]-nbrDeath[:,i,:]-nbrSurrender[:,i,:]
@@ -89,16 +96,6 @@ class MyFU(Portfolio):
 
         return polTerm
 
-#Retourn un 1 tant que la police est active et 0 lorsque dépasse le terme   
-    def isActive(self):
-        term=self.polTermM()
-        dur=self.durationIf()
-        
-        active=self.one()
-        
-        active[dur>term]=0
-        
-        return active
     
     def premium(self):
         premInc=self.p['POLPRTOT'][:,np.newaxis,np.newaxis]/self.frac()
@@ -106,6 +103,28 @@ class MyFU(Portfolio):
         prem=premInc*self.nbrPolIfSM*self.isPremPay()
         
         return prem
+    
+    def deathClaim(self):
+        nbDeath=self.nbrDeath
+        capital=self.p['PMBCAPIT'].to_numpy()[:,np.newaxis,np.newaxis]
+        return nbDeath*capital
+    
+    def fraisVisiteClaim(self):
+        
+        claimRate=self.fraisVisite()
+        
+        premiumCompl=(self.complPremium/self.frac())*self.nbrPolIfSM
+        
+        claim=claimRate*premiumCompl*self.isPremPay()
+        
+        return claim
+        
+        
+    
+    def claim(self):
+        
+        return self.deathClaim()+self.fraisVisiteClaim()
+    
         
 
 ##############################################################################################################################
@@ -120,7 +139,7 @@ pol=MyFU()
 
 
 #pol.ids([1127301])
-#pol.mod([8])
+#pol.mod([9])
 
 #a=pol.polTermM()
 #b=pol.isActive()
@@ -131,19 +150,32 @@ pol=MyFU()
 #g=pol.nbrMaturities
 #h=pol.nbrDeath
 #i=pol.nbrSurrender
-j=pol.premium()
+#j=pol.premium()
+#k=pol.nbrDeath
+#l=pol.nbrMaturities
+#m=pol.nbrPolIf
+#n=pol.nbrPolIfSM
+#o=pol.nbrSurrender
+#p=pol.deathClaim()
+#q=pol.fraisVisiteClaim()
+r=pol.claim()
 
-k=np.sum(j, axis=0)
-#l=np.sum(e, axis=0)
-l=np.sum(k[:,0])
-#y=pol.isPremPay()
-  
-z=pd.DataFrame(j[:,:,0])
+
+#Analyse un cas
+
+monCas=r
+
+zz=np.sum(monCas, axis=0)
+zzz=np.sum(zz[:,0])
+z=pd.DataFrame(monCas[:,:,0])
 z.to_csv(r'check.csv')
+
+
+
 
 print("Class FU--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 
-
+#a=pol.p.PMBCAPIT.unique()
 
 
