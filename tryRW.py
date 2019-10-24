@@ -140,13 +140,22 @@ class MyFU(Portfolio):
         
         return cost
     
+    def risqueEncour(self):
+        
+        elapseTime=self.timeBeforeNextPay()
+        
+        purePremium=self.p['POLPRDECES'].to_numpy()[:,np.newaxis,np.newaxis]/self.frac()
+              
+        return purePremium*elapseTime
+
+
+    
     def reserveExpense(self):
         return self
         
-    
-        
 
         
+      
         
     
         
@@ -162,7 +171,7 @@ def testerFU(self):
 pol=MyFU()
 
 
-#pol.ids([1127301])
+pol.ids([2134901])
 #pol.mod([9])
 
 #a=pol.polTermM()
@@ -184,12 +193,14 @@ pol=MyFU()
 #q=pol.fraisVisiteClaim()
 #r=pol.totalClaim()
 #s=pol.totalCommissions()
-t=pol.unitExpense()
+#t=pol.unitExpense()
+u=pol.risqueEncour()
+v=pol.timeBeforeNextPay()
 
 
 #Analyse un cas
 
-monCas=t
+monCas=u
 
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
