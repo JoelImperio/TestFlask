@@ -145,6 +145,23 @@ class MyFU(Portfolio):
         
         return cost
     
+    # Retourne la durée écoulée depuis le dernier paiement de prime   
+    def timeBeforeNextPay(self):
+
+        check1 = (self.frac() * (self.durationIf() + 11) /12)
+        check2 = np.floor((self.frac() * (self.durationIf() + 11) /12))
+ 
+        elapseTime=(1-(check1-check2))*(1-self.isPremPay())  
+        
+
+        elapseTime=np.roll(elapseTime, [-1], axis=1)
+#        elapseTime[:,:-1,:]=elapseTime[:,1:,:]
+        
+        # Le premier mois est à 0
+        elapseTime[:,-1,:] = 0
+           
+        return elapseTime    
+    
     def risqueEnCour(self):
         
         elapseTime=self.timeBeforeNextPay()
@@ -182,6 +199,7 @@ class MyFU(Portfolio):
         tauxFraisGestion=self.fraisGestionPlacement()
         
         return reserve*tauxFraisGestion
+
         
     def totalExpense(self):
         
