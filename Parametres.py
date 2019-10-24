@@ -276,7 +276,7 @@ class Hypo:
         #Dimensionner pour les runs en appel    
         investCost=investCost[:,:,self.runs]
         
-        return investCost
+        return investCost/100
     
     def templateSinistrality(self,a):
         

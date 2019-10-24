@@ -104,6 +104,12 @@ class MyFU(Portfolio):
         
         return prem
     
+    def premiumCompl(self):
+        return (self.complPremium/self.frac())*self.nbrPolIfSM
+    
+    def purePremium(self):
+        return self.p['POLPRDECES'].to_numpy()[:,np.newaxis,np.newaxis]/self.frac()
+    
     def deathClaim(self):
         nbDeath=self.nbrDeath
         capital=self.p['PMBCAPIT'].to_numpy()[:,np.newaxis,np.newaxis]
@@ -113,13 +119,12 @@ class MyFU(Portfolio):
         
         claimRate=self.fraisVisite()
         
-        premiumCompl=(self.complPremium/self.frac())*self.nbrPolIfSM
+        premiumCompl=self.premiumCompl()
         
         claim=claimRate*premiumCompl*self.isPremPay()
         
         return claim
-        
-        
+           
     
     def totalClaim(self):
         
@@ -140,20 +145,48 @@ class MyFU(Portfolio):
         
         return cost
     
-    def risqueEncour(self):
+    def risqueEnCour(self):
         
         elapseTime=self.timeBeforeNextPay()
         
-        purePremium=self.p['POLPRDECES'].to_numpy()[:,np.newaxis,np.newaxis]/self.frac()
+        purePremium=self.purePremium()
+        
+        risque=purePremium*elapseTime*self.nbrPolIf
+        
+        risque=np.roll(risque,[1],axis=1)
+        risque[:,0,:]=0
               
-        return purePremium*elapseTime
+        return risque
 
 
+    def adjustedReserve(self):
+        
+        
+        purePremium=self.purePremium()*self.nbrPolIfSM*self.isPremPay()
+        
+        pureRiskPremium=self.totalPremium()-purePremium
+        
+        riderCost=self.fraisVisiteClaim()
+        
+        risqueEnCour=self.risqueEnCour()
+        
+        
+        reserve=purePremium-pureRiskPremium-riderCost+risqueEnCour
+        
+        return reserve
     
     def reserveExpense(self):
-        return self
         
-
+        reserve=self.adjustedReserve()
+        
+        tauxFraisGestion=self.fraisGestionPlacement()
+        
+        return reserve*tauxFraisGestion
+        
+    def totalExpense(self):
+        
+        return self.unitExpense()+self.reserveExpense()
+    
         
       
         
@@ -171,7 +204,7 @@ def testerFU(self):
 pol=MyFU()
 
 
-pol.ids([2134901])
+pol.ids([1690202])
 #pol.mod([9])
 
 #a=pol.polTermM()
@@ -193,10 +226,11 @@ pol.ids([2134901])
 #q=pol.fraisVisiteClaim()
 #r=pol.totalClaim()
 #s=pol.totalCommissions()
-#t=pol.unitExpense()
-u=pol.risqueEncour()
-v=pol.timeBeforeNextPay()
-
+t=pol.unitExpense()
+u=pol.risqueEnCour()
+v=pol.adjustedReserve()
+w=pol.reserveExpense()
+x=pol.totalExpense()
 
 #Analyse un cas
 
