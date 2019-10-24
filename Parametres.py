@@ -261,7 +261,7 @@ class Hypo:
         #Dimensionner pour les runs en appel    
         adminCost=adminCost[:,:,self.runs] 
         
-        return adminCost
+        return adminCost/12
     
     
     def fraisGestionPlacement(self):
@@ -449,11 +449,9 @@ class Hypo:
         dur=self.durationIf()      
         dur=dur[:,:,0][:,:,np.newaxis]*self.oneAllrun()    
 
-        condlist = [dur<12,dur<24,dur<36, \
-                    dur<48,dur>=48]
+        condlist = [dur<=12,dur<=24,dur<=36,dur>36]
         
-        choicelist = [commissionsRates[:,0,:],commissionsRates[:,1,:],commissionsRates[:,2,:], \
-                      commissionsRates[:,3,:],commissionsRates[:,4,:]]
+        choicelist = [commissionsRates[:,0,:],commissionsRates[:,1,:],commissionsRates[:,2,:],commissionsRates[:,4,:]]
         
         myCommissions=np.select(condlist, choicelist)
         

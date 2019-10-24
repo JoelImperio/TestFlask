@@ -97,7 +97,7 @@ class MyFU(Portfolio):
         return polTerm
 
     
-    def premium(self):
+    def totalPremium(self):
         premInc=self.p['POLPRTOT'][:,np.newaxis,np.newaxis]/self.frac()
         
         prem=premInc*self.nbrPolIfSM*self.isPremPay()
@@ -121,9 +121,33 @@ class MyFU(Portfolio):
         
         
     
-    def claim(self):
+    def totalClaim(self):
         
         return self.deathClaim()+self.fraisVisiteClaim()
+    
+    def totalCommissions(self):
+        
+        return self.totalPremium()*self.commissions()
+
+    def unitExpense(self):
+        
+        inflation=np.roll(self.inflation(),[1],axis=1)
+        inflation[:,0,:]=0
+        
+        coutParPolice=self.fraisGestion()
+        
+        cost=coutParPolice*inflation*self.nbrPolIfSM
+        
+        return cost
+    
+    def reserveExpense(self):
+        return self
+        
+    
+        
+
+        
+        
     
         
 
@@ -150,7 +174,7 @@ pol=MyFU()
 #g=pol.nbrMaturities
 #h=pol.nbrDeath
 #i=pol.nbrSurrender
-#j=pol.premium()
+#j=pol.totalPremium()
 #k=pol.nbrDeath
 #l=pol.nbrMaturities
 #m=pol.nbrPolIf
@@ -158,12 +182,14 @@ pol=MyFU()
 #o=pol.nbrSurrender
 #p=pol.deathClaim()
 #q=pol.fraisVisiteClaim()
-r=pol.claim()
+#r=pol.totalClaim()
+#s=pol.totalCommissions()
+t=pol.unitExpense()
 
 
 #Analyse un cas
 
-monCas=r
+monCas=t
 
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
