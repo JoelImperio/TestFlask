@@ -282,15 +282,22 @@ y=pol.BEL()
 
 #Analyse un cas
 
-monCas=y
-
-zz=np.sum(monCas, axis=0)
-zzz=np.sum(zz[:,0])
-z=pd.DataFrame(monCas[:,:,0])
-z.to_csv(r'check.csv')
+#monCas=y
+#
+#zz=np.sum(monCas, axis=0)
+#zzz=np.sum(zz[:,0])
+#z=pd.DataFrame(monCas[:,:,0])
+#z.to_csv(r'check.csv')
 
 
 
 
 print("Class FU--- %s sec" %'%.2f'%  (time.time() - start_time))
+
+
+
+#pol.p.loc[:,'ProjectionMonths']=pol.polTermM()[:,0,0]
+#
+#a=pol.p.ProjectionMonths
+#b=pol.polTermM()[:,0,0]
 
