@@ -9,11 +9,11 @@ path = os.path.dirname(os.path.abspath(__file__))
 start_time = time.time()
 
 
-
 class MyFU(Portfolio):
     mods=[8,9]
     ageMax=65
     complPremium=60
+    premiumLoading=0.2
 #Lapse timing = 1 correspond aux lapse en début de mois et décès en fin de mois
 #Nous pensons que l'hypothèse meilleure serait lapse et décès en milieu de mois soit lapseTiming=0.5
 #    lapseTiming=0.5
@@ -148,47 +148,58 @@ class MyFU(Portfolio):
     # Retourne la durée écoulée depuis le dernier paiement de prime   
     def timeBeforeNextPay(self):
 
-        check1 = (self.frac() * (self.durationIf() + 11) /12)
-        check2 = np.floor((self.frac() * (self.durationIf() + 11) /12))
+        frac=self.frac()
+        dur=self.durationIf()
+        
+        check1 = (frac * (dur + 11) /12)
+        check2 = np.floor((frac * (dur + 11) /12))
+        
+        isNotPremPay=(1-self.isPremPay())
  
-        elapseTime=(1-(check1-check2))*(1-self.isPremPay())  
+        elapseTime=(1-(check1-check2))*isNotPremPay
         
 
-        elapseTime=np.roll(elapseTime, [-1], axis=1)
-#        elapseTime[:,:-1,:]=elapseTime[:,1:,:]
+#        elapseTime=np.roll(elapseTime, [-1], axis=1)
         
-        # Le premier mois est à 0
-        elapseTime[:,-1,:] = 0
-           
-        return elapseTime    
-    
+        #Décaler le vécteur d'un temps
+        elapseTime[:,:-1,:]=elapseTime[:,1:,:]
+        
+        # Si la police est finie 0 en dernière place
+        mask=(elapseTime[:,-2,:]==0) & (elapseTime[:,-3,:]==0)
+        elapseTime[:,-1,:][mask]=0
+        # Si 0 mais encore en vigueur on continue la chaine
+        mask=(elapseTime[:,-2,:]==0) & (elapseTime[:,-3,:]!=0)
+        elapseTime[:,-1,:][mask]=(self.one())[:,-1,:][mask]-(frac[:,-1,:][mask]/12)
+        # Si la chaine est en cours on la continu
+        mask=(elapseTime[:,-2,:]!=0)
+        elapseTime[:,-1,:][mask]=elapseTime[:,-1,:][mask]-(frac[:,-1,:][mask]/12)
+        
+        
+        return elapseTime
+
+
     def risqueEnCour(self):
         
         elapseTime=self.timeBeforeNextPay()
         
-        purePremium=self.purePremium()
+        purePremium=self.p['POLPRDECES'].to_numpy()[:,np.newaxis,np.newaxis]/self.frac()
         
-        risque=purePremium*elapseTime*self.nbrPolIf
-        
-        risque=np.roll(risque,[1],axis=1)
-        risque[:,0,:]=0
-              
-        return risque
-
+        reserve=purePremium*elapseTime*self.nbrPolIf 
+                      
+        return reserve
 
     def adjustedReserve(self):
         
-        
-        purePremium=self.purePremium()*self.nbrPolIfSM*self.isPremPay()
-        
-        pureRiskPremium=self.totalPremium()-purePremium
-        
+        prPurePP=((self.p['POLPRTOT']- self.complPremium)*(1-self.premiumLoading)).to_numpy()[:,np.newaxis,np.newaxis]
+        pPureEncPP= (prPurePP/self.frac())*self.nbrPolIfSM*self.isPremPay()
+
         riderCost=self.fraisVisiteClaim()
         
         risqueEnCour=self.risqueEnCour()
+        risqueEnCour=np.roll(risqueEnCour,[1],axis=1)
+        risqueEnCour[:,0,:]=0       
         
-        
-        reserve=purePremium-pureRiskPremium-riderCost+risqueEnCour
+        reserve=np.maximum(pPureEncPP-riderCost+risqueEnCour,0)
         
         return reserve
     
@@ -205,11 +216,28 @@ class MyFU(Portfolio):
         
         return self.unitExpense()+self.reserveExpense()
     
+    def BEL(self):
         
+        interestRates=1+self.rate()
+        
+        premium=self.totalPremium()
+        claim=self.totalClaim()
+        expense=self.totalExpense()
+        commission=self.totalCommissions()
+        
+        bel=self.zero()
+        
+#        bel[:,-1,:]=5042.1918454086
+        
+        for t in range(2,self.shape[1]+1):
+            
+            bel[:,-t,:]=(bel[:,-t+1,:]+claim[:,-t+1,:]+expense[:,-t+1,:]+commission[:,-t+1,:]-premium[:,-t+1,:])/interestRates[:,-t+1,:]
+            
+        return bel
       
         
-    
-        
+
+     
 
 ##############################################################################################################################
 #############ICI pour faire des tests sur la class
@@ -222,8 +250,9 @@ def testerFU(self):
 pol=MyFU()
 
 
-pol.ids([1690202])
+#pol.ids([2142501])
 #pol.mod([9])
+#pol.modHead([9],2)
 
 #a=pol.polTermM()
 #b=pol.isActive()
@@ -244,15 +273,16 @@ pol.ids([1690202])
 #q=pol.fraisVisiteClaim()
 #r=pol.totalClaim()
 #s=pol.totalCommissions()
-t=pol.unitExpense()
-u=pol.risqueEnCour()
-v=pol.adjustedReserve()
-w=pol.reserveExpense()
-x=pol.totalExpense()
+#t=pol.unitExpense()
+#u=pol.risqueEnCour()
+#v=pol.adjustedReserve()
+#w=pol.reserveExpense()
+#x=pol.totalExpense()
+y=pol.BEL()
 
 #Analyse un cas
 
-monCas=u
+monCas=y
 
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
@@ -263,8 +293,4 @@ z.to_csv(r'check.csv')
 
 
 print("Class FU--- %s sec" %'%.2f'%  (time.time() - start_time))
-
-
-#a=pol.p.PMBCAPIT.unique()
-
 

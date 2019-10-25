@@ -103,7 +103,7 @@ def portfolioPreProcessing(p):
     p['DateCalcul']=pd.to_datetime(dateCalcul)
 
 ##On pense que la solution en commentaire est meilleure mais ptophet effectue l'autre
-#    p['DateFinCalcul']=p['POLDTEXP']
+#    p['DateFinCalcul']=pd.to_datetime(p['POLDTEXP'])
     p['DateFinCalcul']=pd.to_datetime(dateFinCalcul)
     
     p['POLDTDEB']= pd.to_datetime(p['POLDTDEB'].astype(str), format='%Y%m%d').dt.date
@@ -192,6 +192,11 @@ class Hypo:
        sp=self.tout.loc[self.tout['PMBMOD'].isin(mods)]
        self.update(sp)
        return sp
+#Permet de retourner un sous-portefeuille sélectionné de la liste de mods=[] et le nombre de tête
+    def modHead(self,mods,nbrhead):
+       sp=self.tout.loc[(self.tout['PMBMOD'].isin(mods)) & (self.tout['POLNBTETE'].isin([nbrhead])) ]
+       self.update(sp)
+       return sp
    
 #Permet de retourner un sous-portefeuille sélectionné de la liste de num=[]
     def ids(self,num):
@@ -276,7 +281,7 @@ class Hypo:
         #Dimensionner pour les runs en appel    
         investCost=investCost[:,:,self.runs]
         
-        return investCost/100
+        return investCost/1200
     
     def templateSinistrality(self,a):
         
