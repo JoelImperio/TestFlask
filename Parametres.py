@@ -589,7 +589,7 @@ def testerHypo():
 #zv=myHypo.commissions()
 #zw=myHypo.inflation()
 
-print("ClassHypo--- %s sec" %'%.2f'%  (time.time() - start_time))
+print("Class Hypo--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 ###Visualiser un vecteur np en réduisant une dimension
 #data=m

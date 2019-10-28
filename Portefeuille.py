@@ -110,7 +110,7 @@ myPolicies.ids([896002])
 ze=myPolicies.qxyExpMens()
 a=myPolicies.age(ass=2)
 
-print("ClassPortefeuille--- %s sec" %'%.2f'%  (time.time() - start_time))
+print("Class Portefeuille--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 
 ###Visualiser un vecteur np en réduisant une dimension
