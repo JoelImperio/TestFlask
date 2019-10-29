@@ -265,7 +265,6 @@ class Hypo:
 #Permet de créer un vecteur  rempli de 1 pour la taille de portefeuille et la durée de projection  
     def one(self):
         nbrPolices=int(len(self.p))
-#        nbrPeriodes= int(self.p['ProjectionMonths'].max())
         nbrPeriodes= int(self.p['residualTermM'].max()+1)
         nbrRuns=int(len(self.runs))
         return np.copy(np.ones([nbrPolices,nbrPeriodes,nbrRuns]))
