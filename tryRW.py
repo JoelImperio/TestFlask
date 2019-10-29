@@ -250,7 +250,7 @@ def testerFU(self):
 pol=MyFU()
 
 
-#pol.ids([2142501])
+pol.ids([2142501])
 #pol.mod([9])
 #pol.modHead([9],2)
 
@@ -263,7 +263,7 @@ pol=MyFU()
 #g=pol.nbrMaturities
 #h=pol.nbrDeath
 #i=pol.nbrSurrender
-#j=pol.totalPremium()
+j=pol.totalPremium()
 #k=pol.nbrDeath
 #l=pol.nbrMaturities
 #m=pol.nbrPolIf
@@ -282,12 +282,12 @@ y=pol.BEL()
 
 #Analyse un cas
 
-#monCas=y
-#
-#zz=np.sum(monCas, axis=0)
-#zzz=np.sum(zz[:,0])
-#z=pd.DataFrame(monCas[:,:,0])
-#z.to_csv(r'check.csv')
+monCas=j
+
+zz=np.sum(monCas, axis=0)
+zzz=np.sum(zz[:,0])
+z=pd.DataFrame(monCas[:,:,0])
+z.to_csv(r'check.csv')
 
 
 

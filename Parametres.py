@@ -5,7 +5,10 @@ import os, os.path
 path = os.path.dirname(os.path.abspath(__file__))
 start_time = time.time()
 
+
+##############################################################################################################################
 #Permet de recréer le fichier CSV du portefeuille en cas de modif de l'extraction
+##############################################################################################################################  
 def portfolioExtractionToCSV():
     import pyodbc
       
@@ -23,17 +26,25 @@ def portfolioExtractionToCSV():
 #Attention enlever à la copie du test
     return p.to_csv(r'Portefeuille\Portfolio.csv'), p.to_csv(r'Tests\Portfolio_Test.csv')
 
-#Extraction du portefeuille de polices
+##############Extraction du portefeuille de polices##############################
     
 #portfolioExtractionToCSV()
 
 
+
+##############################################################################################################################
 #Inputs global
+##############################################################################################################################  
+def globalInputs():
+    return self
+
 dateCalcul='20181231'
 dateFinCalcul='20521231' #A mon avis doit être remplacer par date expiration des polices
 
 
+##############################################################################################################################
 #Permet de crée une colonne avec la classPGG
+##############################################################################################################################    
 def allocationClassPGG(p):
     p['zero']=0   
     dico=dict(zip(p['PMBMOD'],p['zero']))        
@@ -62,7 +73,11 @@ def allocationClassPGG(p):
     p.loc[p['ClassPGGinit'].isin(['EP','MI']),'ClassPGGinit'].map(str)+ \
     p.loc[p['ClassPGGinit'].isin(['EP','MI']),'PMBTXINT'].map(str)
     
+    
+##############################################################################################################################
 #Calcul de l'âge initial
+##############################################################################################################################    
+
 def agesInitial(p):
     
     date1=pd.to_datetime(p['CLIDTNAISS'].astype(str), format='%Y%m%d')
@@ -78,9 +93,42 @@ def agesInitial(p):
     p['Age1AtEntry']=dateDebut.dt.year-dtNaiss1
     p['Age2AtEntry']=dateDebut.dt.year-dtNaiss2
     p.loc[p.Age2AtEntry==0,'Age2AtEntry']=999
+    
+    
+##############################################################################################################################
+#Calcul de l'échéance des polices pour la durée des projections
+##############################################################################################################################
+def projectionLengh(p):
+    
+    p['ProjectionLengh']=p['ProjectionMonths']
+    
+#Traitement des mods 8 et 9
+    mask=(p['PMBMOD']==8)|(p['PMBMOD']==9)
+    ageMax=65    
 
+    fixAgeLimite=(mask)|(p['Age2AtEntry']==999)
+    p.loc[fixAgeLimite,'Age2AtEntry']=0
+    p.loc[mask,'ProjectionLengh']=p.loc[mask,['Age2AtEntry','Age1AtEntry']].max(axis=1)
+    p.loc[mask,'ProjectionLengh']=((ageMax-p.loc[mask,'ProjectionLengh'])*12)-p.loc[mask,'DurationIfInitial']
+ 
+    #Nous pensons que cette variante est plus correct car dans le mod 9 la police continue jusqu'à 65 ans du plus jeune assuré
+    #Il faut ajouté le code commenté pour prendre en compte le changement et supprimé le mod neuf du mask du mod 8
+    
+#    mask=(p['PMBMOD']==9)    
+#    fixAgeLimite=(mask)|(p['Age2AtEntry']==999)
+#    p.loc[fixAgeLimite,'Age2AtEntry']=0   
+#    p.loc[mask,'ProjectionLengh']=p.loc[mask,['Age2AtEntry','Age1AtEntry']].min(axis=1)   
+#    p.loc[mask,'ProjectionLengh']=((ageMax-p.loc[mask,'ProjectionLengh'])*12)-p.loc[mask,'DurationIfInitial']
+    
+    
+    replaceAgeLimite=(mask)|(p['Age2AtEntry']==0)
+    p.loc[replaceAgeLimite,'Age2AtEntry']=999
 
+    
+##############################################################################################################################
 #Permet de formater la dataframe des polices avant d'entrer dans la classe
+##############################################################################################################################
+
 def portfolioPreProcessing(p):
 
 #Traitement des anomalies dans les données
@@ -121,6 +169,8 @@ def portfolioPreProcessing(p):
 #    p['DurationIfInitial']=((pd.to_datetime(p['DateCalcul'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.around)
     p['DurationIfInitial']=(pd.to_datetime(p['DateCalcul']).dt.year - pd.to_datetime(p['POLDTDEB']).dt.year)*12 \
     + pd.to_datetime(p['DateCalcul']).dt.month - pd.to_datetime(p['POLDTDEB']).dt.month + 1  
+    
+    projectionLengh(p)
     
     allocationClassPGG(p)
 
@@ -173,7 +223,7 @@ class Hypo:
            
         self.runs=Run
         self.shape=list(self.one().shape)
-################################################     
+##############################################################################################################################   
         if hypoNew:
             self.h=hy
         else:
@@ -247,6 +297,7 @@ class Hypo:
 
 # Retourne une template avec les années chaque mois
     def templateAllYear(self):
+#        model=pd.date_range(start=self.p['DateCalcul'].min(), periods=int(self.p['ProjectionLengh'].max()), freq='M')
         model=pd.date_range(start=self.p['DateCalcul'].min(), end=self.p['DateFinCalcul'].max(), freq='M')
         model=pd.DataFrame(model).set_index(0).transpose()       
         model=model.copy()
