@@ -35,9 +35,9 @@ class MyFU(Portfolio):
         nbrPolIfSM=self.zero()
         
         matRate=self.zero()
-        policyTermM=(self.p['polTermM']+self.p['DurationIfInitial']).to_numpy()[:,np.newaxis,np.newaxis]*self.one()
+        polTermM=(self.p['residualTermM']+self.p['DurationIfInitial']).to_numpy()[:,np.newaxis,np.newaxis]*self.one()
         
-        matRate[policyTermM + 1==self.durationIf()]=1
+        matRate[polTermM + 1==self.durationIf()]=1
         
         qxy=self.qxyExpMens()
         lapse=self.lapse()
