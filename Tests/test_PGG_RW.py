@@ -69,8 +69,8 @@ class TestResultatsFUe(ut.TestCase):
 
     DataProphetMOD8_9 = DataProphet.filter(regex='MOD8_9')
     
-    def test_inforce(self):
-        self
+    def test_Premium(self):
+        premiumAttendus=DataProphetMOD8_9['PREM_INC']
 
 
 

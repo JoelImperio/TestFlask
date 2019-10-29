@@ -1,55 +1,260 @@
 import pandas as pd
 import numpy as np
+import time
 import os, os.path
 path = os.path.dirname(os.path.abspath(__file__))
-from Portefeuille import Portfolio
+start_time = time.time()
+
+#Permet de recréer le fichier CSV du portefeuille en cas de modif de l'extraction
+def portfolioExtractionToCSV():
+    import pyodbc
+      
+    #Paramètres de connection
+    cnxn = pyodbc.connect(
+        driver='{iSeries Access ODBC Driver}',
+        system='10.254.5.1',
+        uid='liviaplus',
+        pwd='liviaplus')  
+    #Extraction du portefeuille des polices   
+    PortfolioQRY=open(r'Portefeuille\QRY.txt').read()
+    p=pd.read_sql(PortfolioQRY, cnxn)
+    #Copy l'extraction dans un CSV
+
+#Attention enlever à la copie du test
+    return p.to_csv(r'Portefeuille\Portfolio.csv'), p.to_csv(r'Tests\Portfolio_Test.csv')
+
+#Extraction du portefeuille de polices
+    
+#portfolioExtractionToCSV()
 
 
-#Chargement des fichiers inputs contenant les hypothèses
-h=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypothèses")
-h1=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypothèses")
+#Inputs global
+dateCalcul='20181231'
+dateFinCalcul='20521231' #A mon avis doit être remplacer par date expiration des polices
 
-#Importation d'une intance de Portfolio
-p=Portfolio()
 
+#Permet de crée une colonne avec la classPGG
+def allocationClassPGG(p):
+    p['zero']=0   
+    dico=dict(zip(p['PMBMOD'],p['zero']))        
+    #Les listes de numéro représente les mod a allouer dans la catégorie
+    for i in [2,10,6,7]:
+        dico[i]='MI'       
+    for i in [1,11]:
+        dico[i]='VE'
+    for i in [3,4]:
+        dico[i]='TE'
+    for i in [25,26]:
+        dico[i]='PR'
+    for i in [8,9,12]:
+        dico[i]='FU'       
+    for i in [28,29,30,31,32,33,36]:      
+        dico[i]='EP'  
+    for i in [58]:
+        dico[i]='HO'
+    for i in [70]:
+        dico[i]='AX'
+    #Creation des classes PGG génériques
+    p['ClassPGGinit'] = p['PMBMOD'].map(dico)
+    #Creation des classesPGG avec txInt pour les EP et MI
+    p['ClassPGG']=p['ClassPGGinit']
+    p.loc[p['ClassPGGinit'].isin(['EP','MI']),'ClassPGG']= \
+    p.loc[p['ClassPGGinit'].isin(['EP','MI']),'ClassPGGinit'].map(str)+ \
+    p.loc[p['ClassPGGinit'].isin(['EP','MI']),'PMBTXINT'].map(str)
+    
+#Calcul de l'âge initial
+def agesInitial(p):
+    
+    date1=pd.to_datetime(p['CLIDTNAISS'].astype(str), format='%Y%m%d')
+    
+    date2=pd.to_datetime(p['CLIDTNAISS2'].astype(str), format='%Y%m%d')
+    
+    dateDebut= pd.to_datetime(p['POLDTDEB'].astype(str), format='%Y%m%d')
+    
+    dtNaiss1=np.where(date1.dt.month * 100 + date1.dt.day  > dateDebut.dt.month * 100 + dateDebut.dt.day , date1.dt.year  + 1, date1.dt.year)
+    
+    dtNaiss2=np.where(date2.dt.month * 100 + date2.dt.day  > dateDebut.dt.month * 100 + dateDebut.dt.day , date2.dt.year  + 1, date2.dt.year)
+    
+    p['Age1AtEntry']=dateDebut.dt.year-dtNaiss1
+    p['Age2AtEntry']=dateDebut.dt.year-dtNaiss2
+    p.loc[p.Age2AtEntry==0,'Age2AtEntry']=999
+
+
+#Permet de formater la dataframe des polices avant d'entrer dans la classe
+def portfolioPreProcessing(p):
+
+#Traitement des anomalies dans les données
+
+    #Certaines dates d'échéances tombe un jour qui n'existe pas
+    p.loc[p['PMBPOL'].isin([1602101,609403,2161101,2162601,297004]), 'POLDTEXP'] = '20190228'
+    
+    #Lorsqu'il y a de l'agravation dans les Funérailles la prime initial est prise
+    p.loc[p['PMBPOL'].isin([602802,2130001,2141101,2149401,2165602,2190101,2216301,2265503,2349803,2547906]), 'POLPRTOT']=240
+    
+    p.loc[p['PMBPOL'].isin([60602]), 'CLIDTNAISS2'] = '19551009'
+    
+    #Lorsque la police a une tête l'age du deuxième assuré est 0 donc il né à la date début de la police (ensuite 999 ans)
+    p.loc[p.POLNBTETE==1, 'CLIDTNAISS2'] = p.loc[p.POLNBTETE==1, 'POLDTDEB']
+
+    agesInitial(p)
+
+#Formatage des colonnes et création des colonnes utiles    
+
+    p['DateCalcul']=pd.to_datetime(dateCalcul)
+
+##On pense que la solution en commentaire est meilleure mais ptophet effectue l'autre
+#    p['DateFinCalcul']=pd.to_datetime(p['POLDTEXP'])
+    p['DateFinCalcul']=pd.to_datetime(dateFinCalcul)
+    
+    p['POLDTDEB']= pd.to_datetime(p['POLDTDEB'].astype(str), format='%Y%m%d').dt.date
+    p['POLDTEXP']= pd.to_datetime(p['POLDTEXP'].astype(str), format='%Y%m%d').dt.date
+    p['CLIDTNAISS']= pd.to_datetime(p['CLIDTNAISS'].astype(str), format='%Y%m%d').dt.date
+    
+
+     
+    p['CLIDTNAISS2']= pd.to_datetime(p['CLIDTNAISS2'].astype(str), format='%Y%m%d').dt.date
+   
+    
+    p['ProjectionMonths']=((pd.to_datetime(p['DateFinCalcul'])-pd.to_datetime(p['DateCalcul']))/np.timedelta64(1,'M')).apply(np.ceil)
+    
+##On pense que la différence en mois est plus correct que le calcul des DCS pour les duration IF
+#    p['DurationIfInitial']=((pd.to_datetime(p['DateCalcul'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.around)
+    p['DurationIfInitial']=(pd.to_datetime(p['DateCalcul']).dt.year - pd.to_datetime(p['POLDTDEB']).dt.year)*12 \
+    + pd.to_datetime(p['DateCalcul']).dt.month - pd.to_datetime(p['POLDTDEB']).dt.month + 1  
+    
+    allocationClassPGG(p)
+
+
+    
+    return p
+
+
+
+##############################################################################################################################
+##############################################################################################################################
+#CHARGEMENT DES FICHIERS INPUTS
+#- Hypothèses N et N-1
+#- Portefeule N et N-1
+def chargementINPUTS(PortefeuilleEtHypothèses):
+    return self,PortefeuilleEtHypothèses
+##############################################################################################################################
+
+hypN=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypothèses")
+hypN_1=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypothèses")
+
+porN=pd.read_csv(path+'/Portefeuille\Portfolio.csv')
+porN=portfolioPreProcessing(porN)
+
+porN_1=pd.read_csv(path+'/Portefeuille\Portfolio.csv')
+porN_1=portfolioPreProcessing(porN_1)
+   
+
+##############################################################################################################################
+##############################################################################################################################
 #Création de la class Hypothèse
+##############################################################################################################################
+
 
 class Hypo:
     
+    allRuns=[0,1,2,3,4,5]
+    
     __slot__=('un','vide','zero','run','shape')
 
-    def __init__(self,hy=h,hy1=h1,MyShape=[],Run=[0,1,2,3,4,5], New=True):
-        self.run=Run
-        self.shape=MyShape
-        self.un=np.ones(shape)
-        self.vide=np.empty_like(self.un)
-        self.zero=np.zeros_like(self.un)
-        if New:
+    def __init__(self,hy=hypN,hy1=hypN_1,po=porN, po1=porN_1,\
+                 Run=allRuns, hypoNew=True, portfolioNew=True):
+        
+        if portfolioNew:
+            self.tout=po 
+            self.p=po
+        else:
+            self.tout=po1
+            self.p=po1
+           
+        self.runs=Run
+        self.shape=list(self.one().shape)
+################################################     
+        if hypoNew:
             self.h=hy
         else:
             self.h=hy1
+
         self.securityMarginMarge=1+self.h.iloc[53,2]
         self.securityMarginBio=1+self.h.iloc[54,2]
-        self.inflation=1+self.h.iloc[55,2]
 
-# Retourne une template formaté pour tous les runs    
+ 
+##############################################################################################################################
+##############################################################################################################################
+
+
+#Permet de retourner un sous-portefeuille sélectionné de la liste de mods=[]
+    def mod(self,mods):
+       sp=self.tout.loc[self.tout['PMBMOD'].isin(mods)]
+       self.update(sp)
+       return sp
+#Permet de retourner un sous-portefeuille sélectionné de la liste de mods=[] et le nombre de tête
+    def modHead(self,mods,nbrhead):
+       sp=self.tout.loc[(self.tout['PMBMOD'].isin(mods)) & (self.tout['POLNBTETE'].isin([nbrhead])) ]
+       self.update(sp)
+       return sp
+   
+#Permet de retourner un sous-portefeuille sélectionné de la liste de num=[]
+    def ids(self,num):
+        sp=self.tout.loc[self.tout['PMBPOL'].isin(num)]
+        self.update(sp)
+        return sp
+#Permet de retourner un sous-portefeuille sélectionné de la liste de gr=[]
+    def groupe(self,gr):
+        sp=self.tout.loc[self.tout['ClassPGG'].isin(gr)]
+        self.update(sp)
+        return sp
+
+#Permet de mettre à jour le portefeuille avec le sous-portefeuille de traitement
+    def update(self,subPortfolio):
+        self.p=subPortfolio
+        self.shape=list(self.one().shape)
+        self.runs=self.runs
+        
+#Permet de créer un vecteur  rempli de 1 pour la taille de portefeuille et la durée de projection  
+    def one(self):
+        nbrPolices=int(len(self.p))
+        nbrPeriodes= int(self.p['ProjectionMonths'].max())
+        nbrRuns=int(len(self.runs))
+        return np.copy(np.ones([nbrPolices,nbrPeriodes,nbrRuns]))
+
+#Permet de créer un vecteur rempli de 0 pour la taille de portefeuille et la durée de projection  
+    def zero(self):             
+        return np.copy(np.zeros_like(self.one()))
+    
+#Permet de créer un vecteur rempli VIDE pour la taille de portefeuille et la durée de projection  
+    def vide(self):             
+        return np.copy(np.empty_like(self.one()))
+
+# Retourne une template formaté pour tous les runs avec des 0  
     def templateAllrun(self):             
         myShape=self.shape
-        myShape[2]=(p.shape)[2]
+        myShape[2]=int(len(self.allRuns))
         result=np.zeros(myShape)
         return np.copy(result)
-        
+    
+# Retourne une template formaté pour tous les runs de 1   
+    def oneAllrun(self):             
+        myShape=self.shape
+        myShape[2]=int(len(self.allRuns))
+        result=np.ones(myShape)
+        return np.copy(result)
+
 
 # Retourne une template avec les années chaque mois
     def templateAllYear(self):
-        
-        model=p.template
+        model=pd.date_range(start=self.p['DateCalcul'].min(), end=self.p['DateFinCalcul'].max(), freq='M')
+        model=pd.DataFrame(model).set_index(0).transpose()       
         model=model.copy()
         model.columns=model.columns.year
         return model.transpose()
     
 # Retourne les frais de gestion par police
-    def fraisGestion(self, policies):
+    def fraisGestion(self):
         
         fixfee=self.h.iloc[49,3]
         
@@ -59,14 +264,9 @@ class Hypo:
         adminCost[:,:,4]=fixfee*self.securityMarginMarge
         adminCost[:,:,5]=fixfee*self.securityMarginBio
         #Dimensionner pour les runs en appel    
-        adminCost=adminCost[:,:,self.run]
+        adminCost=adminCost[:,:,self.runs] 
         
-# JO J'ai ajouter cela pour dimensionner les frais de gestion afin qu'on obtienne les frais pour le sous portefeuille
-        sp=p.p.loc[p.p['PMBPOL'].isin(policies.p['PMBPOL'].values )]        
-        pol=list(sp.index.values)
-        adminCost=np.take(adminCost, pol,axis=0)
-        
-        return adminCost
+        return adminCost/12
     
     
     def fraisGestionPlacement(self):
@@ -79,14 +279,9 @@ class Hypo:
         investCost[:,:,4]=fixfee*self.securityMarginMarge
         investCost[:,:,5]=fixfee*self.securityMarginBio
         #Dimensionner pour les runs en appel    
-        investCost=investCost[:,:,self.run]
+        investCost=investCost[:,:,self.runs]
         
-# JO J'ai ajouter cela pour dimensionner les frais de gestion afin qu'on obtienne les frais pour le sous portefeuille     
-        sp=p.p.loc[p.p['PMBPOL'].isin(policies.p['PMBPOL'].values )]        
-        pol=list(sp.index.values)
-        investCost=np.take(investCost, pol,axis=0)
-        
-        return investCost
+        return investCost/1200
     
     def templateSinistrality(self,a):
         
@@ -100,7 +295,7 @@ class Hypo:
         sin[:,:,4]=bePlusMarge
         sin[:,:,5]=bioEtFrais
         #Dimensionner pour les runs en appel    
-        sin=sin[:,:,self.run]
+        sin=sin[:,:,self.runs]
         
         return sin
 
@@ -117,12 +312,7 @@ class Hypo:
     def dc(self):
         return self.templateSinistrality(19)
     def fraisVisite(self):
-# JO ajout pour dimensionner tableau numpy
-        fraisvis = self.templateSinistrality(20)
-        sp=p.p.loc[p.p['PMBPOL'].isin(policies.p['PMBPOL'].values )]        
-        pol=list(sp.index.values)
-        fraisvis=np.take(fraisvis, pol,axis=0)
-        return fraisvis
+        return self.templateSinistrality(20)
     
 # Cette fonction retourne un vecteur avec les taux d'intérêt mensuel 
     def rate(self):
@@ -150,7 +340,7 @@ class Hypo:
         rates[:,:,runMG]=allMensualrates[:,:,1]
         rates[:,:,runRL]=allMensualrates[:,:,2]
         #Dimensionner pour les runs en appel    
-        rates=rates[:,:,self.run]
+        rates=rates[:,:,self.runs]
         
         return rates
 
@@ -165,13 +355,13 @@ class Hypo:
         
         return ratesPB
 
-# Taux de rachat (anual rate) dimensionné pour les runs et polices   
-    def lapse(self,policies):
+# Taux de rachat (selon le fractionnement) dimensionné pour les runs et polices lorsqu'un lapse est possible (uniquement le mois avant un paiement de prime)  
+    def lapse(self):
 
  
         lapseSensiMoins=self.h.iloc[56,2]
         lapseSensiPlus=self.h.iloc[57,2]       
-        cl=p.p['ClassPGGinit']
+        cl=self.p['ClassPGGinit']
         
         lapseRates=self.h.iloc[23:32,1:12]
         lapseRates.columns = lapseRates.iloc[0]
@@ -180,7 +370,8 @@ class Hypo:
         lapseRates=lapseRates[cl].transpose().to_numpy()
         lapseRates=lapseRates[:,:,np.newaxis,np.newaxis]
 
-        dur=p.durationIf()
+        dur=self.durationIf()
+        dur=dur[:,:,0][:,:,np.newaxis]*self.oneAllrun()
         
 
         condlist = [dur<=12,dur<=24,dur<=36,dur<=48,dur<=60, 
@@ -196,24 +387,27 @@ class Hypo:
         mylapse[:,:,[3,5]]=mylapse[:,:,[3,5]]*lapseSensiMoins
         mylapse[:,:,2]=mylapse[:,:,2]*lapseSensiPlus
        
-        
-        sp=p.p.loc[p.p['PMBPOL'].isin(policies.p['PMBPOL'].values )]        
-        pol=list(sp.index.values)
-        
         #Dimensionner pour les runs et le portefeuille en appel    
-        mylapse=np.take(mylapse, pol,axis=0)
-        mylapse=mylapse[:,:,self.run]
+        mylapse=mylapse[:,:,self.runs]
+        
+        #Prise en compte du taux fractionnel et de la mise en place avant un paiement
+        frac=self.frac()
+        #Fractionnement à 0 sont remplacer par 1
+        frac[frac==0]=1
+        mylapse=1-(1-mylapse)**(1/frac)
+        
+        mylapse= self.isLapse()*mylapse
         
         return mylapse
 
 # Taux de réduction (anual rate) dimensionné pour les runs et polices  
-    def reduction(self,policies):
+    def reduction(self):
 
 # A vérifier si même sensibilité que rachat 
         lapseSensiMoins=self.h.iloc[56,2]
         lapseSensiPlus=self.h.iloc[57,2] 
         
-        cl=p.p['ClassPGGinit']
+        cl=self.p['ClassPGGinit']
         reductionRates=self.h.iloc[34:43,1:12]
         reductionRates.columns = reductionRates.iloc[0]
         reductionRates=reductionRates.drop(reductionRates.index[0])
@@ -221,12 +415,13 @@ class Hypo:
         reductionRates=reductionRates[cl].transpose().to_numpy()
         reductionRates=reductionRates[:,:,np.newaxis,np.newaxis]
 
-        dur=p.durationIf()      
+        dur=self.durationIf()
+        dur=dur[:,:,0][:,:,np.newaxis]*self.oneAllrun()       
       
 
-        condlist = [dur<12,dur<24,dur<36,dur<48,dur<60, 
-                    dur<72,dur<84,dur<96,dur<108, 
-                    dur>=108]
+        condlist = [dur<=12,dur<=24,dur<=36,dur<=48,dur<=60, 
+                    dur<=72,dur<=84,dur<=96,dur<=108, 
+                    dur>108]
         choicelist = [reductionRates[:,0,:],reductionRates[:,1,:],reductionRates[:,2,:], 
                       reductionRates[:,3,:],reductionRates[:,4,:],reductionRates[:,5,:], 
                       reductionRates[:,6,:],reductionRates[:,7,:],reductionRates[:,8,:], 
@@ -237,100 +432,168 @@ class Hypo:
         myReduction[:,:,[3,5]]=myReduction[:,:,[3,5]]*lapseSensiMoins
         myReduction[:,:,2]=myReduction[:,:,2]*lapseSensiPlus
        
-        
-        sp=p.p.loc[p.p['PMBPOL'].isin(policies.p['PMBPOL'].values )]      
-        pol=list(sp.index.values)
+              
         
         #Dimensionner pour les runs et le portefeuille en appel    
-        myReduction=np.take(myReduction, pol,axis=0)
-        myReduction=myReduction[:,:,self.run]
+        myReduction=myReduction[:,:,self.runs]
         
         return myReduction
 
 # Taux de commissions (anual rate) dimensionné pour les runs et polices (inclus les commissions de gestion)     
-    def commissions(self,policies):
+    def commissions(self):
         
-        cl=p.p['PMBMOD']
+        cl=self.p['PMBMOD']
         
         commissionsRates=self.h.iloc[61:85,1:7]
         commissionsRates.columns = commissionsRates.iloc[0]
         commissionsRates=commissionsRates.drop(commissionsRates.index[0])
         commissionsRates=commissionsRates.set_index('Modalité').transpose()
-        commissionsRates=np.asarray(commissionsRates[cl].transpose().to_numpy(), dtype=np.float64)
-
-#        commissionsRates=commissionsRates[cl].transpose().to_numpy()   ANCIENNE VERSION
+        commissionsRates=commissionsRates[cl].transpose().to_numpy()
         commissionsRates=commissionsRates[:,:,np.newaxis,np.newaxis]
         
-        dur=p.durationIf()      
-      
-# JO Rectification : PROPHET n'as que 3 ans de commission + commission de gestion. Ici il y'avait 4 ans + gestion
-        condlist = [dur<12,dur<24,dur<36, \
-                    dur>=36]
+        dur=self.durationIf()      
+        dur=dur[:,:,0][:,:,np.newaxis]*self.oneAllrun()    
+
+        condlist = [dur<=12,dur<=24,dur<=36,dur>36]
         
-        choicelist = [commissionsRates[:,0,:],commissionsRates[:,1,:],commissionsRates[:,2,:], \
-        commissionsRates[:,4,:]]
-        
-#        choicelist = [commissionsRates[:,0,:],commissionsRates[:,1,:],commissionsRates[:,2,:], \
-#                      commissionsRates[:,3,:],commissionsRates[:,4,:]]  ANCIEN CALCUL
+        choicelist = [commissionsRates[:,0,:],commissionsRates[:,1,:],commissionsRates[:,2,:],commissionsRates[:,4,:]]
         
         myCommissions=np.select(condlist, choicelist)
-
-        myCommissions=myCommissions[:,:,self.run]
-        sp=p.p.loc[p.p['PMBPOL'].isin(policies.p['PMBPOL'].values )]      
-        pol=list(sp.index.values)
         
-        #Dimensionner pour les runs et le portefeuille en appel    
-        myCommissions=np.take(myCommissions, pol,axis=0)
-        
+        #Dimensionner pour les runs et le portefeuille en appel
+        myCommissions=myCommissions[:,:,self.runs]
         
         return myCommissions
 
+#Taux mensuel d'inflation dimensionné pour les runs et polices
+
+    def inflation(self):
+        
+        inflationRate=self.h.iloc[55,2]
+        
+        inflationRate=inflationRate+self.one()
+        
+        increment=np.arange(0,self.shape[1])[np.newaxis,:,np.newaxis]
+            
+        inflationMensuel= inflationRate**(increment/12)
+        
+        
+        return inflationMensuel
     
+##############################################################################################################################
+#####DEBUT DES VARIABLES DE CALCUL DES PROJECTIONS#################################################
+##############################################################################################################################
+
+#Retourne un vecteur du nombre de mois que la police est en vigeur
+    def durationIf(self):
+        
+        durationInitial=self.p['DurationIfInitial'].to_numpy()
+        
+        durationInitial=durationInitial[:,np.newaxis,np.newaxis]
+        
+        increment=np.arange(0,self.shape[1],1)
+        increment=increment[np.newaxis,:,np.newaxis]
+            
+        durIf=self.one()     
+        durIf=durIf*durationInitial        
+        durIf=durIf+increment
+        
+        return durIf
+
+#Retourn une matrice avec le fractionnement constant   
+    def frac(self):
+        
+        fract = self.one() * self.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
+        return fract
 
 
-#####ICI pour faire des tests sur la class##########################################################
+#Retourn un 1 lorsqu'il y a un lapse possible    
+    def isLapse(self):
+        lapse = self.zero()
+        check1 = (self.frac() * (self.durationIf() + 12) /12)
+        check2 = np.floor((self.frac() * (self.durationIf() + 12) /12))
+
+        condlist = [check1 - check2 == 0, check1 - check2 != 0]
+        choicelist = [lapse[:,:,:]==0, lapse[:,:,:] ==1 ]
+        
+        myLapse=np.select(condlist, choicelist)
+        # Le premier mois il n'y a pas de payement car la prime est payé en début de mois et les date de calcul sont en fin de mois
+        myLapse[:,0,:] = 0
+        
+        return myLapse
+
+#Retourn un 1 lorsqu'il y a un payement de prime
+    def isPremPay(self):
+        
+        payement = self.zero()
+        check1 = (self.frac() * (self.durationIf() + 11) /12)
+        check2 = np.floor((self.frac() * (self.durationIf() + 11) /12))
+
+        condlist = [check1 - check2 == 0, check1 - check2 != 0]
+        choicelist = [payement[:,:,:]==0, payement[:,:,:] ==1 ]
+        
+        myPayement=np.select(condlist, choicelist)
+        
+        # Le premier mois il n'y a pas de payement car la prime est payé en début de mois et les date de calcul sont en fin de mois
+        myPayement[:,0,:] = 0
+        
+        return myPayement
+    
+  
+
+##############################################################################################################################
+#############ICI pour faire des tests sur la class
+##############################################################################################################################
+
+def testerHypo():
+    return 0
+
+
+
+
 
 #myRun=[1,5]
-myRun=[0,1,2,3,4,5]
-policies=Portfolio(runs=myRun)
-#policies.mod([8,9])
-#policies.ids([2401101])
+#myRun=[0,1,2,3,4,5]
 
-shape=policies.shape
 
-hyp=Hypo(MyShape=shape, Run=myRun)
+#myHypo=Hypo(Run=myRun)
+
+#myHypo.mod([8,9])
+#myHypo.ids([896002])
+#myHypo.groupe(['MI3.5'])
+
 
 ###Les fonctions de la class
-#Ne pas tout activer car consomme enormément de mémoire RAM
 
+#za=myHypo.tout
+#zb=myHypo.p
+#zc=myHypo.runs
+#zd=myHypo.shape
+#ze=myHypo.one()
+#zf=myHypo.zero()
+#zg=myHypo.vide()
+#zh=myHypo.templateAllYear()
+#zi=myHypo.fraisGestion()
+#zj=myHypo.fraisGestionPlacement()
+#zk=myHypo.rate()
+#zl=myHypo.pbRate()
+#zm=myHypo.lapse()
+#zn=myHypo.ipt()
+#zo=myHypo.dcAccident()
+#zp=myHypo.exo()
+#zq=myHypo.itt()
+#zr=myHypo.hospi()
+#zs=myHypo.dc()
+#zt=myHypo.fraisVisite()
+#zu=myHypo.reduction()
+#zv=myHypo.commissions()
+#zw=myHypo.inflation()
 
-#a=hyp.fraisGestion()
-#b=hyp.fraisGestionPlacement()
-#c=hyp.rate()
-#d=hyp.pbRate()
-#e=hyp.lapse(policies)
-#f=hyp.ipt()
-#g=hyp.dcAccident()
-#h=hyp.exo()
-#i=hyp.itt()
-#j=hyp.hospi()
-#k=hyp.dc()
-#l=hyp.fraisVisite()
-#m=hyp.reduction(policies)
-#n=hyp.commissions(policies)
-##
-
-
-
-
-
-
+print("ClassHypo--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 ###Visualiser un vecteur np en réduisant une dimension
-#data=n
-#aa=pd.DataFrame(data[:,:,1])
+#data=m
+#a=pd.DataFrame(data[:,:,1])
 
-
-
-
+#sp=porN.loc[porN['PMBPOL'].isin([896002])]
 

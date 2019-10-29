@@ -71,7 +71,7 @@ class MortalityTable:
             for g in range(0, len(self.lx[:-1])):
                 lx_g = self.lx[g]
                 self.ex.append(0.5 + sum(self.lx[g + 1:-1]) / lx_g) #[g+1:-2] according notes from ucm
- 
+
     def view(self, start=0, end=10, var='lx'):
         column  = {'qx': self.qx, 'lx': self.lx, 'dx': self.dx, 'ex': self.ex, 'nt': self.nt, \
                    'Dx': self.Dx, 'Nx': self.Nx, 'Cx': self.Cx, 'Mx': self.Mx, 'nEx': self.nEx}
@@ -188,7 +188,6 @@ def qx(mt, x):
         return mt.qx[x]
     else:
         return 0
-
 
 def lx(mt, x):
     """ lx : Returns the number of survivors at begining of age x """    
