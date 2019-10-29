@@ -93,12 +93,12 @@ def testerPortfolio():
 
     
 #myRun=[1,5]
-myRun=[0,1,2,3,4,5]
+#myRun=[0,1,2,3,4,5]
 
-myPolicies=Portfolio(runs=myRun)
+#myPolicies=Portfolio(runs=myRun)
 
 #myPolicies.mod([8,9])
-myPolicies.ids([896002])
+#myPolicies.ids([896002])
 #myPolicies.groupe(['MI3.5'])
 
 #Les fonctions de la class Portfolio()
@@ -107,12 +107,12 @@ myPolicies.ids([896002])
 #zb=myPolicies.qx(table=EKM05i,exp=41.73,ass=2)
 #zc=myPolicies.qxExp(assExp=2)
 #zd=myPolicies.qxExpMens(ass=2)
-ze=myPolicies.qxyExpMens()
-a=myPolicies.age(ass=2)
+#ze=myPolicies.qxyExpMens()
+#a=myPolicies.age(ass=2)
 
-print("ClassPortefeuille--- %s sec" %'%.2f'%  (time.time() - start_time))
+print("Class Portefeuille--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 
 ###Visualiser un vecteur np en réduisant une dimension
-data=a
-a=pd.DataFrame(data[:,:,1])
+#data=a
+#a=pd.DataFrame(data[:,:,1])
