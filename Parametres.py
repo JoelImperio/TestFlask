@@ -23,7 +23,7 @@ def portfolioExtractionToCSV():
     p=pd.read_sql(PortfolioQRY, cnxn)
     #Copy l'extraction dans un CSV
 
-#Attention enlever à la copie du test
+#Attention enlever à la copie du test lorsque le développement sera fini
     return p.to_csv(r'Portefeuille\Portfolio.csv'), p.to_csv(r'Tests\Portfolio_Test.csv')
 
 ##############Extraction du portefeuille de polices##############################
