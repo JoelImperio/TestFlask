@@ -39,7 +39,7 @@ def globalInputs():
     return self
 
 dateCalcul='20181231'
-dateFinCalcul='20521231' #A mon avis doit être remplacer par date expiration des polices
+dateFinCalcul='20721231' #A mon avis doit être remplacer par date expiration des polices
 
 
 ##############################################################################################################################
@@ -100,16 +100,16 @@ def agesInitial(p):
 ##############################################################################################################################
 def projectionLengh(p):
     
-    p['ProjectionLengh']=p['ProjectionMonths']
+    p['polTermM']=p['ProjectionMonths']
     
 #Traitement des mods 8 et 9
     mask=(p['PMBMOD']==8)|(p['PMBMOD']==9)
     ageMax=65    
 
-    fixAgeLimite=(mask)|(p['Age2AtEntry']==999)
+    fixAgeLimite=(mask)&(p['Age2AtEntry']==999)
     p.loc[fixAgeLimite,'Age2AtEntry']=0
-    p.loc[mask,'ProjectionLengh']=p.loc[mask,['Age2AtEntry','Age1AtEntry']].max(axis=1)
-    p.loc[mask,'ProjectionLengh']=((ageMax-p.loc[mask,'ProjectionLengh'])*12)-p.loc[mask,'DurationIfInitial']
+    p.loc[mask,'polTermM']=p.loc[mask,['Age2AtEntry','Age1AtEntry']].max(axis=1)
+    p.loc[mask,'polTermM']=((ageMax-p.loc[mask,'polTermM'])*12)-p.loc[mask,'DurationIfInitial']
  
     #Nous pensons que cette variante est plus correct car dans le mod 9 la police continue jusqu'à 65 ans du plus jeune assuré
     #Il faut ajouté le code commenté pour prendre en compte le changement et supprimé le mod neuf du mask du mod 8
@@ -121,7 +121,7 @@ def projectionLengh(p):
 #    p.loc[mask,'ProjectionLengh']=((ageMax-p.loc[mask,'ProjectionLengh'])*12)-p.loc[mask,'DurationIfInitial']
     
     
-    replaceAgeLimite=(mask)|(p['Age2AtEntry']==0)
+    replaceAgeLimite=(mask)&(p['Age2AtEntry']==0)
     p.loc[replaceAgeLimite,'Age2AtEntry']=999
 
     
@@ -268,7 +268,8 @@ class Hypo:
 #Permet de créer un vecteur  rempli de 1 pour la taille de portefeuille et la durée de projection  
     def one(self):
         nbrPolices=int(len(self.p))
-        nbrPeriodes= int(self.p['ProjectionMonths'].max())
+#        nbrPeriodes= int(self.p['ProjectionMonths'].max())
+        nbrPeriodes= int(self.p['polTermM'].max()+1)
         nbrRuns=int(len(self.runs))
         return np.copy(np.ones([nbrPolices,nbrPeriodes,nbrRuns]))
 
@@ -297,8 +298,8 @@ class Hypo:
 
 # Retourne une template avec les années chaque mois
     def templateAllYear(self):
-#        model=pd.date_range(start=self.p['DateCalcul'].min(), periods=int(self.p['ProjectionLengh'].max()), freq='M')
-        model=pd.date_range(start=self.p['DateCalcul'].min(), end=self.p['DateFinCalcul'].max(), freq='M')
+        model=pd.date_range(start=self.p['DateCalcul'].min(), periods=int(self.p['polTermM'].max()+1), freq='M')
+#        model=pd.date_range(start=self.p['DateCalcul'].min(), end=self.p['DateFinCalcul'].max(), freq='M')
         model=pd.DataFrame(model).set_index(0).transpose()       
         model=model.copy()
         model.columns=model.columns.year

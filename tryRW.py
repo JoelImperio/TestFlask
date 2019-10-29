@@ -38,7 +38,9 @@ class MyFU(Portfolio):
         nbrPolIfSM=self.zero()
         
         matRate=self.zero()
-        matRate[self.polTermM()+1==self.durationIf()]=1
+        policyTermM=(self.p['polTermM']+self.p['DurationIfInitial']).to_numpy()[:,np.newaxis,np.newaxis]*self.one()
+        
+        matRate[policyTermM + 1==self.durationIf()]=1
         
         qxy=self.qxyExpMens()
         lapse=self.lapse()
@@ -69,34 +71,7 @@ class MyFU(Portfolio):
         
         return self
 
-
-#Durée du contrat en mois
-    def polTermM(self):
-        
-        entryAge1= np.copy(self.p['Age1AtEntry'].to_numpy())
-        
-        entryAge2=np.copy(self.p['Age2AtEntry'].to_numpy())
-        
-        entryAge2[entryAge2==999]=0
-        ageAtEntry=np.maximum(entryAge1,entryAge2)
-        
-        #Nous pensons que cette variante est plus correct car dans le mod 9 la police continue jusqu'à 65 ans du plus jeune assuré
-        #Il faut ajouté le code commenté pour prendre en compte le changement
-        
-#        mod=self.p['PMBMOD'].to_numpy()        
-#        entryAge2[entryAge2==0]=999
-#        ageAtEntry[mod==9]=np.minimum(entryAge1[mod==9],entryAge2[mod==9])
-        
-        
-        ageAtEntry=ageAtEntry[:,np.newaxis,np.newaxis]*self.one()
-        
-        ageTerm=self.ageMax*self.one()
-        
-        polTerm=(ageTerm-ageAtEntry)*12
-
-        return polTerm
-
-    
+ 
     def totalPremium(self):
         premInc=self.p['POLPRTOT'][:,np.newaxis,np.newaxis]/self.frac()
         
@@ -157,9 +132,6 @@ class MyFU(Portfolio):
         isNotPremPay=(1-self.isPremPay())
  
         elapseTime=(1-(check1-check2))*isNotPremPay
-        
-
-#        elapseTime=np.roll(elapseTime, [-1], axis=1)
         
         #Décaler le vécteur d'un temps
         elapseTime[:,:-1,:]=elapseTime[:,1:,:]
@@ -229,7 +201,7 @@ class MyFU(Portfolio):
         
 #        bel[:,-1,:]=5042.1918454086
         
-        for t in range(2,self.shape[1]+1):
+        for t in range(1,self.shape[1]+1):
             
             bel[:,-t,:]=(bel[:,-t+1,:]+claim[:,-t+1,:]+expense[:,-t+1,:]+commission[:,-t+1,:]-premium[:,-t+1,:])/interestRates[:,-t+1,:]
             
@@ -250,7 +222,7 @@ def testerFU(self):
 pol=MyFU()
 
 
-pol.ids([2142501])
+#pol.ids([2142501])
 #pol.mod([9])
 #pol.modHead([9],2)
 
@@ -263,7 +235,7 @@ pol.ids([2142501])
 #g=pol.nbrMaturities
 #h=pol.nbrDeath
 #i=pol.nbrSurrender
-j=pol.totalPremium()
+#j=pol.totalPremium()
 #k=pol.nbrDeath
 #l=pol.nbrMaturities
 #m=pol.nbrPolIf
@@ -294,10 +266,6 @@ z.to_csv(r'check.csv')
 
 print("Class FU--- %s sec" %'%.2f'%  (time.time() - start_time))
 
-
-
-#pol.p.loc[:,'ProjectionMonths']=pol.polTermM()[:,0,0]
-#
-#a=pol.p.ProjectionMonths
-#b=pol.polTermM()[:,0,0]
+#data=pol.lapse()
+#a=pd.DataFrame(data[:,:,4])
 
