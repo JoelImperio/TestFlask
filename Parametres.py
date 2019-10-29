@@ -307,14 +307,12 @@ class Hypo:
     
 # Retourne les frais de gestion par police
     def fraisGestion(self):
-        
-        fixfee=self.h.iloc[49,3]
-        
+                
         adminCost=self.templateAllrun()
         
-        adminCost[:,:,:4]=fixfee
-        adminCost[:,:,4]=fixfee*self.securityMarginMarge
-        adminCost[:,:,5]=fixfee*self.securityMarginBio
+        adminCost[:,:,:4]=self.h.iloc[49,3]
+        adminCost[:,:,4]=self.h.iloc[49,4]
+        adminCost[:,:,5]=self.h.iloc[49,5]
         #Dimensionner pour les runs en appel    
         adminCost=adminCost[:,:,self.runs] 
         
@@ -323,13 +321,11 @@ class Hypo:
     
     def fraisGestionPlacement(self):
         
-        fixfee=self.h.iloc[50,3]
-
         investCost=self.templateAllrun()
         
-        investCost[:,:,:4]=fixfee
-        investCost[:,:,4]=fixfee*self.securityMarginMarge
-        investCost[:,:,5]=fixfee*self.securityMarginBio
+        investCost[:,:,:4]=self.h.iloc[50,3]
+        investCost[:,:,4]=self.h.iloc[50,4]
+        investCost[:,:,5]=self.h.iloc[50,5]
         #Dimensionner pour les runs en appel    
         investCost=investCost[:,:,self.runs]
         
@@ -436,7 +432,7 @@ class Hypo:
         mylapse=np.select(condlist, choicelist)
 
         
-        mylapse[:,:,[3,5]]=mylapse[:,:,[3,5]]*lapseSensiMoins
+        mylapse[:,:,[3,4]]=mylapse[:,:,[3,4]]*lapseSensiMoins
         mylapse[:,:,2]=mylapse[:,:,2]*lapseSensiPlus
        
         #Dimensionner pour les runs et le portefeuille en appel    

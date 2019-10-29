@@ -1,8 +1,6 @@
 from Portefeuille import Portfolio
-import pandas as pd
 import numpy as np
-from MyPyliferisk import MortalityTable
-from MyPyliferisk.mortalitytables import EKM05i
+import pandas as pd
 import time
 import os, os.path
 path = os.path.dirname(os.path.abspath(__file__))
@@ -11,7 +9,6 @@ start_time = time.time()
 
 class MyFU(Portfolio):
     mods=[8,9]
-    ageMax=65
     complPremium=60
     premiumLoading=0.2
 #Lapse timing = 1 correspond aux lapse en début de mois et décès en fin de mois
@@ -45,8 +42,7 @@ class MyFU(Portfolio):
         qxy=self.qxyExpMens()
         lapse=self.lapse()
         lapseTiming=1
-        
-        
+             
         for i in range(1,self.shape[1]):
             
             nbrMaturities[:,i,:]=nbrPolIf[:,i-1,:]*matRate[:,i,:]
@@ -57,18 +53,14 @@ class MyFU(Portfolio):
             
             nbrSurrender[:,i,:]=nbrPolIfSM[:,i,:]*lapse[:,i,:]*(1-(qxy[:,i,:]*lapseTiming))
 
-            
-            
             nbrPolIf[:,i,:]=nbrPolIf[:,i-1,:]-nbrMaturities[:,i,:]-nbrDeath[:,i,:]-nbrSurrender[:,i,:]
-                        
-            
+                                 
         self.nbrPolIf=nbrPolIf
         self.nbrPolIfSM=nbrPolIfSM
         self.nbrMaturities=nbrMaturities
         self.nbrDeath=nbrDeath
         self.nbrSurrender=nbrSurrender
-        
-        
+            
         return self
 
  
@@ -226,7 +218,7 @@ pol=MyFU()
 #pol.mod([9])
 #pol.modHead([9],2)
 
-#a=pol.polTermM()
+
 #b=pol.isActive()
 #c=pol.durationIf()
 #d=pol.loop()
@@ -235,7 +227,6 @@ pol=MyFU()
 #g=pol.nbrMaturities
 #h=pol.nbrDeath
 #i=pol.nbrSurrender
-#j=pol.totalPremium()
 #k=pol.nbrDeath
 #l=pol.nbrMaturities
 #m=pol.nbrPolIf
@@ -243,18 +234,20 @@ pol=MyFU()
 #o=pol.nbrSurrender
 #p=pol.deathClaim()
 #q=pol.fraisVisiteClaim()
-#r=pol.totalClaim()
-#s=pol.totalCommissions()
 #t=pol.unitExpense()
 #u=pol.risqueEnCour()
 #v=pol.adjustedReserve()
 #w=pol.reserveExpense()
+
+#r=pol.totalClaim()
+#j=pol.totalPremium()
+#s=pol.totalCommissions()
 #x=pol.totalExpense()
 y=pol.BEL()
 
 #Analyse un cas
 
-monCas=j
+monCas=y
 
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
