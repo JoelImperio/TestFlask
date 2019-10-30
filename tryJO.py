@@ -13,6 +13,7 @@ start_time = time.time()
 
 a = mylalalalal
 
+a = 46666
 
 
 print("MyClasse--- %s sec" %'%.2f'%  (time.time() - start_time))
