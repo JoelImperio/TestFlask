@@ -213,8 +213,9 @@ class MyFU(Portfolio):
 def testerFU(self):
     return self
 
-myRuns=[0,1,2,3,4,5]
+
 pol=MyFU()
+#pol=MyFU(run=[4,5])
 
 
 #pol.ids([2142501])

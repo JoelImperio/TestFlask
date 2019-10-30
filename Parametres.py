@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from MyPyliferisk.mortalitytables import EKM05i
 import time
 import os, os.path
 path = os.path.dirname(os.path.abspath(__file__))
@@ -38,7 +39,7 @@ def portfolioExtractionToCSV():
 ##############################################################################################################################
 #Inputs global permet de déterminer les date de calcul
 ##############################################################################################################################  
-def globalInputs():
+def dateInputs():
     return self
 
 dateCalcul='20181231'
@@ -199,6 +200,8 @@ porN_1=pd.read_csv(path+'/Portefeuille\Portfolio.csv')
 porN_1=portfolioPreProcessing(porN_1)
 
 allRuns=[0,1,2,3,4,5]
+
+tableExperience=EKM05i
    
 
 ##############################################################################################################################
@@ -232,7 +235,7 @@ class Hypo:
 
  
 ##############################################################################################################################
-###################################DEBUT DES METHODES DE DIMENSSIONEMENT#####################################################
+###################################DEBUT DES METHODES DE DIMENSSIONEMENT######################################################
 ##############################################################################################################################
 
 #Permet de retourner un sous-portefeuille sélectionné de la liste de mods=[]
@@ -302,7 +305,7 @@ class Hypo:
         return model.transpose()
 
 ##############################################################################################################################
-###################################DEBUT DES METHODES DES HYPOTHESES#########################################################
+###################################DEBUT DES METHODES DES HYPOTHESES##########################################################
 ##############################################################################################################################
    
 # Retourne les frais de gestion par police (coût par police)
