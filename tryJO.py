@@ -11,7 +11,7 @@ start_time = time.time()
 
 
 
-a = 50
+a = 504532
 
 
 
