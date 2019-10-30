@@ -19,7 +19,7 @@ PARAMETRES:
   il nous semble plus correct de prendre la vrai différence en mois arrondi
 
 
-- Attention frac=0 dans les lapses
+- Attention Dans lapse() lorsqu'il y a un fractionnement 0 il est arbitrairement fixé à 12
 
 
 

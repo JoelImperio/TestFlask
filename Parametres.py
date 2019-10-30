@@ -232,8 +232,8 @@ class Hypo:
 
  
 ##############################################################################################################################
+###################################DEBUT DES METHODES DE DIMENSSIONEMENT#####################################################
 ##############################################################################################################################
-
 
 #Permet de retourner un sous-portefeuille sélectionné de la liste de mods=[]
     def mod(self,mods):
@@ -300,7 +300,11 @@ class Hypo:
         model=model.copy()
         model.columns=model.columns.year
         return model.transpose()
-    
+
+##############################################################################################################################
+###################################DEBUT DES METHODES DES HYPOTHESES#########################################################
+##############################################################################################################################
+   
 # Retourne les frais de gestion par police (coût par police)
     def fraisGestion(self):
                 
@@ -413,10 +417,10 @@ class Hypo:
         
         return ratesPB
 
-# Taux de rachat (selon le fractionnement) dimensionné pour les runs et polices lorsqu'un lapse est possible (uniquement le mois avant un paiement de prime)  
+#Retourne les taux de rachat selon le fractionnement. Les taux apparaissent uniquement le mois avant un paiement de prime
     def lapse(self):
 
- 
+
         lapseSensiMoins=self.h.iloc[56,2]
         lapseSensiPlus=self.h.iloc[57,2]       
         cl=self.p['ClassPGGinit']
@@ -450,18 +454,19 @@ class Hypo:
         
         #Prise en compte du taux fractionnel et de la mise en place avant un paiement
         frac=self.frac()
+        
         #Fractionnement à 0 sont remplacer par 1
-        frac[frac==0]=1
+        frac[frac==0]=12
         mylapse=1-(1-mylapse)**(1/frac)
         
         mylapse= self.isLapse()*mylapse
         
         return mylapse
 
-# Taux de réduction (anual rate) dimensionné pour les runs et polices  
+#Retourne les taux de réduction annuel
     def reduction(self):
 
-# A vérifier si même sensibilité que rachat 
+        # A vérifier si même sensibilité que rachat 
         lapseSensiMoins=self.h.iloc[56,2]
         lapseSensiPlus=self.h.iloc[57,2] 
         
@@ -497,7 +502,7 @@ class Hypo:
         
         return myReduction
 
-# Taux de commissions (anual rate) dimensionné pour les runs et polices (inclus les commissions de gestion)     
+#Retourne les taux de commissions incluant les commissions de gestion     
     def commissions(self):
         
         cl=self.p['PMBMOD']
@@ -523,8 +528,7 @@ class Hypo:
         
         return myCommissions
 
-#Taux mensuel d'inflation dimensionné pour les runs et polices
-
+#Retourne le taux mensuel d'inflation dimensionné pour les runs et polices
     def inflation(self):
         
         inflationRate=self.h.iloc[55,2]
@@ -534,15 +538,14 @@ class Hypo:
         increment=np.arange(0,self.shape[1])[np.newaxis,:,np.newaxis]
             
         inflationMensuel= inflationRate**(increment/12)
-        
-        
+              
         return inflationMensuel
     
 ##############################################################################################################################
-#####DEBUT DES VARIABLES DE CALCUL DES PROJECTIONS#################################################
+###################################DEBUT DES METHODES DU CALCUL DES PRODUITS#################################################
 ##############################################################################################################################
 
-#Retourne un vecteur du nombre de mois que la police est en vigeur
+#Retourne un vecteur du nombre de mois que la police est en vigeur qui s'incrémente de 1 par mois
     def durationIf(self):
         
         durationInitial=self.p['DurationIfInitial'].to_numpy()
@@ -558,14 +561,14 @@ class Hypo:
         
         return durIf
 
-#Retourn une matrice avec le fractionnement constant   
+#Retourne le fractionnement constant de chaque polices
     def frac(self):
         
         fract = self.one() * self.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
         return fract
 
 
-#Retourn un 1 lorsqu'il y a un lapse possible    
+#Retourn un 1 lorsqu'il y a un lapse possible, soit le mois qui précède le paiement d'une prime   
     def isLapse(self):
         lapse = self.zero()
         check1 = (self.frac() * (self.durationIf() + 12) /12)
@@ -575,6 +578,7 @@ class Hypo:
         choicelist = [lapse[:,:,:]==0, lapse[:,:,:] ==1 ]
         
         myLapse=np.select(condlist, choicelist)
+        
         # Le premier mois il n'y a pas de payement car la prime est payé en début de mois et les date de calcul sont en fin de mois
         myLapse[:,0,:] = 0
         
@@ -602,19 +606,15 @@ class Hypo:
 ##############################################################################################################################
 #############ICI pour faire des tests sur la class
 ##############################################################################################################################
-
 def testerHypo():
     return 0
 
 
-
-
-
 #myRun=[1,5]
-#myRun=[0,1,2,3,4,5]
+myRun=[0,1,2,3,4,5]
 
 
-#myHypo=Hypo(Run=myRun)
+myHypo=Hypo(Run=myRun)
 
 #myHypo.mod([8,9])
 #myHypo.ids([896002])
