@@ -194,7 +194,6 @@ class MyFU(Portfolio):
         
         bel=self.zero()
         
-#        bel[:,-1,:]=5042.1918454086
         
         for t in range(1,self.shape[1]+1):
             
