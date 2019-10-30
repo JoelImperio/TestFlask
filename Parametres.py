@@ -602,9 +602,8 @@ class Hypo:
         return myPayement
     
   
-
 ##############################################################################################################################
-#############ICI pour faire des tests sur la class
+###################################DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES#############################################
 ##############################################################################################################################
 def testerHypo():
     return 0
@@ -621,7 +620,7 @@ myHypo=Hypo(Run=myRun)
 #myHypo.groupe(['MI3.5'])
 
 
-###Les fonctions de la class
+###Les méthodes de la class
 
 #za=myHypo.tout
 #zb=myHypo.p
@@ -653,5 +652,4 @@ print("Class Hypo--- %s sec" %'%.2f'%  (time.time() - start_time))
 #data=m
 #a=pd.DataFrame(data[:,:,1])
 
-#sp=porN.loc[porN['PMBPOL'].isin([896002])]
 

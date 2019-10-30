@@ -10,6 +10,7 @@ start_time = time.time()
 ##############################################################################################################################
 
 class MyFU(Portfolio):
+    allRuns=[0,1,2,3,4,5]
     mods=[8,9]
     complPremium=60
     premiumLoading=0.2
@@ -18,8 +19,8 @@ class MyFU(Portfolio):
 #    lapseTiming=0.5
     lapseTiming=1
     
-    def __init__(self):
-        super().__init__()
+    def __init__(self,run=allRuns):
+        super().__init__(runs=run)
         self.p=self.mod(self.mods)
 
 #Permet de relancer l'update() en intégrant des methodes de la sous-classe
@@ -212,8 +213,8 @@ class MyFU(Portfolio):
 def testerFU(self):
     return self
 
-
-pol=MyFU()
+myRuns=[0,1,2,3,4,5]
+pol=MyFU(run=myRuns)
 
 
 #pol.ids([2142501])
@@ -245,16 +246,17 @@ pol=MyFU()
 #j=pol.totalPremium()
 #s=pol.totalCommissions()
 #x=pol.totalExpense()
-y=pol.BEL()
+#y=pol.BEL()
+bel=np.sum(pol.BEL(), axis=0)
 
 #Analyse un cas
 
-monCas=y
-
-zz=np.sum(monCas, axis=0)
-zzz=np.sum(zz[:,0])
-z=pd.DataFrame(monCas[:,:,0])
-z.to_csv(r'check.csv')
+#monCas=y
+#
+#zz=np.sum(monCas, axis=0)
+#zzz=np.sum(zz[:,0])
+#z=pd.DataFrame(monCas[:,:,0])
+#z.to_csv(r'check.csv')
 
 
 
