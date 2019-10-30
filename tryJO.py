@@ -11,8 +11,7 @@ start_time = time.time()
 
 
 
-a = 4444
-
+a = 46666
 
 
 print("MyClasse--- %s sec" %'%.2f'%  (time.time() - start_time))
