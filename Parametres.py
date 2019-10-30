@@ -26,8 +26,11 @@ def portfolioExtractionToCSV():
 #Attention enlever à la copie du test lorsque le développement sera fini
     return p.to_csv(r'Portefeuille\Portfolio.csv'), p.to_csv(r'Tests\Portfolio_Test.csv')
 
-##############Extraction du portefeuille de polices##############################
-    
+
+##############################################################################################################################
+#Execution de l'extraction du portefeuille de polices requête SQL en CSV
+##############################################################################################################################    
+
 #portfolioExtractionToCSV()
 
 
@@ -177,14 +180,14 @@ def portfolioPreProcessing(p):
 
 
 
-##############################################################################################################################
+
 ##############################################################################################################################
 #CHARGEMENT DES FICHIERS INPUTS
 #- Hypothèses N et N-1
 #- Portefeuille N et N-1
+##############################################################################################################################
 def chargementINPUTS(PortefeuilleEtHypothèses):
     return self,PortefeuilleEtHypothèses
-##############################################################################################################################
 
 hypN=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypothèses")
 hypN_1=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypothèses")
@@ -197,10 +200,8 @@ porN_1=portfolioPreProcessing(porN_1)
    
 
 ##############################################################################################################################
-##############################################################################################################################
 #Création de la class Hypothèse
 ##############################################################################################################################
-
 
 class Hypo:
     
@@ -300,7 +301,7 @@ class Hypo:
         model.columns=model.columns.year
         return model.transpose()
     
-# Retourne les frais de gestion par police
+# Retourne les frais de gestion par police (coût par police)
     def fraisGestion(self):
                 
         adminCost=self.templateAllrun()
@@ -313,7 +314,7 @@ class Hypo:
         
         return adminCost/12
     
-    
+# Retourne les frais de gestion des placements qui s'applique aux PM    
     def fraisGestionPlacement(self):
         
         investCost=self.templateAllrun()
@@ -325,7 +326,8 @@ class Hypo:
         investCost=investCost[:,:,self.runs]
         
         return investCost/1200
-    
+
+#Retourne une template qui s'applique pour tous les taux de sinistralité   
     def templateSinistrality(self,a):
         
         bestEstimate=self.h.iloc[a,3]
@@ -342,22 +344,35 @@ class Hypo:
         
         return sin
 
+#Retourne les taux de sinistralité IPT (incapacité permanente et total)
     def ipt(self):
         return self.templateSinistrality(14)
+
+#Retourne les taux de sinistralité du décès accidentel
     def dcAccident(self):
         return self.templateSinistrality(15)
+
+#Retourne les taux de sinistralité de l'exonération du paiement des primes
     def exo(self):
         return self.templateSinistrality(16)
+    
+#Retourne les taux de sinistralité de l' ITT (incapacité temporaire total)
     def itt(self):
         return self.templateSinistrality(17)
+
+#Retourne les taux de sinistralité de l'hospitalisation
     def hospi(self):
         return self.templateSinistrality(18)
+
+#Retourne les taux de mortalité d'expérience
     def dc(self):
         return self.templateSinistrality(19)
+    
+#Retourne les taux de sinistralité des frais de visite
     def fraisVisite(self):
         return self.templateSinistrality(20)
     
-# Cette fonction retourne un vecteur avec les taux d'intérêt mensuel 
+#Retourne les taux d'intérêt mensualisé pour l'actualisation financière
     def rate(self):
       
         rates=self.templateAllrun()       
@@ -387,7 +402,7 @@ class Hypo:
         
         return rates
 
-# Taux de pd annuel pour chaque mois de projection   
+#Retourne les taux d'intérêt mensualisé pour la participation aux excédant
     def pbRate(self):
         
         fixratePB=self.h.iloc[45,2]/100
