@@ -79,7 +79,6 @@ class Portfolio(Hypo):
         
         return qx+qy-qx*qy
         
-       
     
 ##############################################################################################################################
 ###################################DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES#############################################
@@ -87,7 +86,6 @@ class Portfolio(Hypo):
 def testerPortfolio():
     return 0
   
-
 #myPolicies=Portfolio(runs=[4,5])
 #myPolicies=Portfolio()
 

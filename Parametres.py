@@ -186,6 +186,8 @@ def portfolioPreProcessing(p):
 #CHARGEMENT DES FICHIERS INPUTS
 #- Hypothèses N et N-1
 #- Portefeuille N et N-1
+#- les runs possible
+#- La table de mortalité d'expérience
 ##############################################################################################################################
 def chargementINPUTS(PortefeuilleEtHypothèses):
     return self,PortefeuilleEtHypothèses
