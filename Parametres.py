@@ -611,12 +611,8 @@ class Hypo:
 def testerHypo():
     return 0
 
-
-#myRun=[1,5]
-myRun=[0,1,2,3,4,5]
-
-
-myHypo=Hypo(Run=myRun)
+#myHypo=Hypo(Run=[0,5])
+#myHypo=Hypo()
 
 #myHypo.mod([8,9])
 #myHypo.ids([896002])
