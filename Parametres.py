@@ -197,6 +197,8 @@ porN=portfolioPreProcessing(porN)
 
 porN_1=pd.read_csv(path+'/Portefeuille\Portfolio.csv')
 porN_1=portfolioPreProcessing(porN_1)
+
+allRuns=[0,1,2,3,4,5]
    
 
 ##############################################################################################################################
@@ -204,8 +206,6 @@ porN_1=portfolioPreProcessing(porN_1)
 ##############################################################################################################################
 
 class Hypo:
-    
-    allRuns=[0,1,2,3,4,5]
     
     __slot__=('un','vide','zero','run','shape')
 
@@ -281,14 +281,14 @@ class Hypo:
 # Retourne une template formaté pour tous les runs avec des 0  
     def templateAllrun(self):             
         myShape=self.shape
-        myShape[2]=int(len(self.allRuns))
+        myShape[2]=int(len(allRuns))
         result=np.zeros(myShape)
         return np.copy(result)
     
 # Retourne une template formaté pour tous les runs de 1   
     def oneAllrun(self):             
         myShape=self.shape
-        myShape[2]=int(len(self.allRuns))
+        myShape[2]=int(len(allRuns))
         result=np.ones(myShape)
         return np.copy(result)
 

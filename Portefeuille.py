@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from Parametres import Hypo
+from Parametres import Hypo, allRuns
 from MyPyliferisk import MortalityTable
 from MyPyliferisk.mortalitytables import EKM05i
 import time
@@ -11,15 +11,14 @@ start_time = time.time()
 ##############################################################################################################################
 ##############################################################################################################################
 
+
 ##############################################################################################################################
 #Création de la class Portefeuille
 ##############################################################################################################################
- 
 
 class Portfolio(Hypo):
 
     ageNan=999
-    allRuns=[0,1,2,3,4,5]
     tableExperience=EKM05i
     
     def __init__(self,runs=allRuns):  

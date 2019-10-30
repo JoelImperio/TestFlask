@@ -1,4 +1,5 @@
 from Portefeuille import Portfolio
+from Parametres import allRuns
 import numpy as np
 import pandas as pd
 import time
@@ -10,7 +11,6 @@ start_time = time.time()
 ##############################################################################################################################
 
 class MyFU(Portfolio):
-    allRuns=[0,1,2,3,4,5]
     mods=[8,9]
     complPremium=60
     premiumLoading=0.2
@@ -214,7 +214,7 @@ def testerFU(self):
     return self
 
 myRuns=[0,1,2,3,4,5]
-pol=MyFU(run=myRuns)
+pol=MyFU()
 
 
 #pol.ids([2142501])
