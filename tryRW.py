@@ -67,6 +67,7 @@ class FU(Portfolio):
             nbrPolIf[:,i,:]=nbrPolIf[:,i-1,:]-nbrMaturities[:,i,:]-nbrDeath[:,i,:]-nbrSurrender[:,i,:]
 
 #Définition des variables récursives
+        
         #Nombre de polices actives                                 
         self.nbrPolIf=nbrPolIf
         #Nombre de police actives en déduisant les échéances du mois
@@ -104,19 +105,7 @@ class FU(Portfolio):
         claim=claimRate*premiumCompl*self.isPremPay()
         
         return claim
-           
-#Retourne le coût par police
-    def unitExpense(self):
-        
-        inflation=np.roll(self.inflation(),[1],axis=1)
-        inflation[:,0,:]=0
-        
-        coutParPolice=self.fraisGestion()
-        
-        cost=coutParPolice*inflation*self.nbrPolIfSM
-        
-        return cost
-    
+            
 #Retourne la durée écoulée depuis le dernier paiement de prime   
     def timeBeforeNextPay(self):
 
@@ -181,6 +170,18 @@ class FU(Portfolio):
         
         return reserve*tauxFraisGestion
 
+#Retourne le coût par police
+    def unitExpense(self):
+        
+        inflation=np.roll(self.inflation(),[1],axis=1)
+        inflation[:,0,:]=0
+        
+        coutParPolice=self.fraisGestion()
+        
+        cost=coutParPolice*inflation*self.nbrPolIfSM
+        
+        return cost
+   
 ##############################################################################################################################
 ###########################################DEBUT DES COMPOSANTES DU BEL#######################################################
 ##############################################################################################################################
@@ -235,11 +236,9 @@ class FU(Portfolio):
         maxBel=max(bel)
         
         pgg= max(0,maxBel-pm)
-        
-        
+              
         return pgg
   
-     
 
 ##############################################################################################################################
 ###################################DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES#############################################
@@ -247,45 +246,44 @@ class FU(Portfolio):
 def testerFU(self):
     return self
 
-
 pol=FU()
 #pol=MyFU(run=[4,5])
-
 
 #pol.ids([2142501])
 #pol.mod([9])
 #pol.modHead([9],2)
 
+#a=pol.nbrPolIf
+#b=pol.nbrPolIfSM
+#c=pol.nbrMaturities
+#d=pol.nbrDeath
+#e=pol.nbrSurrender
+#f=pol.premiumCompl()
+#g=pol.purePremium()
+#h=pol.deathClaim()
+#i=pol.fraisVisiteClaim()
+#j=pol.timeBeforeNextPay()
+#k=pol.risqueEnCour()
+#l=pol.adjustedReserve()
+#m=pol.reserveExpense()
+#n=pol.unitExpense()
+#o=pol.totalPremium()
+#q=pol.totalClaim()
+#r=pol.totalCommissions()
+#s=pol.totalExpense()
+#t=pol.BEL()
 
-#b=pol.isActive()
-#c=pol.durationIf()
-#d=pol.loop()
-#e=pol.nbrPolIf
-#f=pol.nbrPolIfSM
-#g=pol.nbrMaturities
-#h=pol.nbrDeath
-#i=pol.nbrSurrender
-#k=pol.nbrDeath
-#l=pol.nbrMaturities
-#m=pol.nbrPolIf
-#n=pol.nbrPolIfSM
-#o=pol.nbrSurrender
-#p=pol.deathClaim()
-#q=pol.fraisVisiteClaim()
-#t=pol.unitExpense()
-#u=pol.risqueEnCour()
-#v=pol.adjustedReserve()
-#w=pol.reserveExpense()
-
-#r=pol.totalClaim()
-#j=pol.totalPremium()
-#s=pol.totalCommissions()
-#x=pol.totalExpense()
-#y=pol.BEL()
 #bel=np.sum(pol.BEL(), axis=0)
-pgg=pol.PGG()
+#pgg=pol.PGG()
 
-#Analyse un cas
+
+print("Class FU--- %s sec" %'%.2f'%  (time.time() - start_time))
+
+##############################################################################################################################
+#TESTER DES CAS
+##############################################################################################################################
+def testerCas(self):
+    return self
 
 #monCas=y
 #
@@ -294,11 +292,13 @@ pgg=pol.PGG()
 #z=pd.DataFrame(monCas[:,:,0])
 #z.to_csv(r'check.csv')
 
-
-
-
-print("Class FU--- %s sec" %'%.2f'%  (time.time() - start_time))
+#Visualiser une dimension d'un numpy qui n'apparait pas
 
 #data=pol.lapse()
 #a=pd.DataFrame(data[:,:,4])
+
+
+
+
+
 
