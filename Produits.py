@@ -23,8 +23,10 @@ class FU(Portfolio):
 #    lapseTiming=0.5
     lapseTiming=1
     
-    def __init__(self,run=allRuns):
-        super().__init__(runs=run)
+    def __init__(self,run=allRuns,\
+                 PortfolioNew=True, SinistralityNew=True,LapseNew=True,CostNew=True,RateNew=True ):
+        super().__init__(runs=run,\
+             myPortfolioNew=PortfolioNew, mySinistralityNew=SinistralityNew,myLapseNew=LapseNew,myCostNew=CostNew,myRateNew=RateNew)
         self.p=self.mod(self.mods)
 
 #Permet de relancer l'update() en intégrant des methodes de la sous-classe
@@ -236,8 +238,12 @@ class FU(Portfolio):
         maxBel=max(bel)
         
         pgg= max(0,maxBel-pm)
-              
-        return pgg
+        
+        dfPGG=pd.DataFrame(index=['FU'],columns=['PGG'])
+        
+        dfPGG['PGG']=pgg
+                      
+        return dfPGG
   
 
 ##############################################################################################################################
@@ -246,8 +252,8 @@ class FU(Portfolio):
 def testerFU(self):
     return self
 
-pol=FU()
-#pol=MyFU(run=[4,5])
+#pol=FU()
+#pol=FU(run=[4,5])
 
 #pol.ids([2142501])
 #pol.mod([9])
@@ -274,7 +280,8 @@ pol=FU()
 #t=pol.BEL()
 
 #bel=np.sum(pol.BEL(), axis=0)
-pgg=pol.PGG()
+#pgg=pol.PGG()
+
 
 
 print("Class FU--- %s sec" %'%.2f'%  (time.time() - start_time))

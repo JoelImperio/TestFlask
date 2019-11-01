@@ -215,28 +215,30 @@ tableExperience=EKM05i
 
 class Hypo:
     
-    __slot__=('un','vide','zero','run','shape')
+#    __slot__=('un','vide','zero','run','shape')
 
-    def __init__(self,hy=hypN,hy1=hypN_1,po=porN, po1=porN_1,\
-                 Run=allRuns, hypoNew=True, portfolioNew=True):
+    def __init__(self,hy=hypN,hy1=hypN_1,po=porN, po1=porN_1,Run=allRuns, \
+                 PortfolioNew=True, SinistralityNew=True,LapseNew=True,CostNew=True,RateNew=True ):
         
-        if portfolioNew:
+        if PortfolioNew:
             self.tout=po 
             self.p=po
         else:
             self.tout=po1
             self.p=po1
-           
+        
+        self.h0=hy
+        self.h1=hy1
+        
         self.runs=Run
         self.shape=list(self.one().shape)
-##############################################################################################################################   
-        if hypoNew:
-            self.h=hy
-        else:
-            self.h=hy1
+        self.SinistralityNew=SinistralityNew
+        self.LapseNew=LapseNew
+        self.CostNew=CostNew
+        self.RateNew=RateNew
 
-        self.securityMarginMarge=1+self.h.iloc[53,2]
-        self.securityMarginBio=1+self.h.iloc[54,2]
+#        self.securityMarginMarge=1+self.h.iloc[53,2]
+#        self.securityMarginBio=1+self.h.iloc[54,2]
 
  
 ##############################################################################################################################
@@ -309,18 +311,29 @@ class Hypo:
         model.columns=model.columns.year
         return model.transpose()
 
+#Retourne le set d'hypothèse en fonction d'un boolean Si isNew=True alors hypothèse N sinon N-1   
+    def hypoSet(self,isNew):      
+        if isNew:
+            h=self.h0
+        else:
+            h=self.h1
+        return h
+        
+
 ##############################################################################################################################
 ###################################DEBUT DES METHODES DES HYPOTHESES##########################################################
 ##############################################################################################################################
    
 # Retourne les frais de gestion par police (coût par police)
     def fraisGestion(self):
+        
+        h=self.hypoSet(self.CostNew)
                 
         adminCost=self.templateAllrun()
         
-        adminCost[:,:,:4]=self.h.iloc[49,3]
-        adminCost[:,:,4]=self.h.iloc[49,4]
-        adminCost[:,:,5]=self.h.iloc[49,5]
+        adminCost[:,:,:4]=h.iloc[49,3]
+        adminCost[:,:,4]=h.iloc[49,4]
+        adminCost[:,:,5]=h.iloc[49,5]
         #Dimensionner pour les runs en appel    
         adminCost=adminCost[:,:,self.runs] 
         
@@ -329,11 +342,13 @@ class Hypo:
 # Retourne les frais de gestion des placements qui s'applique aux PM    
     def fraisGestionPlacement(self):
         
+        h=self.hypoSet(self.CostNew)
+        
         investCost=self.templateAllrun()
         
-        investCost[:,:,:4]=self.h.iloc[50,3]
-        investCost[:,:,4]=self.h.iloc[50,4]
-        investCost[:,:,5]=self.h.iloc[50,5]
+        investCost[:,:,:4]=h.iloc[50,3]
+        investCost[:,:,4]=h.iloc[50,4]
+        investCost[:,:,5]=h.iloc[50,5]
         #Dimensionner pour les runs en appel    
         investCost=investCost[:,:,self.runs]
         
@@ -341,10 +356,12 @@ class Hypo:
 
 #Retourne une template qui s'applique pour tous les taux de sinistralité   
     def templateSinistrality(self,a):
+
+        h=self.hypoSet(self.SinistralityNew) 
         
-        bestEstimate=self.h.iloc[a,3]
-        bePlusMarge=self.h.iloc[a,4]
-        bioEtFrais=self.h.iloc[a,5]
+        bestEstimate=h.iloc[a,3]
+        bePlusMarge=h.iloc[a,4]
+        bioEtFrais=h.iloc[a,5]
 
         sin=self.templateAllrun()
         
@@ -386,12 +403,14 @@ class Hypo:
     
 #Retourne les taux d'intérêt mensualisé pour l'actualisation financière
     def rate(self):
-      
+
+        h=self.hypoSet(self.RateNew)
+        
         rates=self.templateAllrun()       
         model=self.templateAllYear()
         model=model.iloc[:self.shape[1]]
         
-        allrates=self.h.iloc[2:6,1:39].transpose()
+        allrates=h.iloc[2:6,1:39].transpose()
         
         allrates=pd.merge(model,allrates, left_on=0,right_on=2,how='left')
         allrates=allrates.fillna(0)
@@ -416,8 +435,10 @@ class Hypo:
 
 #Retourne les taux d'intérêt mensualisé pour la participation aux excédant
     def pbRate(self):
+
+        h=self.hypoSet(self.RateNew)
         
-        fixratePB=self.h.iloc[45,2]/100
+        fixratePB=h.iloc[45,2]/100
         
         rate=self.rate()
         
@@ -428,12 +449,13 @@ class Hypo:
 #Retourne les taux de rachat selon le fractionnement. Les taux apparaissent uniquement le mois avant un paiement de prime
     def lapse(self):
 
-
-        lapseSensiMoins=self.h.iloc[56,2]
-        lapseSensiPlus=self.h.iloc[57,2]       
+        h=self.hypoSet(self.LapseNew)
+        
+        lapseSensiMoins=h.iloc[56,2]
+        lapseSensiPlus=h.iloc[57,2]       
         cl=self.p['ClassPGGinit']
         
-        lapseRates=self.h.iloc[23:32,1:12]
+        lapseRates=h.iloc[23:32,1:12]
         lapseRates.columns = lapseRates.iloc[0]
         lapseRates=lapseRates.drop(lapseRates.index[0])
         lapseRates=lapseRates.set_index('Year').transpose()
@@ -474,12 +496,14 @@ class Hypo:
 #Retourne les taux de réduction annuel
     def reduction(self):
 
+        h=self.hypoSet(self.LapseNew)  
+        
         # A vérifier si même sensibilité que rachat 
-        lapseSensiMoins=self.h.iloc[56,2]
-        lapseSensiPlus=self.h.iloc[57,2] 
+        lapseSensiMoins=h.iloc[56,2]
+        lapseSensiPlus=h.iloc[57,2] 
         
         cl=self.p['ClassPGGinit']
-        reductionRates=self.h.iloc[34:43,1:12]
+        reductionRates=h.iloc[34:43,1:12]
         reductionRates.columns = reductionRates.iloc[0]
         reductionRates=reductionRates.drop(reductionRates.index[0])
         reductionRates=reductionRates.set_index('Year').transpose()
@@ -512,10 +536,11 @@ class Hypo:
 
 #Retourne les taux de commissions incluant les commissions de gestion     
     def commissions(self):
-        
+
+        h=self.hypoSet(self.CostNew)
         cl=self.p['PMBMOD']
         
-        commissionsRates=self.h.iloc[61:85,1:7]
+        commissionsRates=h.iloc[61:85,1:7]
         commissionsRates.columns = commissionsRates.iloc[0]
         commissionsRates=commissionsRates.drop(commissionsRates.index[0])
         commissionsRates=commissionsRates.set_index('Modalité').transpose()
@@ -539,7 +564,9 @@ class Hypo:
 #Retourne le taux mensuel d'inflation dimensionné pour les runs et polices
     def inflation(self):
         
-        inflationRate=self.h.iloc[55,2]
+        h=self.hypoSet(self.CostNew)
+        
+        inflationRate=h.iloc[55,2]
         
         inflationRate=inflationRate+self.one()
         
@@ -655,5 +682,6 @@ print("Class Hypo--- %s sec" %'%.2f'%  (time.time() - start_time))
 ###Visualiser un vecteur np en réduisant une dimension
 #data=m
 #a=pd.DataFrame(data[:,:,1])
+
 
 

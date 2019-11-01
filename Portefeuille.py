@@ -16,8 +16,10 @@ class Portfolio(Hypo):
 
     ageNan=999
  
-    def __init__(self,runs=allRuns):  
-        super().__init__(Run=runs)
+    def __init__(self,runs=allRuns, \
+                 myPortfolioNew=True, mySinistralityNew=True,myLapseNew=True,myCostNew=True,myRateNew=True):  
+        super().__init__(Run=runs,\
+             PortfolioNew=myPortfolioNew, SinistralityNew=mySinistralityNew,LapseNew=myLapseNew,CostNew=myCostNew,RateNew=myRateNew)
 
 ##############################################################################################################################
 #Méthodes Actuarielles
