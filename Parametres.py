@@ -176,6 +176,9 @@ def portfolioPreProcessing(p):
     
     #Création des collones pour l'agragation de la PGG
     allocationDesClassPGG(p)
+    
+    #Création des PM servant de base pour le calcul de la PGG
+    p['PMbasePGG']=p['PMBPRVMAT']+p['PMBPBEN']+p['PMBREC']+p['PMBRECCPL']
 
     return p
 

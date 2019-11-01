@@ -10,7 +10,11 @@ start_time = time.time()
 ##############################################################################################################################
 ##############################################################################################################################
 
-class MyFU(Portfolio):
+
+##############################################################################################################################
+#Création de la class Funérailles
+##############################################################################################################################
+class FU(Portfolio):
     mods=[8,9]
     complPremium=60
     premiumLoading=0.2
@@ -28,7 +32,11 @@ class MyFU(Portfolio):
         super().update(subPortfolio)
         self.loop()
 
-#Cette Loop permets de passé sur l'entier des périodes de projection et renvoie l'ensemble des variables récusrives
+##############################################################################################################################
+###########################################DEBUT DES VARIABLES PRODUITS#######################################################
+##############################################################################################################################
+
+#Cette Loop permets de passer sur l'entier des périodes de projection et renvoie l'ensemble des variables récusrives
     def loop(self):
         
         nbrPolIf=self.one()
@@ -57,34 +65,36 @@ class MyFU(Portfolio):
             nbrSurrender[:,i,:]=nbrPolIfSM[:,i,:]*lapse[:,i,:]*(1-(qxy[:,i,:]*lapseTiming))
 
             nbrPolIf[:,i,:]=nbrPolIf[:,i-1,:]-nbrMaturities[:,i,:]-nbrDeath[:,i,:]-nbrSurrender[:,i,:]
-                                 
+
+#Définition des variables récursives
+        #Nombre de polices actives                                 
         self.nbrPolIf=nbrPolIf
+        #Nombre de police actives en déduisant les échéances du mois
         self.nbrPolIfSM=nbrPolIfSM
+        #Nombre d'échéances de contrat
         self.nbrMaturities=nbrMaturities
+        #Nombre de décès
         self.nbrDeath=nbrDeath
+        #Nombre d'annulation de contrat
         self.nbrSurrender=nbrSurrender
             
         return self
-
- 
-    def totalPremium(self):
-        premInc=self.p['POLPRTOT'][:,np.newaxis,np.newaxis]/self.frac()
-        
-        prem=premInc*self.nbrPolIfSM*self.isPremPay()
-        
-        return prem
     
+#Retourne les primes des garanties complémentaires    
     def premiumCompl(self):
         return (self.complPremium/self.frac())*self.nbrPolIfSM
-    
+
+#Retourne les primes pures    
     def purePremium(self):
         return self.p['POLPRDECES'].to_numpy()[:,np.newaxis,np.newaxis]/self.frac()
     
+#Retourne les sinistres décès 
     def deathClaim(self):
         nbDeath=self.nbrDeath
         capital=self.p['PMBCAPIT'].to_numpy()[:,np.newaxis,np.newaxis]
         return nbDeath*capital
     
+#Retourne les sinistre complémentaire frais de visite    
     def fraisVisiteClaim(self):
         
         claimRate=self.fraisVisite()
@@ -95,15 +105,7 @@ class MyFU(Portfolio):
         
         return claim
            
-    
-    def totalClaim(self):
-        
-        return self.deathClaim()+self.fraisVisiteClaim()
-    
-    def totalCommissions(self):
-        
-        return self.totalPremium()*self.commissions()
-
+#Retourne le coût par police
     def unitExpense(self):
         
         inflation=np.roll(self.inflation(),[1],axis=1)
@@ -115,7 +117,7 @@ class MyFU(Portfolio):
         
         return cost
     
-    # Retourne la durée écoulée depuis le dernier paiement de prime   
+#Retourne la durée écoulée depuis le dernier paiement de prime   
     def timeBeforeNextPay(self):
 
         frac=self.frac()
@@ -140,11 +142,10 @@ class MyFU(Portfolio):
         # Si la chaine est en cours on la continu
         mask=(elapseTime[:,-2,:]!=0)
         elapseTime[:,-1,:][mask]=elapseTime[:,-1,:][mask]-(frac[:,-1,:][mask]/12)
-        
-        
+
         return elapseTime
 
-
+#Retourne les risque en cours, soit les primes émises non aquises
     def risqueEnCour(self):
         
         elapseTime=self.timeBeforeNextPay()
@@ -155,6 +156,7 @@ class MyFU(Portfolio):
                       
         return reserve
 
+#Retourne la réserve mathémathique ajustée
     def adjustedReserve(self):
         
         prPurePP=((self.p['POLPRTOT']- self.complPremium)*(1-self.premiumLoading)).to_numpy()[:,np.newaxis,np.newaxis]
@@ -169,7 +171,8 @@ class MyFU(Portfolio):
         reserve=np.maximum(pPureEncPP-riderCost+risqueEnCour,0)
         
         return reserve
-    
+
+#Retourne les coûts de gestion des placements appliqué sur les réserves   
     def reserveExpense(self):
         
         reserve=self.adjustedReserve()
@@ -178,30 +181,65 @@ class MyFU(Portfolio):
         
         return reserve*tauxFraisGestion
 
+##############################################################################################################################
+###########################################DEBUT DES COMPOSANTES DU BEL#######################################################
+##############################################################################################################################
+
+#Retourne les primes totales perçues
+    def totalPremium(self):
+        premInc=self.p['POLPRTOT'][:,np.newaxis,np.newaxis]/self.frac()
         
+        prem=premInc*self.nbrPolIfSM*self.isPremPay()
+        
+        return prem
+
+#Retourne le total des sinistres payés  
+    def totalClaim(self):  
+        return self.deathClaim()+self.fraisVisiteClaim()
+
+#Retourne le total des commissions payées
+    def totalCommissions(self):        
+        return self.totalPremium()*self.commissions()
+
+#Retourne les dépense totales        
     def totalExpense(self):
-        
         return self.unitExpense()+self.reserveExpense()
-    
+
+#Retourne la meilleure estimation des engagements    
     def BEL(self):
         
-        interestRates=1+self.rate()
-        
+        interestRates=1+self.rate()       
         premium=self.totalPremium()
         claim=self.totalClaim()
         expense=self.totalExpense()
         commission=self.totalCommissions()
         
         bel=self.zero()
-        
-        
+              
         for t in range(1,self.shape[1]+1):
             
             bel[:,-t,:]=(bel[:,-t+1,:]+claim[:,-t+1,:]+expense[:,-t+1,:]+commission[:,-t+1,:]-premium[:,-t+1,:])/interestRates[:,-t+1,:]
             
         return bel
-      
+
+##############################################################################################################################
+###########################################DEBUT DU CALCUL DE LA PGG#######################################################
+##############################################################################################################################     
+
+    def PGG(self):
         
+        pm=np.sum(self.p['PMbasePGG'].to_numpy())
+        
+        bel=np.sum(self.BEL(), axis=0)[0,:]
+        
+        maxBel=max(bel)
+        
+        pgg= max(0,maxBel-pm)
+        
+        
+        return pgg
+  
+     
 
 ##############################################################################################################################
 ###################################DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES#############################################
@@ -210,7 +248,7 @@ def testerFU(self):
     return self
 
 
-pol=MyFU()
+pol=FU()
 #pol=MyFU(run=[4,5])
 
 
@@ -244,7 +282,8 @@ pol=MyFU()
 #s=pol.totalCommissions()
 #x=pol.totalExpense()
 #y=pol.BEL()
-bel=np.sum(pol.BEL(), axis=0)
+#bel=np.sum(pol.BEL(), axis=0)
+pgg=pol.PGG()
 
 #Analyse un cas
 
