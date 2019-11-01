@@ -239,7 +239,9 @@ class FU(Portfolio):
         
         pgg= max(0,maxBel-pm)
         
-        dfPGG=pd.DataFrame(index=['FU'],columns=['PGG'])
+        indexer=self.p['ClassPGG'].unique()
+        
+        dfPGG=pd.DataFrame(index=indexer,columns=['PGG'])
         
         dfPGG['PGG']=pgg
                       

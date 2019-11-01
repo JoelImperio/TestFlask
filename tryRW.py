@@ -1,6 +1,7 @@
 from Portefeuille import Portfolio
 from Parametres import allRuns
 from Produits import FU
+from RunPGG import RUNPGG
 import numpy as np
 import pandas as pd
 import time
@@ -10,48 +11,19 @@ start_time = time.time()
 
 ##############################################################################################################################
 ##############################################################################################################################
-class RUNPGG():
-
-    def __init__(self):
-        self
-
-    def pggParSousPortefeuille(self,runNumber=allRuns):
-        
-        
-        fu=FU(run=runNumber).PGG()
-        mi=FU(run=runNumber).PGG()
-        
-        pggTotal=pd.DataFrame(fu)
-        pggTotal=pggTotal.append(mi)
-        
-        
-        return pggTotal
-    
-    def pggTotal(self):
-        
-        spPGG=self.pggParSousPortefeuille()
-        
-        spPGG=sum(spPGG['PGG'])
-        
-        return spPGG
-        
-        
- 
-run=RUNPGG()
-
-a=run.pggParSousPortefeuille()
-b=run.pggTotal()
-
-b=a.copy()
-a['Etape']='Sinistralité'
-b['Etape']='Lapse'
-
-c=a.append(b)
-
-d=c.groupby(['Etape']).sum()
 
 
-print("Class RUN--- %s sec" %'%.2f'%  (time.time() - start_time))
+
+
+
+
+
+
+
+
+
+
+print("Class X--- %s sec" %'%.2f'%  (time.time() - start_time))
 ##############################################################################################################################
 #TESTER DES CAS
 ##############################################################################################################################
