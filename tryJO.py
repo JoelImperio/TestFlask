@@ -11,6 +11,7 @@ start_time = time.time()
 
 
 
+a = mylalalalal
 
 
 food = 'bread'

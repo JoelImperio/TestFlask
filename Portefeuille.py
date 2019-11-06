@@ -1,31 +1,31 @@
 import pandas as pd
 import numpy as np
-from Parametres import Hypo
+from Parametres import Hypo, allRuns,tableExperience
 from MyPyliferisk import MortalityTable
-from MyPyliferisk.mortalitytables import EKM05i
 import time
 import os, os.path
 path = os.path.dirname(os.path.abspath(__file__))
 start_time = time.time()
 
+
 ##############################################################################################################################
 #Création de la class Portefeuille
 ##############################################################################################################################
- 
 
 class Portfolio(Hypo):
 
     ageNan=999
-    allRuns=[0,1,2,3,4,5]
-    tableExperience=EKM05i
-    
-    def __init__(self,runs=allRuns):  
-        super().__init__(Run=runs)
+ 
+    def __init__(self,runs=allRuns, \
+                 myPortfolioNew=True, mySinistralityNew=True,myLapseNew=True,myCostNew=True,myRateNew=True):  
+        super().__init__(Run=runs,\
+             PortfolioNew=myPortfolioNew, SinistralityNew=mySinistralityNew,LapseNew=myLapseNew,CostNew=myCostNew,RateNew=myRateNew)
 
-
-#####DEBUT DES VARIABLES DE CALCUL DES PROJECTIONS#################################################
+##############################################################################################################################
+#Méthodes Actuarielles
+##############################################################################################################################
     
-#Retourne le vecteur des ages pour l'assuré 1 ou 2 (defaut assuré 1)   
+#Retourne les ages pour l'assuré 1 ou 2 (defaut assuré 1)   
     def age(self,ass=1):
 
         ageInitial=self.p['Age{}AtEntry'.format(ass)].to_numpy()        
@@ -40,8 +40,7 @@ class Portfolio(Hypo):
 
         return np.copy(age)
 
-#Retourne un vecteur des qx dimensionné correctement pour une table de mortalité, 
-# une expérience (100 = 100% de la table) et pour l'assuré 1 ou 2  
+#Retourne les qx dimensionné pour une table de mortalité,une expérience (100 = 100% de la table) et pour l'assuré 1 ou 2
     def qx(self,table=tableExperience, exp=100, ass=1):
          
         mt=MortalityTable(nt=table, perc=exp)
@@ -56,6 +55,7 @@ class Portfolio(Hypo):
         #Lorsque l'âge est à 999 ans le qx est forcé à 0
         return np.where(self.age(ass) == self.ageNan,0,myQx)
     
+#Retourne la probabilité de décès d'expérience
     def qxExp(self,assExp=1):
         
         myQx=self.qx(ass=assExp)*self.dc()
@@ -63,7 +63,7 @@ class Portfolio(Hypo):
         return np.copy(myQx)
     
     
-#Retourn la probabilité de décès mensuelle
+#Retourne la probabilité de décès mensuelle d'expérience pour l'assuré 1 ou 2
     def qxExpMens(self, ass=1):
         
         qx=1-(1-self.qxExp(assExp=ass))**(1/12)
@@ -72,7 +72,7 @@ class Portfolio(Hypo):
         
         return qx
     
-#Retourn la probabilité jointe de décès mensuel
+#Retourn la probabilité jointe de décès mensuelle d'expérience
     def qxyExpMens(self):
         
         qx=self.qxExpMens(ass=1)
@@ -81,27 +81,21 @@ class Portfolio(Hypo):
         
         return qx+qy-qx*qy
         
-       
     
 ##############################################################################################################################
-#############ICI pour faire des tests sur la class
+###################################DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES#############################################
 ##############################################################################################################################
-
 def testerPortfolio():
     return 0
-
-
-    
-#myRun=[1,5]
-#myRun=[0,1,2,3,4,5]
-
-#myPolicies=Portfolio(runs=myRun)
+  
+#myPolicies=Portfolio(runs=[4,5])
+#myPolicies=Portfolio()
 
 #myPolicies.mod([8,9])
 #myPolicies.ids([896002])
 #myPolicies.groupe(['MI3.5'])
 
-#Les fonctions de la class Portfolio()
+#Les méthodes de la class Portfolio()
 
 #za=myPolicies.age(1)
 #zb=myPolicies.qx(table=EKM05i,exp=41.73,ass=2)
