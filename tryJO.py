@@ -13,7 +13,9 @@ start_time = time.time()
 
 
 
-
+food = 'bread'
+vars()[food] = 123
+print (bread)
 
 
 
