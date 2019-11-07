@@ -18,10 +18,7 @@ class FU(Portfolio):
     mods=[8,9]
     complPremium=60
     premiumLoading=0.2
-#Lapse timing = 1 correspond aux lapse en début de mois et décès en fin de mois
-#Nous pensons que l'hypothèse meilleure serait lapse et décès en milieu de mois soit lapseTiming=0.5
-#    lapseTiming=0.5
-    lapseTiming=1
+
     
     def __init__(self,run=allRuns,\
                  PortfolioNew=True, SinistralityNew=True,LapseNew=True,CostNew=True,RateNew=True ):
@@ -32,57 +29,12 @@ class FU(Portfolio):
 #Permet de relancer l'update() en intégrant des methodes de la sous-classe
     def update(self,subPortfolio):
         super().update(subPortfolio)
-        self.loop()
+        self.loopNoSaving()
 
 ##############################################################################################################################
 ###########################################DEBUT DES VARIABLES PRODUITS#######################################################
 ##############################################################################################################################
-
-#Cette Loop permets de passer sur l'entier des périodes de projection et renvoie l'ensemble des variables récusrives
-    def loop(self):
-        
-        nbrPolIf=self.one()
-        nbrDeath=self.zero()
-        nbrSurrender=self.zero()
-        nbrMaturities=self.zero()
-        nbrPolIfSM=self.zero()
-        
-        matRate=self.zero()
-        polTermM=(self.p['residualTermM']+self.p['DurationIfInitial']).to_numpy()[:,np.newaxis,np.newaxis]*self.one()
-        
-        matRate[polTermM + 1==self.durationIf()]=1
-        
-        qxy=self.qxyExpMens()
-        lapse=self.lapse()
-        lapseTiming=1
-             
-        for i in range(1,self.shape[1]):
-            
-            nbrMaturities[:,i,:]=nbrPolIf[:,i-1,:]*matRate[:,i,:]
-            
-            nbrPolIfSM[:,i,:]=nbrPolIf[:,i-1,:]-nbrMaturities[:,i,:]
-            
-            nbrDeath[:,i,:]=nbrPolIfSM[:,i,:]*qxy[:,i,:]*(1-(lapse[:,i,:]*(1-lapseTiming)))
-            
-            nbrSurrender[:,i,:]=nbrPolIfSM[:,i,:]*lapse[:,i,:]*(1-(qxy[:,i,:]*lapseTiming))
-
-            nbrPolIf[:,i,:]=nbrPolIf[:,i-1,:]-nbrMaturities[:,i,:]-nbrDeath[:,i,:]-nbrSurrender[:,i,:]
-
-#Définition des variables récursives
-        
-        #Nombre de polices actives                                 
-        self.nbrPolIf=nbrPolIf
-        #Nombre de police actives en déduisant les échéances du mois
-        self.nbrPolIfSM=nbrPolIfSM
-        #Nombre d'échéances de contrat
-        self.nbrMaturities=nbrMaturities
-        #Nombre de décès
-        self.nbrDeath=nbrDeath
-        #Nombre d'annulation de contrat
-        self.nbrSurrender=nbrSurrender
-            
-        return self
-    
+ 
 #Retourne les primes des garanties complémentaires    
     def premiumCompl(self):
         return (self.complPremium/self.frac())*self.nbrPolIfSM
@@ -254,7 +206,7 @@ class FU(Portfolio):
 def testerFU(self):
     return self
 
-#pol=FU()
+pol=FU()
 #pol=FU(run=[4,5])
 
 #pol.ids([2142501])
@@ -282,7 +234,7 @@ def testerFU(self):
 #t=pol.BEL()
 
 #bel=np.sum(pol.BEL(), axis=0)
-#pgg=pol.PGG()
+pgg=pol.PGG()
 
 
 

@@ -15,6 +15,11 @@ start_time = time.time()
 class Portfolio(Hypo):
 
     ageNan=999
+    
+#Lapse timing = 1 correspond aux lapse en début de mois et décès en fin de mois
+#Nous pensons que l'hypothèse meilleure serait lapse et décès en milieu de mois soit lapseTiming=0.5
+#    lapseTiming=0.5
+    lapseTiming=1
  
     def __init__(self,runs=allRuns, \
                  myPortfolioNew=True, mySinistralityNew=True,myLapseNew=True,myCostNew=True,myRateNew=True):  
@@ -22,7 +27,7 @@ class Portfolio(Hypo):
              PortfolioNew=myPortfolioNew, SinistralityNew=mySinistralityNew,LapseNew=myLapseNew,CostNew=myCostNew,RateNew=myRateNew)
 
 ##############################################################################################################################
-#Méthodes Actuarielles
+###############################################DEBUT DES METHODES ACTUARIELLES################################################
 ##############################################################################################################################
     
 #Retourne les ages pour l'assuré 1 ou 2 (defaut assuré 1)   
@@ -80,7 +85,62 @@ class Portfolio(Hypo):
         qy=self.qxExpMens(ass=2)
         
         return qx+qy-qx*qy
+
+##############################################################################################################################
+###############################################DEBUT DES METHODES DE PROJECTION###############################################
+##############################################################################################################################
         
+#Cette Loop permets de passer sur l'entier des périodes de projection et renvoie l'ensemble des variables récusrives
+    def loopNoSaving(self):
+        
+        nbrPolIf=self.one()
+        nbrDeath=self.zero()
+        nbrSurrender=self.zero()
+        nbrMaturities=self.zero()
+        nbrPolIfSM=self.zero()
+        
+        matRate=self.zero()
+        polTermM=(self.p['residualTermM']+self.p['DurationIfInitial']).to_numpy()[:,np.newaxis,np.newaxis]*self.one()
+        
+        matRate[polTermM + 1==self.durationIf()]=1
+        
+        qxy=self.qxyExpMens()
+        lapse=self.lapse()
+        lapseTiming=1
+             
+        for i in range(1,self.shape[1]):
+            
+            nbrMaturities[:,i,:]=nbrPolIf[:,i-1,:]*matRate[:,i,:]
+            
+            nbrPolIfSM[:,i,:]=nbrPolIf[:,i-1,:]-nbrMaturities[:,i,:]
+            
+            nbrDeath[:,i,:]=nbrPolIfSM[:,i,:]*qxy[:,i,:]*(1-(lapse[:,i,:]*(1-lapseTiming)))
+            
+            nbrSurrender[:,i,:]=nbrPolIfSM[:,i,:]*lapse[:,i,:]*(1-(qxy[:,i,:]*lapseTiming))
+
+            nbrPolIf[:,i,:]=nbrPolIf[:,i-1,:]-nbrMaturities[:,i,:]-nbrDeath[:,i,:]-nbrSurrender[:,i,:]
+
+#Définition des variables récursives
+        
+        #Nombre de polices actives                                 
+        self.nbrPolIf=nbrPolIf
+        #Nombre de police actives en déduisant les échéances du mois
+        self.nbrPolIfSM=nbrPolIfSM
+        #Nombre d'échéances de contrat
+        self.nbrMaturities=nbrMaturities
+        #Nombre de décès
+        self.nbrDeath=nbrDeath
+        #Nombre d'annulation de contrat
+        self.nbrSurrender=nbrSurrender
+            
+        return self
+
+
+
+
+
+
+       
     
 ##############################################################################################################################
 ###################################DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES#############################################
