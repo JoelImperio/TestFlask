@@ -173,7 +173,7 @@ def adjustAgesAndTermForAX(p):
     p['ageDiff']=np.minimum(abs(p['Age1AtEntry']-p['Age2AtEntry']),25)
     
 
-    p['ageDecale']=pd.merge_ordered(p,decalage,left_on=['ageDiff'],right_on=['DIFFERENCE'])
+    p['ageDecale']=pd.merge_ordered(p,decalage,left_on=['ageDiff'],right_on=['DIFFERENCE'])['DECALAGE']
     
     
     p.loc[mask2,'Age1AtEntry']=np.minimum(p.loc[mask2,'Age1AtEntry'],p.loc[mask2,'Age2AtEntry'])+ p.loc[mask2,'DECALAGE']
