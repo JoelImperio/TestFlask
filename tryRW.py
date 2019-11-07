@@ -44,7 +44,7 @@ def testerAX(self):
 pol=AX()
 #pol=AX(run=[4,5])
 
-#pol.ids([2142501])
+#pol.ids([2475501,2236203])
 #pol.mod([9])
 #pol.modHead([9],2)
 
@@ -95,9 +95,9 @@ def testerCas(self):
 monCas=a
 
 zz=np.sum(monCas, axis=0)
-#zzz=np.sum(zz[:,0])
-#z=pd.DataFrame(monCas[:,:,0])
-#z.to_csv(r'check.csv')
+zzz=np.sum(zz[:,0])
+z=pd.DataFrame(monCas[:,:,0])
+z.to_csv(r'check.csv')
 
 #Visualiser une dimension d'un numpy qui n'apparait pas
 
@@ -106,6 +106,6 @@ zz=np.sum(monCas, axis=0)
 
 
 
-z=pol.p[pol.p['PMBPOL']==1054602]
+#z=pol.p[pol.p['PMBPOL']==2509001]
 
 

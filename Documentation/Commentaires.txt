@@ -25,3 +25,9 @@ PARAMETRES:
 
 - Les funérailles sont calculé avec (lapseTiming=1) soit les surrender et les morts sont en fin de mois, alors que nous pensons qu'il faut les mettre en milieu de mois (lapseTiming=0.5)
 
+- Axiprotect les âges sont calculé différament et les polices à deux têtes les ages sont pris avec un décalage. Le polTerm est faux, car l'age maximum est faux.
+Nous traitons le calcul tell que prophet l'effectue dans adjustAgesAndTermForAX() au niveau du préprocessing. En amont nous avont déjà traité celon la correction.
+
+- Axiprotect il y avait du faite du calcul du point précédant, il y avait une police échue avant le début du calcul. Nous l'avons retirée dans le préprocessing.
+
+
