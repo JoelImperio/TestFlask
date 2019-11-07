@@ -144,7 +144,7 @@ def projectionLengh(p):
 
 def adjustAgesAndTermForAX(p):
 
-    p=porN
+#    p=porN
     mask=(p['PMBMOD']==70)
     
     date1=pd.to_datetime(p.loc[mask,'CLIDTNAISS'])
@@ -153,8 +153,8 @@ def adjustAgesAndTermForAX(p):
     
     dateDebut=pd.to_datetime(p.loc[mask,'POLDTDEB'])
          
-    age1=((12*(dateDebut.dt.year-date1.dt.year)+dateDebut.dt.month-date1.dt.month+6)/12).astype(int)
-    age2=((12*(dateDebut.dt.year-date2.dt.year)+dateDebut.dt.month-date2.dt.month+6)/12).astype(int)
+    age1=(((12*(dateDebut.dt.year-date1.dt.year)+dateDebut.dt.month-date1.dt.month+(dateDebut.dt.day/100)-(date1.dt.day/100))/12)+0.5).astype(int)
+    age2=(((12*(dateDebut.dt.year-date2.dt.year)+dateDebut.dt.month-date2.dt.month+(dateDebut.dt.day/100)-(date2.dt.day/100))/12)+0.5).astype(int)
 
     p.loc[mask,'Age1AtEntry']=age1
     p.loc[mask,'Age2AtEntry']=age2
@@ -172,11 +172,11 @@ def adjustAgesAndTermForAX(p):
 
     p['ageDiff']=np.minimum(abs(p['Age1AtEntry']-p['Age2AtEntry']),25)
     
-
-    p['ageDecale']=pd.merge_ordered(p,decalage,left_on=['ageDiff'],right_on=['DIFFERENCE'])['DECALAGE']
+  
+    p['ageDecalage']=p.merge(decalage,left_on=['ageDiff'],right_on=['DIFFERENCE'],how='left')['DECALAGE']
     
     
-    p.loc[mask2,'Age1AtEntry']=np.minimum(p.loc[mask2,'Age1AtEntry'],p.loc[mask2,'Age2AtEntry'])+ p.loc[mask2,'DECALAGE']
+    p.loc[mask2,'Age1AtEntry']=np.minimum(p.loc[mask2,'Age1AtEntry'],p.loc[mask2,'Age2AtEntry'])+ p.loc[mask2,'ageDecalage']
     
     p.loc[mask,'Age2AtEntry']=999
     
@@ -237,7 +237,7 @@ def portfolioPreProcessing(p):
     p['PMbasePGG']=p['PMBPRVMAT']+p['PMBPBEN']+p['PMBREC']+p['PMBRECCPL']
     
     #Traitement des ages et policy terme selon Prophet pour mod70 (nous pensons que cela est erroné)
-#    adjustAgesAndTermForAX(p)
+    adjustAgesAndTermForAX(p)
 
     return p
 
