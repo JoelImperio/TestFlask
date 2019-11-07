@@ -108,6 +108,7 @@ def projectionLengh(p):
     
     #Dertermination des âges limites
     ageMaxFU=65
+    ageMaxAX=80
     
   
 #Traitement des mods 8 et 9
@@ -122,11 +123,66 @@ def projectionLengh(p):
 #    mask=(p['PMBMOD']==9)    
 #    p.loc[mask,'residualTermM']=p.loc[mask,['Age2AtEntry','Age1AtEntry']].min(axis=1)
 #    p.loc[mask,'residualTermM']=((ageMaxFU-p.loc[mask,'residualTermM'])*12)-p.loc[mask,'DurationIfInitial']
+
+
+#Traitement du mod 70
+    mask=(p['PMBMOD']==70)
+    
+    p.loc[mask,'residualTermM']=p.loc[mask,['Age2AtEntry','Age1AtEntry']].max(axis=1)
+    p.loc[mask,'residualTermM']=((ageMaxAX-p.loc[mask,'residualTermM'])*12)-p.loc[mask,'DurationIfInitial']
+
+
     
     
     #Replacer 999 pour les deuxièmes assurés des polices à une tête
     p.loc[p['POLNBTETE']==1,'Age2AtEntry']=999
 
+
+##############################################################################################################################
+#Correction des ages et du résidual terme pour Axiprotect (Réplication Prophet) A supprimer pour corriger
+##############################################################################################################################
+
+def adjustAgesAndTermForAX(p):
+
+    p=porN
+    mask=(p['PMBMOD']==70)
+    
+    date1=pd.to_datetime(p.loc[mask,'CLIDTNAISS'])
+    
+    date2=pd.to_datetime(p.loc[mask,'CLIDTNAISS2'])
+    
+    dateDebut=pd.to_datetime(p.loc[mask,'POLDTDEB'])
+         
+    age1=((12*(dateDebut.dt.year-date1.dt.year)+dateDebut.dt.month-date1.dt.month+6)/12).astype(int)
+    age2=((12*(dateDebut.dt.year-date2.dt.year)+dateDebut.dt.month-date2.dt.month+6)/12).astype(int)
+
+    p.loc[mask,'Age1AtEntry']=age1
+    p.loc[mask,'Age2AtEntry']=age2
+
+    
+    mask1=(mask) & (p['POLNBTETE']==1)    
+    p.loc[mask1,'residualTermM']= (65-p.loc[mask1,'Age1AtEntry'])*12-p.loc[mask1,'DurationIfInitial']
+
+    mask2=(mask) & (p['POLNBTETE']==2) 
+    
+    p.loc[mask2,'residualTermM']=p.loc[mask2,['Age2AtEntry','Age1AtEntry']].max(axis=1)
+    p.loc[mask2,'residualTermM']=((70-p.loc[mask2,'residualTermM'])*12)-p.loc[mask2,'DurationIfInitial']
+    
+    decalage=pd.ExcelFile(path  + '/Hypotheses/Decalage.xlsx').parse("Feuil1")    
+
+    p['ageDiff']=np.minimum(abs(p['Age1AtEntry']-p['Age2AtEntry']),25)
+    
+
+    p['ageDecale']=pd.merge_ordered(p,decalage,left_on=['ageDiff'],right_on=['DIFFERENCE'])
+    
+    
+    p.loc[mask2,'Age1AtEntry']=np.minimum(p.loc[mask2,'Age1AtEntry'],p.loc[mask2,'Age2AtEntry'])+ p.loc[mask2,'DECALAGE']
+    
+    p.loc[mask,'Age2AtEntry']=999
+    
+    return p
+    
+    
     
 ##############################################################################################################################
 #Permet de formater la dataframe du portefeuille des polices avant d'entrer dans la classe Hypo
@@ -179,6 +235,9 @@ def portfolioPreProcessing(p):
     
     #Création des PM servant de base pour le calcul de la PGG
     p['PMbasePGG']=p['PMBPRVMAT']+p['PMBPBEN']+p['PMBREC']+p['PMBRECCPL']
+    
+    #Traitement des ages et policy terme selon Prophet pour mod70 (nous pensons que cela est erroné)
+#    adjustAgesAndTermForAX(p)
 
     return p
 
@@ -684,4 +743,4 @@ print("Class Hypo--- %s sec" %'%.2f'%  (time.time() - start_time))
 #a=pd.DataFrame(data[:,:,1])
 
 
-
+a=porN.loc[porN['PMBMOD']==70]
