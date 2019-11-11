@@ -46,7 +46,7 @@ pol=AX()
 
 #pol.ids([2142501])
 #pol.mod([9])
-#pol.modHead([9],2)
+#pol.modHpead([9],2)
 
 a=pol.nbrPolIf
 b=pol.nbrPolIfSM

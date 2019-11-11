@@ -102,6 +102,7 @@ class Portfolio(Hypo):
         matRate=self.zero()
         polTermM=(self.p['residualTermM']+self.p['DurationIfInitial']).to_numpy()[:,np.newaxis,np.newaxis]*self.one()
         
+        
         matRate[polTermM + 1==self.durationIf()]=1
         
         qxy=self.qxyExpMens()
@@ -149,13 +150,14 @@ def testerPortfolio():
     return 0
   
 #myPolicies=Portfolio(runs=[4,5])
-#myPolicies=Portfolio()
+myPolicies=Portfolio()
 
 #myPolicies.mod([8,9])
-#myPolicies.ids([896002])
+myPolicies.ids([1054602])
 #myPolicies.groupe(['MI3.5'])
 
 #Les méthodes de la class Portfolio()
+
 
 #za=myPolicies.age(1)
 #zb=myPolicies.qx(table=EKM05i,exp=41.73,ass=2)
