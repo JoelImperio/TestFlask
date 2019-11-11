@@ -158,8 +158,7 @@ def adjustAgesAndTermForAX(p):
 
     p.loc[mask,'Age1AtEntry']=age1
     p.loc[mask,'Age2AtEntry']=age2
-
-    
+ 
     mask1=(mask) & (p['POLNBTETE']==1)    
     p.loc[mask1,'residualTermM']= (65-p.loc[mask1,'Age1AtEntry'])*12-p.loc[mask1,'DurationIfInitial']
 
@@ -167,20 +166,23 @@ def adjustAgesAndTermForAX(p):
     
     p.loc[mask2,'residualTermM']=p.loc[mask2,['Age2AtEntry','Age1AtEntry']].max(axis=1)
     p.loc[mask2,'residualTermM']=((70-p.loc[mask2,'residualTermM'])*12)-p.loc[mask2,'DurationIfInitial']
+ 
+    decalage=pd.ExcelFile(path  + '/Hypotheses/Decalage.xlsx').parse("Feuil1")
     
-    decalage=pd.ExcelFile(path  + '/Hypotheses/Decalage.xlsx').parse("Feuil1")    
+    decalage=decalage['DECALAGE'].to_dict()
 
-    p['ageDiff']=np.minimum(abs(p['Age1AtEntry']-p['Age2AtEntry']),25)
+    p.loc[mask2,'ageDiff']=abs(p.loc[mask2,'Age1AtEntry']-p.loc[mask2,'Age2AtEntry'])
+    p.loc[mask1,'ageDiff']=p.loc[mask1,'ageDiff'].fillna(0)
+
     
-  
-    p['ageDecalage']=p.merge(decalage,left_on=['ageDiff'],right_on=['DIFFERENCE'],how='left')['DECALAGE']
-    
-    
+    p['ageDecalage']=p['ageDiff'].map(decalage)
+
     p.loc[mask2,'Age1AtEntry']=np.minimum(p.loc[mask2,'Age1AtEntry'],p.loc[mask2,'Age2AtEntry'])+ p.loc[mask2,'ageDecalage']
     
     p.loc[mask,'Age2AtEntry']=999
     
-    return p
+    p.loc[p['residualTermM']<0,'residualTermM']=0
+
     
     
     
@@ -204,7 +206,11 @@ def portfolioPreProcessing(p):
     
     #Lorsque la police a une tête l'age du deuxième assuré est 0 donc il né à la date début de la police (ensuite 999 ans)
     p.loc[p.POLNBTETE==1, 'CLIDTNAISS2'] = p.loc[p.POLNBTETE==1, 'POLDTDEB']
-
+    
+    #Une police mod 70 est par construction déjà échue le premier mois elle ne rentre pas dans prophet
+    p=p.drop(p.loc[p['PMBPOL'].isin([1054602])].index)
+    
+    
     agesInitial(p)
 
 #Formatage des colonnes et création des colonnes utiles    
@@ -743,4 +749,4 @@ print("Class Hypo--- %s sec" %'%.2f'%  (time.time() - start_time))
 #a=pd.DataFrame(data[:,:,1])
 
 
-a=porN.loc[porN['PMBMOD']==70]
+#a=porN.loc[porN['PMBMOD']==70]
