@@ -258,7 +258,7 @@ def portfolioPreProcessing(p):
 #- La table de mortalité d'expérience
 ##############################################################################################################################
 def chargementINPUTS(PortefeuilleEtHypothèses):
-    return self,PortefeuilleEtHypothèses
+    return PortefeuilleEtHypothèses
 
 hypN=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypothèses")
 hypN_1=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypothèses")
@@ -341,7 +341,7 @@ class Hypo:
 #Permet de créer un vecteur  rempli de 1 pour la taille de portefeuille et la durée de projection  
     def one(self):
         nbrPolices=int(len(self.p))
-        nbrPeriodes= abs(int(self.p['residualTermM'].max()+1))
+        nbrPeriodes= abs((self.p['residualTermM'].max()+1))
         nbrRuns=int(len(self.runs))
         return np.copy(np.ones([nbrPolices,nbrPeriodes,nbrRuns]))
 

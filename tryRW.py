@@ -44,15 +44,15 @@ def testerAX(self):
 pol=AX()
 #pol=AX(run=[4,5])
 
-#pol.ids([2475501,2236203])
+# pol.ids([2475501,2236203])
 #pol.mod([9])
 #pol.modHpead([9],2)
 
-a=pol.nbrPolIf
-b=pol.nbrPolIfSM
-c=pol.nbrMaturities
-d=pol.nbrDeath
-e=pol.nbrSurrender
+# a=pol.nbrPolIf
+# b=pol.nbrPolIfSM
+# c=pol.nbrMaturities
+# d=pol.nbrDeath
+# e=pol.nbrSurrender
 #f=pol.premiumCompl()
 #g=pol.purePremium()
 #h=pol.deathClaim()
