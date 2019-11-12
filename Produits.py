@@ -29,10 +29,7 @@ class FU(Portfolio):
 #Permet de relancer l'update() en intégrant des methodes de la sous-classe
     def update(self,subPortfolio):
         super().update(subPortfolio)
-<<<<<<< Updated upstream
         self.loopNoSaving()
-
-=======
         self.loop()
         self.premiumCompl = self.premiumCompl()
         self.purePremium = self.purePremium()
@@ -51,7 +48,7 @@ class FU(Portfolio):
         self.PGG = self.PGG()
         
         
->>>>>>> Stashed changes
+
 ##############################################################################################################################
 ###########################################DEBUT DES VARIABLES PRODUITS#######################################################
 ##############################################################################################################################
