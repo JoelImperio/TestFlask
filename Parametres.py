@@ -76,6 +76,41 @@ def allocationDesClassPGG(p):
     p.loc[p['ClassPGGinit'].isin(['EP','MI']),'ClassPGGinit'].map(str)+ \
     p.loc[p['ClassPGGinit'].isin(['EP','MI']),'PMBTXINT'].map(str)
     
+##############################################################################################################################
+#Permet d'ajouter une colonne contenant le taux chargement sur prime
+############################################################################################################################## 
+def premiumLoading(p):
+    
+    #FU
+    mask=(p['PMBMOD']==8)|(p['PMBMOD']==9)
+    
+    p.loc[mask,'aquisitionLoading']=0.2
+    
+    #AX
+    mask=(p['PMBMOD']==70)
+    
+    p.loc[mask,'aquisitionLoading']=0.25   
+    
+
+##############################################################################################################################
+#Permet d'ajouter une colonne contenant les frais de fractionnement
+##############################################################################################################################
+def fraisFractionnement(p):
+    p=porN    
+    mask12=(p['PMBFRACT']==12)
+    mask6=(p['PMBFRACT']==6)
+    mask4=(p['PMBFRACT']==4)
+    mask2=(p['PMBFRACT']==2) 
+    
+    maskAX=(p['PMBMOD']==70)
+    
+    p.loc[mask12 & maskAX,'fraisFract']=1.08
+    p.loc[mask6 & maskAX,'fraisFract']=1.06
+    p.loc[mask4 & maskAX,'fraisFract']=1.05
+    p.loc[mask2 & maskAX,'fraisFract']=1.04
+    
+    p.loc[:,'fraisFract']=p.loc[:,'fraisFract'].fillna(1)
+
     
 ##############################################################################################################################
 #Calcul de l'âge initial (l'âge du deuxième assuré qui n'existe pas est fixé à 999)
@@ -244,6 +279,12 @@ def portfolioPreProcessing(p):
     
     #Traitement des ages et policy terme selon Prophet pour mod70 (nous pensons que cela est erroné)
     adjustAgesAndTermForAX(p)
+    
+    # Ajout de la colonne contenant les chargements d'acquisition
+    premiumLoading(p)
+    
+    #Ajout d'une colonne contenant les frais de fractionnement
+    fraisFractionnement(p)
 
     return p
 
@@ -613,11 +654,12 @@ class Hypo:
         commissionsRates=commissionsRates[:,:,np.newaxis,np.newaxis]
         
         dur=self.durationIf()      
-        dur=dur[:,:,0][:,:,np.newaxis]*self.oneAllrun()    
+        dur=dur[:,:,0][:,:,np.newaxis]*self.oneAllrun()
+        polTermM=self.polTermM()
 
-        condlist = [dur<=12,dur<=24,dur<=36,dur>36]
+        condlist = [dur<=12,dur<=24,dur<=36,(dur>36) & (dur<polTermM),(dur>36) & (dur>=polTermM)]
         
-        choicelist = [commissionsRates[:,0,:],commissionsRates[:,1,:],commissionsRates[:,2,:],commissionsRates[:,4,:]]
+        choicelist = [commissionsRates[:,0,:],commissionsRates[:,1,:],commissionsRates[:,2,:],commissionsRates[:,4,:],0]
         
         myCommissions=np.select(condlist, choicelist)
         
@@ -660,6 +702,10 @@ class Hypo:
         durIf=durIf+increment
         
         return durIf
+
+#Retourne un vecteur contenant la durée de la police en mois
+    def polTermM(self):
+        return (self.p['residualTermM']+self.p['DurationIfInitial']).to_numpy()[:,np.newaxis,np.newaxis]*self.one()
 
 #Retourne le fractionnement constant de chaque polices
     def frac(self):
