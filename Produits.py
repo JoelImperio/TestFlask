@@ -29,8 +29,29 @@ class FU(Portfolio):
 #Permet de relancer l'update() en intégrant des methodes de la sous-classe
     def update(self,subPortfolio):
         super().update(subPortfolio)
+<<<<<<< Updated upstream
         self.loopNoSaving()
 
+=======
+        self.loop()
+        self.premiumCompl = self.premiumCompl()
+        self.purePremium = self.purePremium()
+        self.deathClaim = self.deathClaim()
+        self.fraisVisiteClaim = self.fraisVisiteClaim()
+        self.timeBeforeNextPay = self.timeBeforeNextPay()
+        self.risqueEnCour = self.risqueEnCour()
+        self.adjustedReserve = self.adjustedReserve()
+        self.reserveExpense = self.reserveExpense()
+        self.unitExpense = self.unitExpense()
+        self.totalPremium = self.totalPremium()
+        self.totalClaim = self.totalClaim()
+        self.totalCommissions = self.totalCommissions()
+        self.totalExpense = self.totalExpense()
+        self.BEL = self.BEL()
+        self.PGG = self.PGG()
+        
+        
+>>>>>>> Stashed changes
 ##############################################################################################################################
 ###########################################DEBUT DES VARIABLES PRODUITS#######################################################
 ##############################################################################################################################
@@ -54,7 +75,7 @@ class FU(Portfolio):
         
         claimRate=self.fraisVisite()
         
-        premiumCompl=self.premiumCompl()
+        premiumCompl=self.premiumCompl
         
         claim=claimRate*premiumCompl*self.isPremPay()
         
@@ -91,7 +112,7 @@ class FU(Portfolio):
 #Retourne les risque en cours, soit les primes émises non aquises
     def risqueEnCour(self):
         
-        elapseTime=self.timeBeforeNextPay()
+        elapseTime=self.timeBeforeNextPay
         
         purePremium=self.p['POLPRDECES'].to_numpy()[:,np.newaxis,np.newaxis]/self.frac()
         
@@ -105,9 +126,9 @@ class FU(Portfolio):
         prPurePP=((self.p['POLPRTOT']- self.complPremium)*(1-self.premiumLoading)).to_numpy()[:,np.newaxis,np.newaxis]
         pPureEncPP= (prPurePP/self.frac())*self.nbrPolIfSM*self.isPremPay()
 
-        riderCost=self.fraisVisiteClaim()
+        riderCost=self.fraisVisiteClaim
         
-        risqueEnCour=self.risqueEnCour()
+        risqueEnCour=self.risqueEnCour
         risqueEnCour=np.roll(risqueEnCour,[1],axis=1)
         risqueEnCour[:,0,:]=0       
         
@@ -118,7 +139,7 @@ class FU(Portfolio):
 #Retourne les coûts de gestion des placements appliqué sur les réserves   
     def reserveExpense(self):
         
-        reserve=self.adjustedReserve()
+        reserve=self.adjustedReserve
         
         tauxFraisGestion=self.fraisGestionPlacement()
         
@@ -150,24 +171,24 @@ class FU(Portfolio):
 
 #Retourne le total des sinistres payés  
     def totalClaim(self):  
-        return self.deathClaim()+self.fraisVisiteClaim()
+        return self.deathClaim+self.fraisVisiteClaim
 
 #Retourne le total des commissions payées
     def totalCommissions(self):        
-        return self.totalPremium()*self.commissions()
+        return self.totalPremium*self.commissions()
 
 #Retourne les dépense totales        
     def totalExpense(self):
-        return self.unitExpense()+self.reserveExpense()
+        return self.unitExpense+self.reserveExpense
 
 #Retourne la meilleure estimation des engagements    
     def BEL(self):
         
-        interestRates=1+self.rate()       
-        premium=self.totalPremium()
-        claim=self.totalClaim()
-        expense=self.totalExpense()
-        commission=self.totalCommissions()
+        interestRates=1+self.rate()    
+        premium=self.totalPremium
+        claim = self.totalClaim
+        expense=self.totalExpense
+        commission=self.totalCommissions
         
         bel=self.zero()
               
@@ -185,7 +206,7 @@ class FU(Portfolio):
         
         pm=np.sum(self.p['PMbasePGG'].to_numpy())
         
-        bel=np.sum(self.BEL(), axis=0)[0,:]
+        bel=np.sum(self.BEL, axis=0)[0,:]
         
         maxBel=max(bel)
         
