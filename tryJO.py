@@ -13,13 +13,7 @@ start_time = time.time()
 
 a = mylalalalal
 
-
-food = 'bread'
-vars()[food] = 123
-print (bread)
-
-
-
+a = 46666
 
 
 print("MyClasse--- %s sec" %'%.2f'%  (time.time() - start_time))

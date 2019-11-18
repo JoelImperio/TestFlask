@@ -17,7 +17,6 @@ start_time = time.time()
 class FU(Portfolio):
     mods=[8,9]
     complPremium=60
-    premiumLoading=0.2
 
     
     def __init__(self,run=allRuns,\
@@ -30,24 +29,6 @@ class FU(Portfolio):
     def update(self,subPortfolio):
         super().update(subPortfolio)
         self.loopNoSaving()
-        self.loop()
-        self.premiumCompl = self.premiumCompl()
-        self.purePremium = self.purePremium()
-        self.deathClaim = self.deathClaim()
-        self.fraisVisiteClaim = self.fraisVisiteClaim()
-        self.timeBeforeNextPay = self.timeBeforeNextPay()
-        self.risqueEnCour = self.risqueEnCour()
-        self.adjustedReserve = self.adjustedReserve()
-        self.reserveExpense = self.reserveExpense()
-        self.unitExpense = self.unitExpense()
-        self.totalPremium = self.totalPremium()
-        self.totalClaim = self.totalClaim()
-        self.totalCommissions = self.totalCommissions()
-        self.totalExpense = self.totalExpense()
-        self.BEL = self.BEL()
-        self.PGG = self.PGG()
-        
-        
 
 ##############################################################################################################################
 ###########################################DEBUT DES VARIABLES PRODUITS#######################################################
@@ -57,10 +38,26 @@ class FU(Portfolio):
     def premiumCompl(self):
         return (self.complPremium/self.frac())*self.nbrPolIfSM
 
-#Retourne les primes pures    
+#Retourne les primes pures de la garantie principale 
     def purePremium(self):
         return self.p['POLPRDECES'].to_numpy()[:,np.newaxis,np.newaxis]/self.frac()
     
+#Retourne la réserve mathémathique ajustée
+    def adjustedReserve(self):
+        
+        prPurePP=((self.p['POLPRTOT']- self.complPremium)*(1-self.p['aquisitionLoading'])).to_numpy()[:,np.newaxis,np.newaxis]
+        pPureEncPP= (prPurePP/self.frac())*self.nbrPolIfSM*self.isPremPay()
+
+        riderCost=self.claimCompl()
+        
+        risqueEnCour=self.risqueEnCour()
+        risqueEnCour=np.roll(risqueEnCour,[1],axis=1)
+        risqueEnCour[:,0,:]=0       
+        
+        reserve=np.maximum(pPureEncPP-riderCost+risqueEnCour,0)
+        
+        return reserve
+
 #Retourne les sinistres décès 
     def deathClaim(self):
         nbDeath=self.nbrDeath
@@ -72,150 +69,22 @@ class FU(Portfolio):
         
         claimRate=self.fraisVisite()
         
-        premiumCompl=self.premiumCompl
+        premiumCompl=self.premiumCompl()
         
         claim=claimRate*premiumCompl*self.isPremPay()
         
         return claim
-            
-#Retourne la durée écoulée depuis le dernier paiement de prime   
-    def timeBeforeNextPay(self):
 
-        frac=self.frac()
-        dur=self.durationIf()
-        
-        check1 = (frac * (dur + 11) /12)
-        check2 = np.floor((frac * (dur + 11) /12))
-        
-        isNotPremPay=(1-self.isPremPay())
- 
-        elapseTime=(1-(check1-check2))*isNotPremPay
-        
-        #Décaler le vécteur d'un temps
-        elapseTime[:,:-1,:]=elapseTime[:,1:,:]
-        
-        # Si la police est finie 0 en dernière place
-        mask=(elapseTime[:,-2,:]==0) & (elapseTime[:,-3,:]==0)
-        elapseTime[:,-1,:][mask]=0
-        # Si 0 mais encore en vigueur on continue la chaine
-        mask=(elapseTime[:,-2,:]==0) & (elapseTime[:,-3,:]!=0)
-        elapseTime[:,-1,:][mask]=(self.one())[:,-1,:][mask]-(frac[:,-1,:][mask]/12)
-        # Si la chaine est en cours on la continu
-        mask=(elapseTime[:,-2,:]!=0)
-        elapseTime[:,-1,:][mask]=elapseTime[:,-1,:][mask]-(frac[:,-1,:][mask]/12)
+#Retourne le total des claim pour la garantie principale    
+    def claimPrincipal(self):
+        return self.deathClaim()
 
-        return elapseTime
+#Retourne le total des claim pour les garanties complémentaires
+    def claimCompl(self):
+        return self.fraisVisiteClaim()
+    
 
-#Retourne les risque en cours, soit les primes émises non aquises
-    def risqueEnCour(self):
-        
-        elapseTime=self.timeBeforeNextPay
-        
-        purePremium=self.p['POLPRDECES'].to_numpy()[:,np.newaxis,np.newaxis]/self.frac()
-        
-        reserve=purePremium*elapseTime*self.nbrPolIf 
-                      
-        return reserve
 
-#Retourne la réserve mathémathique ajustée
-    def adjustedReserve(self):
-        
-        prPurePP=((self.p['POLPRTOT']- self.complPremium)*(1-self.premiumLoading)).to_numpy()[:,np.newaxis,np.newaxis]
-        pPureEncPP= (prPurePP/self.frac())*self.nbrPolIfSM*self.isPremPay()
-
-        riderCost=self.fraisVisiteClaim
-        
-        risqueEnCour=self.risqueEnCour
-        risqueEnCour=np.roll(risqueEnCour,[1],axis=1)
-        risqueEnCour[:,0,:]=0       
-        
-        reserve=np.maximum(pPureEncPP-riderCost+risqueEnCour,0)
-        
-        return reserve
-
-#Retourne les coûts de gestion des placements appliqué sur les réserves   
-    def reserveExpense(self):
-        
-        reserve=self.adjustedReserve
-        
-        tauxFraisGestion=self.fraisGestionPlacement()
-        
-        return reserve*tauxFraisGestion
-
-#Retourne le coût par police
-    def unitExpense(self):
-        
-        inflation=np.roll(self.inflation(),[1],axis=1)
-        inflation[:,0,:]=0
-        
-        coutParPolice=self.fraisGestion()
-        
-        cost=coutParPolice*inflation*self.nbrPolIfSM
-        
-        return cost
-   
-##############################################################################################################################
-###########################################DEBUT DES COMPOSANTES DU BEL#######################################################
-##############################################################################################################################
-
-#Retourne les primes totales perçues
-    def totalPremium(self):
-        premInc=self.p['POLPRTOT'][:,np.newaxis,np.newaxis]/self.frac()
-        
-        prem=premInc*self.nbrPolIfSM*self.isPremPay()
-        
-        return prem
-
-#Retourne le total des sinistres payés  
-    def totalClaim(self):  
-        return self.deathClaim+self.fraisVisiteClaim
-
-#Retourne le total des commissions payées
-    def totalCommissions(self):        
-        return self.totalPremium*self.commissions()
-
-#Retourne les dépense totales        
-    def totalExpense(self):
-        return self.unitExpense+self.reserveExpense
-
-#Retourne la meilleure estimation des engagements    
-    def BEL(self):
-        
-        interestRates=1+self.rate()    
-        premium=self.totalPremium
-        claim = self.totalClaim
-        expense=self.totalExpense
-        commission=self.totalCommissions
-        
-        bel=self.zero()
-              
-        for t in range(1,self.shape[1]+1):
-            
-            bel[:,-t,:]=(bel[:,-t+1,:]+claim[:,-t+1,:]+expense[:,-t+1,:]+commission[:,-t+1,:]-premium[:,-t+1,:])/interestRates[:,-t+1,:]
-            
-        return bel
-
-##############################################################################################################################
-###########################################DEBUT DU CALCUL DE LA PGG#######################################################
-##############################################################################################################################     
-
-    def PGG(self):
-        
-        pm=np.sum(self.p['PMbasePGG'].to_numpy())
-        
-        bel=np.sum(self.BEL, axis=0)[0,:]
-        
-        maxBel=max(bel)
-        
-        pgg= max(0,maxBel-pm)
-        
-        indexer=self.p['ClassPGG'].unique()
-        
-        dfPGG=pd.DataFrame(index=indexer,columns=['PGG'])
-        
-        dfPGG['PGG']=pgg
-                      
-        return dfPGG
   
 
 ##############################################################################################################################

@@ -100,8 +100,7 @@ class Portfolio(Hypo):
         nbrPolIfSM=self.zero()
         
         matRate=self.zero()
-        polTermM=(self.p['residualTermM']+self.p['DurationIfInitial']).to_numpy()[:,np.newaxis,np.newaxis]*self.one()
-        
+        polTermM=self.polTermM()
         
         matRate[polTermM + 1==self.durationIf()]=1
         
@@ -136,12 +135,132 @@ class Portfolio(Hypo):
             
         return self
 
+#Retourne la durée écoulée depuis le dernier paiement de prime   
+    def timeBeforeNextPay(self):
+
+        frac=self.frac()
+        dur=self.durationIf()
+        
+        check1 = (frac * (dur + 11) /12)
+        check2 = np.floor((frac * (dur + 11) /12))
+        
+        isNotPremPay=(1-self.isPremPay())
+ 
+        elapseTime=(1-(check1-check2))*isNotPremPay
+        
+        #Décaler le vécteur d'un temps
+        elapseTime[:,:-1,:]=elapseTime[:,1:,:]
+        
+        # Si la police est finie 0 en dernière place
+        mask=(elapseTime[:,-2,:]==0) & (elapseTime[:,-3,:]==0)
+        elapseTime[:,-1,:][mask]=0
+        # Si 0 mais encore en vigueur on continue la chaine
+        mask=(elapseTime[:,-2,:]==0) & (elapseTime[:,-3,:]!=0)
+        elapseTime[:,-1,:][mask]=(self.one())[:,-1,:][mask]-(frac[:,-1,:][mask]/12)
+        # Si la chaine est en cours on la continu
+        mask=(elapseTime[:,-2,:]!=0)
+        elapseTime[:,-1,:][mask]=elapseTime[:,-1,:][mask]-(frac[:,-1,:][mask]/12)
+
+        return elapseTime
+
+#Retourne les coûts de gestion des placements appliqué sur les réserves   
+    def reserveExpense(self):
+        
+        reserve=self.adjustedReserve()
+        
+        tauxFraisGestion=self.fraisGestionPlacement()
+        
+        return reserve*tauxFraisGestion
+
+#Retourne le coût par police
+    def unitExpense(self):
+        
+        inflation=np.roll(self.inflation(),[1],axis=1)
+        inflation[:,0,:]=0
+        
+        coutParPolice=self.fraisGestion()
+        
+        cost=coutParPolice*inflation*self.nbrPolIfSM
+        
+        return cost
+    
+#Retourne les risque en cours, soit les primes émises non aquises
+    def risqueEnCour(self):
+        
+        elapseTime=self.timeBeforeNextPay()
+        
+        purePremium=self.purePremium()
+        
+        reserve=purePremium*elapseTime*self.nbrPolIf 
+                      
+        return reserve
+
+##############################################################################################################################
+###########################################DEBUT DES COMPOSANTES DU BEL#######################################################
+##############################################################################################################################
+
+#Retourne les primes totales perçues
+    def totalPremium(self):
+        premInc=self.p['POLPRTOT'][:,np.newaxis,np.newaxis]/self.frac()
+        
+        prem=premInc*self.nbrPolIfSM*self.isPremPay()
+        
+        return prem
+
+#Retourne le total des sinistres payés  
+    def totalClaim(self):  
+        return self.claimPrincipal() +self.claimCompl()
+
+#Retourne le total des commissions payées
+    def totalCommissions(self):
+        return self.totalPremium()*self.commissions()
+
+#Retourne les dépense totales        
+    def totalExpense(self):
+        return self.unitExpense()+self.reserveExpense()
+
+#Retourne la meilleure estimation des engagements    
+    def BEL(self):
+        
+        interestRates=1+self.rate()       
+        premium=self.totalPremium()
+        claim=self.totalClaim()
+        expense=self.totalExpense()
+        commission=self.totalCommissions()
+        
+        bel=self.zero()
+              
+        for t in range(1,self.shape[1]+1):
+            
+            bel[:,-t,:]=(bel[:,-t+1,:]+claim[:,-t+1,:]+expense[:,-t+1,:]+commission[:,-t+1,:]-premium[:,-t+1,:])/interestRates[:,-t+1,:]
+            
+        return bel
+    
+##############################################################################################################################
+###########################################DEBUT DU CALCUL DE LA PGG#######################################################
+##############################################################################################################################     
+
+    def PGG(self):
+        
+        pm=np.sum(self.p['PMbasePGG'].to_numpy())
+        
+        bel=np.sum(self.BEL(), axis=0)[0,:]
+        
+        maxBel=max(bel)
+        
+        pgg= max(0,maxBel-pm)
+        
+        indexer=self.p['ClassPGG'].unique()
+        
+        dfPGG=pd.DataFrame(index=indexer,columns=['PGG'])
+        
+        dfPGG['PGG']=pgg
+                      
+        return dfPGG
 
 
 
 
-
-       
     
 ##############################################################################################################################
 ###################################DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES#############################################
@@ -150,14 +269,13 @@ def testerPortfolio():
     return 0
   
 #myPolicies=Portfolio(runs=[4,5])
-myPolicies=Portfolio()
+#myPolicies=Portfolio()
 
 #myPolicies.mod([8,9])
-myPolicies.ids([1054602])
+#myPolicies.ids([896002])
 #myPolicies.groupe(['MI3.5'])
 
 #Les méthodes de la class Portfolio()
-
 
 #za=myPolicies.age(1)
 #zb=myPolicies.qx(table=EKM05i,exp=41.73,ass=2)

@@ -30,4 +30,8 @@ Nous traitons le calcul tell que prophet l'effectue dans adjustAgesAndTermForAX(
 
 - Axiprotect il y avait du faite du calcul du point précédant, il y avait une police échue avant le début du calcul. Nous l'avons retirée dans le préprocessing.
 
+- Les taux de chargement sur prime d'axiprotect sont erronés (25%) alors que c'est 32% selon la note technique
 
+-AX premium complémentaire dans l'adjusted reserve n'est pas enlevé alors que dans FU elle est déduite ?
+
+- AX Dans accidentalDeathClaim() Nous avons ajouté une condition pour arreter les primes principales à 65 ans

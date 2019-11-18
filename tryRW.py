@@ -14,7 +14,8 @@ start_time = time.time()
 ##############################################################################################################################
 class AX(Portfolio):
     mods=[70]
-
+    complPremium=0
+    capitalCompl=8000
 
     
     def __init__(self,run=allRuns,\
@@ -29,9 +30,61 @@ class AX(Portfolio):
         self.loopNoSaving()
 
 
+#Retourne les primes pures   
+    def purePremium(self):
+        prem=self.p['POLPRVIEHT']-self.p['POLPRCPLA']
+        return prem.to_numpy()[:,np.newaxis,np.newaxis]/self.frac()
+    
+#Retourne les primes des garanties complémentaires    
+    def premiumPrincipal(self):
+        return self.purePremium()*self.nbrPolIfSM
 
+#Retourne la réserve mathémathique ajustée
+    def adjustedReserve(self):
+        
+        prPurePP=((self.p['POLPRTOT']- self.complPremium)*(1-self.p['aquisitionLoading'])*(1/self.p['fraisFract'])).to_numpy()[:,np.newaxis,np.newaxis]
+        pPureEncPP= (prPurePP/self.frac())*self.nbrPolIfSM*self.isPremPay()
 
+        riderCost=self.claimPrincipal()
+        
+        risqueEnCour=self.risqueEnCour()
+        risqueEnCour=np.roll(risqueEnCour,[1],axis=1)
+        risqueEnCour[:,0,:]=0       
+        
+        reserve=np.maximum(pPureEncPP-riderCost+risqueEnCour,0)
+        
+        return reserve
 
+#Retourne les sinistres décès 
+    def deathClaim(self):
+        nbDeath=self.nbrDeath
+        capitalDC=(self.p['POLPRCPLA']!=0)*self.capitalCompl
+        capital=capitalDC.to_numpy()[:,np.newaxis,np.newaxis]
+        return nbDeath*capital
+
+#Retourne les sinistre complémentaire frais de visite    
+    def accidentalDeathClaim(self):
+        
+        claimRate=self.dcAccident()
+
+        
+        premiumPrincipal=self.premiumPrincipal()
+        
+#Cette condition est erronée, car défini l'age terme à 65 ans pour la fin de garantie principale
+        premiumPrincipal=(self.age()<=65)*premiumPrincipal
+        
+        claim=claimRate*premiumPrincipal*self.isPremPay()
+        
+        return claim
+
+#Retourne le total des claim pour la garantie principale    
+    def claimPrincipal(self):
+        return self.accidentalDeathClaim()
+
+#Retourne le total des claim pour les garanties complémentaires
+    def claimCompl(self):
+        return self.deathClaim()
+    
 
 
 
@@ -44,22 +97,22 @@ def testerAX(self):
 pol=AX()
 #pol=AX(run=[4,5])
 
-# pol.ids([2475501,2236203])
-#pol.mod([9])
-#pol.modHpead([9],2)
+pol.ids([2223701])
+#pol.mod([70])
+#pol.modHead([9],2)
 
-# a=pol.nbrPolIf
-# b=pol.nbrPolIfSM
-# c=pol.nbrMaturities
-# d=pol.nbrDeath
-# e=pol.nbrSurrender
+#a=pol.nbrPolIf
+#b=pol.nbrPolIfSM
+#c=pol.nbrMaturities
+#d=pol.nbrDeath
+#e=pol.nbrSurrender
 #f=pol.premiumCompl()
 #g=pol.purePremium()
 #h=pol.deathClaim()
 #i=pol.fraisVisiteClaim()
 #j=pol.timeBeforeNextPay()
-#k=pol.risqueEnCour()
-#l=pol.adjustedReserve()
+k=pol.risqueEnCour()
+l=pol.adjustedReserve()
 #m=pol.reserveExpense()
 #n=pol.unitExpense()
 #o=pol.totalPremium()
@@ -67,11 +120,10 @@ pol=AX()
 #r=pol.totalCommissions()
 #s=pol.totalExpense()
 #t=pol.BEL()
+#u=pol.polTermM
 
 #bel=np.sum(pol.BEL(), axis=0)
 #pgg=pol.PGG()
-
-
 
 
 
@@ -92,12 +144,13 @@ def testerCas(self):
 
 
 
-monCas=a
+monCas=k
 
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
-z.to_csv(r'check.csv')
+z=z.sum()
+z.to_csv(r'check.csv',header=False)
 
 #Visualiser une dimension d'un numpy qui n'apparait pas
 
