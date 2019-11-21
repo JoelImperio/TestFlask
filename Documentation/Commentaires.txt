@@ -35,3 +35,11 @@ Nous traitons le calcul tell que prophet l'effectue dans adjustAgesAndTermForAX(
 -AX premium complémentaire dans l'adjusted reserve n'est pas enlevé alors que dans FU elle est déduite ?
 
 - AX Dans accidentalDeathClaim() Nous avons ajouté une condition pour arreter les primes principales à 65 ans
+
+-AX Dans riderCostOutgo (qui est en réalité la principal) l'age terme est 65 ans en dur même pour les polices à 2 têtes.
+Il faudra supprimer dans adjusted reserve la variable agelimite.
+
+- AX les chargements de gestion et aquisition sont à 0.25 alors qu'il devrait être à 0.32. A modifier dans Paramètre premiumLoading()
+
+- AX dans le calcul de l'adjusted reserve, le calcul du risque en cours est erroné, car il ne prend pas le risque en cours initiale
+et il ne prend pas la prime totale

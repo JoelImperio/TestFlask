@@ -75,6 +75,7 @@ def allocationDesClassPGG(p):
     p.loc[p['ClassPGGinit'].isin(['EP','MI']),'ClassPGG']= \
     p.loc[p['ClassPGGinit'].isin(['EP','MI']),'ClassPGGinit'].map(str)+ \
     p.loc[p['ClassPGGinit'].isin(['EP','MI']),'PMBTXINT'].map(str)
+
     
 ##############################################################################################################################
 #Permet d'ajouter une colonne contenant le taux chargement sur prime
@@ -88,9 +89,10 @@ def premiumLoading(p):
     
     #AX
     mask=(p['PMBMOD']==70)
-    
+
+#Les frais d'aquisition sont erronés il faut changer pour 0.32   
     p.loc[mask,'aquisitionLoading']=0.25   
-    
+#    p.loc[mask,'aquisitionLoading']=0.32       
 
 ##############################################################################################################################
 #Permet d'ajouter une colonne contenant les frais de fractionnement
