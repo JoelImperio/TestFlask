@@ -43,3 +43,5 @@ Il faudra supprimer dans adjusted reserve la variable agelimite.
 
 - AX dans le calcul de l'adjusted reserve, le calcul du risque en cours est erroné, car il ne prend pas le risque en cours initiale
 et il ne prend pas la prime totale
+
+-AX la methode premiumPrincipale prend en compte la fin de la garantie principale à 65 ans ce qui est erroné, il faudra enlever la condition sur l'âge limite

@@ -1,6 +1,6 @@
 from Portefeuille import Portfolio
 from Parametres import allRuns
-from Produits import FU
+from Produits import FU,AX
 import numpy as np
 import pandas as pd
 import time
@@ -24,12 +24,12 @@ class RUNPGG():
         fu=fu.PGG()
  
 #Celui-ci est faux mais sert à verifier que l'adition des sous-portefeuille se passe bien      
-        mi=FU(run=runNumber,PortfolioNew=isPortfolioNew, SinistralityNew=isSinistralityNew,\
+        ax=AX(run=runNumber,PortfolioNew=isPortfolioNew, SinistralityNew=isSinistralityNew,\
               LapseNew=isLapseNew,CostNew=isCostNew,RateNew=isRateNew)    
-        mi=mi.PGG()
+        ax=ax.PGG()
         
         pggTotal=pd.DataFrame(fu)
-        pggTotal=pggTotal.append([mi])
+        pggTotal=pggTotal.append([ax])
         
         
         return pggTotal
@@ -89,7 +89,7 @@ class RUNPGG():
 ###################################DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES#############################################
 ##############################################################################################################################       
  
-#run=RUNPGG()
+run=RUNPGG()
 
 #a=run.pggParSousPortefeuille()
 #b=run.pggTotal()

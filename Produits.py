@@ -94,9 +94,118 @@ class FU(Portfolio):
     def claimCompl(self):
         return self.fraisVisiteClaim()
     
+print("Class FU--- %s sec" %'%.2f'%  (time.time() - start_time))
+
+##############################################################################################################################
+#Création de la class Axiprotect
+##############################################################################################################################
+class AX(Portfolio):
+    mods=[70]
+    complPremium=0
+    capitalCompl=8000
+
+    
+    def __init__(self,run=allRuns,\
+                 PortfolioNew=True, SinistralityNew=True,LapseNew=True,CostNew=True,RateNew=True ):
+        super().__init__(runs=run,\
+             myPortfolioNew=PortfolioNew, mySinistralityNew=SinistralityNew,myLapseNew=LapseNew,myCostNew=CostNew,myRateNew=RateNew)
+        self.p=self.mod(self.mods)
+
+#L'age limite est erroné, il faudra supprimer cette condition  
+        self.agelimite=(self.age()<=65)
+
+#Permet de relancer l'update() en intégrant des methodes de la sous-classe
+    def update(self,subPortfolio):
+        super().update(subPortfolio)
+        self.loopNoSaving()
 
 
-  
+#Retourne les primes pures   
+    def purePremium(self):
+        prem=self.p['POLPRVIEHT']-self.p['POLPRCPLA']
+        return prem.to_numpy()[:,np.newaxis,np.newaxis]/self.frac()
+    
+#Retourne les primes des garanties complémentaires    
+    def premiumPrincipal(self):
+        
+        return self.purePremium()*self.nbrPolIfSM
+
+
+#Retourne la réserve mathémathique ajustée
+    def adjustedReserve(self):
+
+        
+        #Calcul du risque en cours
+        riderIncPP=self.purePremium()*self.isPremPay()*self.agelimite
+        riderIncPP2=self.purePremium()*self.agelimite
+        precPP=self.zero()
+        frek=self.frac()
+ 
+
+        for i in range(1,self.shape[1]):
+        
+            precPP[:,i,:]=precPP[:,i-1,:]+riderIncPP[:,i,:] - ((frek[:,i,:]/12)*riderIncPP2[:,i,:])
+                   
+        mathResBA=np.maximum(precPP,0)
+        mathResPP=mathResBA 
+        provMathIf=mathResPP*self.nbrPolIf
+        mathresIF=provMathIf
+        
+        mathResIfcorr=self.zero()       
+        mathResIfcorr[:,1:,:]=mathresIF[:,:-1,:]        
+        
+        #Primes pure encaissées
+        annPremPP=self.p['POLPRVIEHT'].to_numpy()[:,np.newaxis,np.newaxis]
+        CaFracPC=self.p['fraisFract'].to_numpy()[:,np.newaxis,np.newaxis]
+        CaPremPC=self.p['aquisitionLoading'].to_numpy()[:,np.newaxis,np.newaxis]
+        
+        prInventPP=(annPremPP*(1-CaPremPC))/CaFracPC
+        prPurePP=prInventPP
+        ppEncPP=(prPurePP/self.frac())*self.isPremPay()
+        pPureEnc=ppEncPP*self.nbrPolIfSM
+        
+           
+        #Sortie pour les claim principaux
+        riderCostOutgo=self.premiumPrincipal()*self.dcAccident()*self.isPremPay()*self.agelimite
+        
+
+        reserve=mathResIfcorr+pPureEnc-riderCostOutgo
+        reserve=np.maximum(reserve,0)
+        
+        return reserve
+
+
+#Retourne les sinistres décès 
+    def deathClaim(self):
+        nbDeath=self.nbrDeath
+        capitalDC=(self.p['POLPRCPLA']!=0)*self.capitalCompl
+        capital=capitalDC.to_numpy()[:,np.newaxis,np.newaxis]
+        return nbDeath*capital
+
+#Retourne les sinistre complémentaire frais de visite    
+    def accidentalDeathClaim(self):
+        
+        claimRate=self.dcAccident()
+
+        
+        premiumPrincipal=self.premiumPrincipal()
+        
+
+        premiumPrincipal=premiumPrincipal*self.agelimite
+        
+        claim=claimRate*premiumPrincipal*self.isPremPay()
+        
+        return claim
+
+#Retourne le total des claim pour la garantie principale    
+    def claimPrincipal(self):
+        return self.accidentalDeathClaim()
+
+#Retourne le total des claim pour les garanties complémentaires
+    def claimCompl(self):
+        return self.deathClaim() 
+
+print("Class AX--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 ##############################################################################################################################
 ###################################DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES#############################################
@@ -104,8 +213,8 @@ class FU(Portfolio):
 def tester(self):
     return self
 
-pol=FU()
-pol=AX()
+#pol=FU()
+#pol=AX()
 #pol=FU(run=[4,5])
 
 #pol.ids([2142501])
@@ -133,11 +242,11 @@ pol=AX()
 #t=pol.BEL()
 
 #bel=np.sum(pol.BEL(), axis=0)
-pgg=pol.PGG()
+#pgg=pol.PGG()
 
 
 
-print("Class FU--- %s sec" %'%.2f'%  (time.time() - start_time))
+
 
 
 

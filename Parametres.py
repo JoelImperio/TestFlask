@@ -98,7 +98,7 @@ def premiumLoading(p):
 #Permet d'ajouter une colonne contenant les frais de fractionnement
 ##############################################################################################################################
 def fraisFractionnement(p):
-    p=porN    
+
     mask12=(p['PMBFRACT']==12)
     mask6=(p['PMBFRACT']==6)
     mask4=(p['PMBFRACT']==4)
