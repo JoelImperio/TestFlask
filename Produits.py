@@ -41,7 +41,18 @@ class FU(Portfolio):
 #Retourne les primes pures de la garantie principale 
     def purePremium(self):
         return self.p['POLPRDECES'].to_numpy()[:,np.newaxis,np.newaxis]/self.frac()
-    
+
+#Retourne les risque en cours, soit les primes émises non aquises
+    def risqueEnCour(self):
+        
+        elapseTime=self.timeBeforeNextPay()
+        
+        purePremium=self.purePremium()
+        
+        reserve=purePremium*elapseTime*self.nbrPolIf 
+                      
+        return reserve
+  
 #Retourne la réserve mathémathique ajustée
     def adjustedReserve(self):
         
@@ -90,10 +101,11 @@ class FU(Portfolio):
 ##############################################################################################################################
 ###################################DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES#############################################
 ##############################################################################################################################
-def testerFU(self):
+def tester(self):
     return self
 
 pol=FU()
+pol=AX()
 #pol=FU(run=[4,5])
 
 #pol.ids([2142501])

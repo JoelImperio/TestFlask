@@ -40,20 +40,22 @@ class AX(Portfolio):
         return self.purePremium()*self.nbrPolIfSM
 
 
+
 #Retourne la réserve mathémathique ajustée
     def adjustedReserve(self):
 
 #L'age limite est erroné, il faudra supprimer cette condition   
         agelimite=(self.age()<=65)
         
+        #Report de primes
         riderIncPP=self.purePremium()*self.isPremPay()*agelimite
         riderIncPP2=self.purePremium()*agelimite
         precPP=self.zero()
-        frek=self.frac().item(0,0,0)
+        frek=self.frac()
         
         for i in range(1,self.shape[1]):
         
-            precPP[:,i,:]=precPP[:,i-1,:]+riderIncPP[:,i,:] - ((frek/12)*riderIncPP2[:,i,:])
+            precPP[:,i,:]=precPP[:,i-1,:]+riderIncPP[:,i,:] - ((frek[:,i,:]/12)*riderIncPP2[:,i,:])
             
         
         mathResBA=np.maximum(precPP,0)
@@ -61,8 +63,10 @@ class AX(Portfolio):
         provMathIf=mathResPP*self.nbrPolIf
         mathresIF=provMathIf
         
+        mathResIfcorr=self.zero()       
+        mathResIfcorr[:,1:,:]=mathresIF[:,:-1,:]        
         
-        
+        #Primes pure encaissées
         annPremPP=self.p['POLPRVIEHT'].to_numpy()[:,np.newaxis,np.newaxis]
         CaFracPC=self.p['fraisFract'].to_numpy()[:,np.newaxis,np.newaxis]
         CaPremPC=self.p['aquisitionLoading'].to_numpy()[:,np.newaxis,np.newaxis]
@@ -73,11 +77,10 @@ class AX(Portfolio):
         pPureEnc=ppEncPP*self.nbrPolIfSM
         
            
-        
+        #Sortie pour les claim principaux
         riderCostOutgo=self.premiumPrincipal()*self.dcAccident()*self.isPremPay()*agelimite
         
-        mathResIfcorr=self.zero()       
-        mathResIfcorr[:,1:,:]=mathresIF[:,:-1,:]
+
         reserve=mathResIfcorr+pPureEnc-riderCostOutgo
         reserve=np.maximum(reserve,0)
         
@@ -126,9 +129,9 @@ def testerAX(self):
 pol=AX()
 #pol=AX(run=[4,5])
 
-#pol.ids([2223701])
+#pol.ids([2222402,2511601,2547904,2556201,1764805,2372106,2540603])
 #pol.mod([70])
-#pol.modHead([9],2)
+#pol.modHead([70],2)
 
 #a=pol.nbrPolIf
 #b=pol.nbrPolIfSM
@@ -148,7 +151,7 @@ pol=AX()
 #q=pol.totalClaim()
 #r=pol.totalCommissions()
 #s=pol.totalExpense()
-#t=pol.BEL()
+t=pol.BEL()
 #u=pol.polTermM
 
 #bel=np.sum(pol.BEL(), axis=0)
@@ -173,7 +176,7 @@ def testerCas(self):
 
 
 
-monCas=riderCostOutgo
+monCas=l
 
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
@@ -193,42 +196,45 @@ z.to_csv(r'check.csv',header=False)
 #-->MathResIf a corriger
 
 #L'age limite est erroné, il faudra supprimer cette condition   
-        agelimite=(pol.age()<=65)
-        
-        riderIncPP=pol.purePremium()*pol.isPremPay()*agelimite
-        riderIncPP2=pol.purePremium()*agelimite
-        precPP=pol.zero()
-        frek=pol.frac().item(0,0,0)
-        
-        for i in range(1,pol.shape[1]):
-        
-            precPP[:,i,:]=precPP[:,i-1,:]+riderIncPP[:,i,:] - ((frek/12)*riderIncPP2[:,i,:])
-            
-        
-        mathResBA=np.maximum(precPP,0)
-        mathResPP=mathResBA 
-        provMathIf=mathResPP*pol.nbrPolIf
-        mathresIF=provMathIf
-        
-        
-        
-        annPremPP=pol.p['POLPRVIEHT'].to_numpy()[:,np.newaxis,np.newaxis]
-        CaFracPC=pol.p['fraisFract'].to_numpy()[:,np.newaxis,np.newaxis]
-        CaPremPC=pol.p['aquisitionLoading'].to_numpy()[:,np.newaxis,np.newaxis]
-        
-        prInventPP=(annPremPP*(1-CaPremPC))/CaFracPC
-        prPurePP=prInventPP
-        ppEncPP=(prPurePP/pol.frac())*pol.isPremPay()
-        pPureEnc=ppEncPP*pol.nbrPolIfSM
-        
-           
-        
-        riderCostOutgo=pol.premiumPrincipal()*pol.dcAccident()*pol.isPremPay()*agelimite
-        
-        mathResIfcorr=pol.zero()       
-        mathResIfcorr[:,1:,:]=mathresIF[:,:-1,:]
-        reserve=mathResIfcorr+pPureEnc-riderCostOutgo
-        reserve=np.maximum(reserve,0)
+#agelimite=(pol.age()<=65)
+#
+#riderIncPP=pol.purePremium()*pol.isPremPay()*agelimite
+#riderIncPP2=pol.purePremium()*agelimite
+#precPP=pol.zero()
+#frek=pol.frac()
+#
+#for i in range(1,pol.shape[1]):
+#
+#    precPP[:,i,:]=precPP[:,i-1,:]+riderIncPP[:,i,:] - ((frek[:,i,:]/12)*riderIncPP2[:,i,:])
+#    
+#
+#mathResBA=np.maximum(precPP,0)
+#mathResPP=mathResBA 
+#provMathIf=mathResPP*pol.nbrPolIf
+#mathresIF=provMathIf
+#mathResIfcorr=pol.zero()       
+#mathResIfcorr[:,1:,:]=mathresIF[:,:-1,:]
 
 
+#annPremPP=pol.p['POLPRVIEHT'].to_numpy()[:,np.newaxis,np.newaxis]
+#CaFracPC=pol.p['fraisFract'].to_numpy()[:,np.newaxis,np.newaxis]
+#CaPremPC=pol.p['aquisitionLoading'].to_numpy()[:,np.newaxis,np.newaxis]
+#
+#prInventPP=(annPremPP*(1-CaPremPC))/CaFracPC
+#prPurePP=prInventPP
+#ppEncPP=(prPurePP/pol.frac())*pol.isPremPay()
+#pPureEnc=ppEncPP*pol.nbrPolIfSM
+#
+#   
+#
+#riderCostOutgo=pol.premiumPrincipal()*pol.dcAccident()*pol.isPremPay()*agelimite
+#
+#
+#reserve=mathResIfcorr+pPureEnc-riderCostOutgo
+#reserve=np.maximum(reserve,0)
+
+
+
+#a=pd.DataFrame(mathresIF[:,:,0],index=pol.p['PMBPOL'])
+#aa=a.idxmax()
 
