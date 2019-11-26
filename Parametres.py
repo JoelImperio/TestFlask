@@ -75,6 +75,7 @@ def allocationDesClassPGG(p):
     p.loc[p['ClassPGGinit'].isin(['EP','MI']),'ClassPGG']= \
     p.loc[p['ClassPGGinit'].isin(['EP','MI']),'ClassPGGinit'].map(str)+ \
     p.loc[p['ClassPGGinit'].isin(['EP','MI']),'PMBTXINT'].map(str)
+
     
 ##############################################################################################################################
 #Permet d'ajouter une colonne contenant le taux chargement sur prime
@@ -88,15 +89,16 @@ def premiumLoading(p):
     
     #AX
     mask=(p['PMBMOD']==70)
-    
+
+#Les frais d'aquisition sont erronés il faut changer pour 0.32   
     p.loc[mask,'aquisitionLoading']=0.25   
-    
+#    p.loc[mask,'aquisitionLoading']=0.32       
 
 ##############################################################################################################################
 #Permet d'ajouter une colonne contenant les frais de fractionnement
 ##############################################################################################################################
 def fraisFractionnement(p):
-    p=porN    
+
     mask12=(p['PMBFRACT']==12)
     mask6=(p['PMBFRACT']==6)
     mask4=(p['PMBFRACT']==4)
@@ -132,7 +134,7 @@ def agesInitial(p):
     p['Age2AtEntry']=dateDebut.dt.year-dtNaiss2
     p.loc[p.Age2AtEntry==0,'Age2AtEntry']=999
     
-    
+   
 ##############################################################################################################################
 #Calcul de l'échéance des polices pour obtenir la durée des projections traité par modalité
 ##############################################################################################################################
@@ -144,7 +146,7 @@ def projectionLengh(p):
     #Dertermination des âges limites
     ageMaxFU=65
     ageMaxAX=80
-    
+    ageMaxHO=75
   
 #Traitement des mods 8 et 9
     mask=(p['PMBMOD']==8)|(p['PMBMOD']==9)
@@ -167,6 +169,10 @@ def projectionLengh(p):
     p.loc[mask,'residualTermM']=((ageMaxAX-p.loc[mask,'residualTermM'])*12)-p.loc[mask,'DurationIfInitial']
 
 
+ # Traitement des mod 58 (il faut ajuster les ages d'abord)
+    adjustedAgeHO(p)
+    mask=(p['PMBMOD']==58)
+    p.loc[mask,'residualTermM']=((ageMaxHO-p.loc[mask,'Age1AtEntry'])*12)-p.loc[mask,'DurationIfInitial']
     
     
     #Replacer 999 pour les deuxièmes assurés des polices à une tête
@@ -220,6 +226,40 @@ def adjustAgesAndTermForAX(p):
 
     
     
+##############################################################################################################################
+#Correction des ages pour HOSPITALIS. A supprimer pour corriger
+########################################################################################################################
+    
+def adjustedAgeHO(p):
+    
+   
+    
+    mask=(p['PMBMOD']==58)
+    
+    
+    date1=pd.to_datetime(p.loc[mask,'CLIDTNAISS'])
+       
+    moisnaiss1 = date1.dt.month*1
+    
+    
+    dateDebut=pd.to_datetime(p.loc[mask,'POLDTDEB'])
+    
+    
+#  Condition présente dans les DCS
+    mask2 =(np.absolute(date1.dt.month - dateDebut.dt.month) == 6)
+    
+    mask3 = (dateDebut.dt.day < date1.dt.day)
+    
+    moisnaiss1[mask3 & mask2] =  moisnaiss1+1
+    
+    age1=(((12*(dateDebut.dt.year-date1.dt.year)+dateDebut.dt.month-moisnaiss1)/12)+0.5).astype(int)
+
+    p.loc[mask,'Age1AtEntry']=age1
+
+# On force l'age 2 à 999 car les DCS ne prennent pas en compte la 2ème tête
+    p.loc[mask,'Age2AtEntry']=999
+    
+   
     
 ##############################################################################################################################
 #Permet de formater la dataframe du portefeuille des polices avant d'entrer dans la classe Hypo
@@ -247,7 +287,7 @@ def portfolioPreProcessing(p):
     
     
     agesInitial(p)
-
+    
 #Formatage des colonnes et création des colonnes utiles    
 
     p['DateCalcul']=pd.to_datetime(dateCalcul)
@@ -268,6 +308,8 @@ def portfolioPreProcessing(p):
     p['DurationIfInitial']=(pd.to_datetime(p['DateCalcul']).dt.year - pd.to_datetime(p['POLDTDEB']).dt.year)*12 \
     + pd.to_datetime(p['DateCalcul']).dt.month - pd.to_datetime(p['POLDTDEB']).dt.month + 1  
     
+    
+
     #Nombre de mois de projection selon la date de fin des polices
     projectionLengh(p)
     
@@ -285,6 +327,11 @@ def portfolioPreProcessing(p):
     
     #Ajout d'une colonne contenant les frais de fractionnement
     fraisFractionnement(p)
+    
+    # Ajustement des ages d'Hospitalis (Cela est erronné), ceci n'a pas lieu d'être, il est déjà fait dans projectionLengh(p)
+    # adjustedAgeHO(p)
+    
+
 
     return p
 
@@ -755,10 +802,10 @@ def testerHypo():
     return 0
 
 #myHypo=Hypo(Run=[0,5])
-#myHypo=Hypo()
+myHypo=Hypo()
 
-#myHypo.mod([8,9])
-#myHypo.ids([896002])
+# myHypo.mod([58])
+# p = myHypo.ids([10105])
 #myHypo.groupe(['MI3.5'])
 
 
@@ -787,7 +834,7 @@ def testerHypo():
 #zu=myHypo.reduction()
 #zv=myHypo.commissions()
 #zw=myHypo.inflation()
-
+# qq =myHypo.polTermM()
 print("Class Hypo--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 ###Visualiser un vecteur np en réduisant une dimension
