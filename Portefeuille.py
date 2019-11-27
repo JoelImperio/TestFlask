@@ -209,7 +209,7 @@ class Portfolio(Hypo):
 
 #Retourne le total des sinistres payés  
     def totalClaim(self):  
-        return self.claimPrincipal() +self.claimCompl()
+        return self.claimPrincipal() + self.claimCompl()
 
 #Retourne le total des commissions payées
     def totalCommissions(self):

@@ -14,8 +14,9 @@ start_time = time.time()
 ##############################################################################################################################
 
     
-class HO(Portfolio):
-    mods=[58]
+class PRECI(Portfolio):
+    mods=[26]
+
     # complPremium=pol.p['POLPRCPL2']
 
     
@@ -25,8 +26,8 @@ class HO(Portfolio):
              myPortfolioNew=PortfolioNew, mySinistralityNew=SinistralityNew,myLapseNew=LapseNew,myCostNew=CostNew,myRateNew=RateNew)
         self.p=self.mod(self.mods)
         
-    # Age limite pour hospitalis
-        self.agelimite=(self.age()-1<=75)
+        
+
 
 #Permet de relancer l'update() en intégrant des methodes de la sous-classe
     def update(self,subPortfolio):
@@ -35,71 +36,94 @@ class HO(Portfolio):
 
 
 
-
-
-
-
-
-#Retourne le total des claim pour les garanties complémentaires (RIDERC_OUTGO)
-    def claimCompl(self):
+#Retourne les primes pures   
+    def purePremium(self):
+        prem=pol.p['POLPRVIEHT']
+        return prem.to_numpy()[:,np.newaxis,np.newaxis]/self.frac()
+    
+#Retourne les primes des garanties complémentaires    
+    def premiumPrincipal(self):
         
-        annualPrem = (self.p['POLPRVIEHT'] + self.p['POLPRCPL2']).to_numpy()[:,np.newaxis,np.newaxis]
-        annualPrem = annualPrem / self.frac()
-        return self.hospi() * annualPrem * self.nbrPolIfSM * self.isPremPay()
+        return self.purePremium()*self.nbrPolIfSM
 
 
 #Retourne la réserve mathémathique ajustée
     def adjustedReserve(self):
 
-        annualPrem = (self.p['POLPRVIEHT'] + self.p['POLPRCPL2']).to_numpy()[:,np.newaxis,np.newaxis]
-        annualPrem = annualPrem / self.frac()
-        
-        riderC = self.hospi() * annualPrem * self.nbrPolIfSM
-        
-        
+  # Age limite pour hospitalis
+        pol.agelimite=((pol.age()-1)<=65)
+           
+        annualPrem = (pol.p['POLPRVIEHT']).to_numpy()[:,np.newaxis,np.newaxis]
+        annualPrem = annualPrem / pol.frac()   
+        riderC =  annualPrem * pol.isPremPay() *pol.dcAccident() * pol.nbrPolIfSM
+        pol.agelimite = pol.agelimite * pol.one()
         #Calcul du risque en cours
-        riderIncPP=self.claimCompl()*self.agelimite
-        riderIncPP2=riderC*self.agelimite
-        precPP=(self.p['PMBREC'] + self.p['PMBRECCPL']).to_numpy()[:,np.newaxis,np.newaxis] * self.one()
-        frek=self.frac()
- 
-
-        for i in range(1,self.shape[1]):
+        riderIncPP=annualPrem*pol.agelimite*pol.isPremPay()
+        riderIncPP2=annualPrem*pol.agelimite
         
+# Ne prend pas en compte les risque en cours du modelpoint ??? à modifier
+        # precPP=(pol.p['PMBREC'] + pol.p['PMBRECCPL']).to_numpy()[:,np.newaxis,np.newaxis] * pol.one()
+        precPP = pol.zero()
+        frek=pol.frac()
+
+        for i in range(1,pol.shape[1]):
             precPP[:,i,:]=precPP[:,i-1,:]+riderIncPP[:,i,:] - ((frek[:,i,:]/12)*riderIncPP2[:,i,:])
-                   
+            
+        CaFracPC=pol.p['fraisFract'].to_numpy()[:,np.newaxis,np.newaxis]
+        CaPremPC=pol.p['aquisitionLoading'].to_numpy()[:,np.newaxis,np.newaxis]
+        
+        ppureEnc = (annualPrem * (1-CaPremPC) / CaFracPC)* pol.isPremPay() *pol.nbrPolIfSM
+        
         mathResBA=np.maximum(precPP,0)
         mathResPP=mathResBA 
-        provMathIf=mathResPP*self.nbrPolIf
+        provMathIf=mathResPP*pol.nbrPolIf
         mathresIF=provMathIf
         
-        mathResIfcorr=self.zero()       
-        mathResIfcorr[:,1:,:]=mathresIF[:,:-1,:]        
-        
-        # #Primes pure encaissées
-        # annPremPP=self.p['POLPRVIEHT'].to_numpy()[:,np.newaxis,np.newaxis]
-        # CaFracPC=self.p['fraisFract'].to_numpy()[:,np.newaxis,np.newaxis]
-        # CaPremPC=self.p['aquisitionLoading'].to_numpy()[:,np.newaxis,np.newaxis]
-        
-        # prInventPP=(annPremPP*(1-CaPremPC))/CaFracPC
-        # prPurePP=prInventPP
-        # ppEncPP=(prPurePP/self.frac())*self.isPremPay()
-        # pPureEnc=ppEncPP*self.nbrPolIfSM
-        
-           
-        # #Sortie pour les claim principaux
-        # riderCostOutgo=self.premiumPrincipal()*self.dcAccident()*self.isPremPay()*self.agelimite
-        
+        mathResIfcorr=pol.zero()       
+        mathResIfcorr[:,1:,:]=mathresIF[:,:-1,:]  
+        mathResIfcorr = mathResIfcorr - riderC + ppureEnc
 
         reserve=mathResIfcorr
         reserve=np.maximum(reserve,0)
         
         return reserve
-    
-    
+        
 
-    def totalClaim(self):
-        return self.claimCompl()
+
+#Retourne les sinistres décès 
+    def deathClaim(self):
+        
+        capitalCompl = self.p['PMBCAPIT']
+        
+        nbDeath=self.nbrDeath
+        capitalDC=(self.p['POLPRCPLA']!=0)*capitalCompl
+        capital=capitalDC.to_numpy()[:,np.newaxis,np.newaxis]
+        return nbDeath*capital
+
+#Retourne les sinistre complémentaire frais de visite   
+        
+    def accidentalDeathClaim(self):
+     # A MODIFIER 
+        self.agelimite=((pol.age()-1)<=65)
+        claimRate=self.dcAccident()
+        premiumPrincipal=self.premiumPrincipal()
+        premiumPrincipal=premiumPrincipal*self.agelimite
+        claim=claimRate*premiumPrincipal*self.isPremPay()
+        
+        return claim
+
+#Retourne le total des claim pour la garantie principale    
+    def claimPrincipal(self):
+        return self.deathClaim()
+
+#Retourne le total des claim pour les garanties complémentaires
+    def claimCompl(self):
+        return self.accidentalDeathClaim() 
+
+
+
+
+#
 
 ##############################################################################################################################
 ###################################DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES#############################################
@@ -107,38 +131,39 @@ class HO(Portfolio):
     def tester(self):
         return self
 
-
-pol = HO()
+pol = PRECI()
+# pol = HO()
 #pol=AX()
 #pol=AX(run=[4,5])
 
-# pol.ids([65905])
+# pol.ids([269503])
 #pol.mod([70])
 #pol.modHead([70],2)
-# aa = pol.p
-# a=pol.nbrPolIf
+aa = pol.p
+# cc= pol.accidentalDeathClaim()
+a=pol.nbrPolIf
 # b=pol.nbrPolIfSM
 #c=pol.nbrMaturities
 # d=pol.nbrDeath
 #e=pol.nbrSurrender
 #f=pol.premiumCompl()
 #g=pol.purePremium()
-#h=pol.deathClaim()
+# h=pol.deathClaim()
 #i=pol.fraisVisiteClaim()
 #j=pol.timeBeforeNextPay()
 #k=pol.risqueEnCour()
-#l=pol.adjustedReserve()
+# l=pol.adjustedReserve()
 # m=pol.reserveExpense()
-#n=pol.unitExpense()
+# n=pol.unitExpense()
 # o=pol.totalPremium()
 # q=pol.totalClaim()
 # r=pol.totalCommissions()
 # s=pol.totalExpense()
-#t=pol.BEL()
+# t=pol.BEL()
 #u=pol.polTermM
 # t = pol.claimCompl()
-tt = pol.adjustedReserve()
-#bel=np.sum(pol.BEL(), axis=0)
+# tt = pol.adjustedReserve()
+# bel=np.sum(pol.BEL(), axis=0)
 #pgg=pol.PGG()
 
 
@@ -156,15 +181,14 @@ print("Class X--- %s sec" %'%.2f'%  (time.time() - start_time))
 def testerCas(self):
     return self
 
-monCas=tt
-
+monCas=a
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
 z=z.sum()
 z.to_csv(r'check.csv',header=False)
 
-# aa.to_excel("check portefeuille.xlsx", header = True )
+aa.to_excel("check portefeuille.xlsx", header = True )
 #Visualiser une dimension d'un numpy qui n'apparait pas
 
 #data=pol.lapse()

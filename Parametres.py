@@ -93,6 +93,10 @@ def premiumLoading(p):
 #Les frais d'aquisition sont erronés il faut changer pour 0.32   
     p.loc[mask,'aquisitionLoading']=0.25   
 #    p.loc[mask,'aquisitionLoading']=0.32       
+    
+    # PRECI
+    mask=(p['PMBMOD']==25)
+    p.loc[mask,'aquisitionLoading']=0.25
 
 ##############################################################################################################################
 #Permet d'ajouter une colonne contenant les frais de fractionnement
@@ -110,6 +114,15 @@ def fraisFractionnement(p):
     p.loc[mask6 & maskAX,'fraisFract']=1.06
     p.loc[mask4 & maskAX,'fraisFract']=1.05
     p.loc[mask2 & maskAX,'fraisFract']=1.04
+    
+    
+    maskPRECI=(p['PMBMOD']==25)
+    
+    p.loc[mask12 & maskPRECI,'fraisFract']=1.05
+    p.loc[mask6 & maskPRECI,'fraisFract']=1.04
+    p.loc[mask4 & maskPRECI,'fraisFract']=1.03
+    p.loc[mask2 & maskPRECI,'fraisFract']=1.02
+    
     
     p.loc[:,'fraisFract']=p.loc[:,'fraisFract'].fillna(1)
 
@@ -180,13 +193,13 @@ def projectionLengh(p):
 
 
 ##############################################################################################################################
-#Correction des ages et du résidual terme pour Axiprotect (Réplication Prophet) A supprimer pour corriger
+#Correction des ages et du résidual terme pour Axiprotect et Preciso (Réplication Prophet) A supprimer pour corriger
 ##############################################################################################################################
 
 def adjustAgesAndTermForAX(p):
 
 #    p=porN
-    mask=(p['PMBMOD']==70)
+    mask=(p['PMBMOD']==70)|(p['PMBMOD']==25)|(p['PMBMOD']==26)
     
     date1=pd.to_datetime(p.loc[mask,'CLIDTNAISS'])
     
@@ -804,7 +817,7 @@ def testerHypo():
 #myHypo=Hypo(Run=[0,5])
 myHypo=Hypo()
 
-# myHypo.mod([58])
+myHypo.mod([25])
 # p = myHypo.ids([10105])
 #myHypo.groupe(['MI3.5'])
 
