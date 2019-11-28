@@ -95,7 +95,7 @@ def premiumLoading(p):
 #    p.loc[mask,'aquisitionLoading']=0.32       
     
     # PRECI
-    mask=(p['PMBMOD']==25)
+    mask=(p['PMBMOD']==25)|(p['PMBMOD']==26)
     p.loc[mask,'aquisitionLoading']=0.25
 
 ##############################################################################################################################
@@ -116,7 +116,7 @@ def fraisFractionnement(p):
     p.loc[mask2 & maskAX,'fraisFract']=1.04
     
     
-    maskPRECI=(p['PMBMOD']==25)
+    maskPRECI=(p['PMBMOD']==25)|(p['PMBMOD']==26)
     
     p.loc[mask12 & maskPRECI,'fraisFract']=1.05
     p.loc[mask6 & maskPRECI,'fraisFract']=1.04

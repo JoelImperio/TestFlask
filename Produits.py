@@ -291,7 +291,7 @@ print("Class HO--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 
 class PRECI(Portfolio):
-    mods=[25]
+    mods=[25,26]
 
     # complPremium=pol.p['POLPRCPL2']
 
