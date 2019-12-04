@@ -32,7 +32,7 @@ def portfolioExtractionToCSV():
 #Execution de l'extraction du portefeuille de polices requête SQL en CSV
 ##############################################################################################################################    
 
-#portfolioExtractionToCSV()
+# portfolioExtractionToCSV()
 
 
 
@@ -78,7 +78,7 @@ def allocationDesClassPGG(p):
 
     
 ##############################################################################################################################
-#Permet d'ajouter une colonne contenant le taux chargement sur prime
+#Permet d'ajouter une colonne contenant le taux chargement d'ACQUISITION sur prime
 ############################################################################################################################## 
 def premiumLoading(p):
     
@@ -97,6 +97,25 @@ def premiumLoading(p):
     # PRECI
     mask=(p['PMBMOD']==25)|(p['PMBMOD']==26)
     p.loc[mask,'aquisitionLoading']=0.25
+    
+    
+    # Epargne retraite mod28
+    mask=(p['PMBMOD']==28)
+    p.loc[mask,'aquisitionLoading']=40.5
+    
+    
+    
+##############################################################################################################################
+#Permet d'ajouter une colonne contenant le taux chargement de GESTION sur prime
+###################################################################################################################### 
+    
+def premiumGestion(p):
+    
+    # Mod28
+    mask=(p['PMBMOD']==28)
+    p.loc[mask,'gestionLoading']=0.07
+ 
+ 
 
 ##############################################################################################################################
 #Permet d'ajouter une colonne contenant les frais de fractionnement
@@ -126,6 +145,18 @@ def fraisFractionnement(p):
     
     p.loc[:,'fraisFract']=p.loc[:,'fraisFract'].fillna(1)
 
+    
+##############################################################################################################################
+#Permet d'ajuster les fractionnement pour les polices avec fractionnement 0 (On force à 1 dans les DCS)
+##############################################################################################################################  
+    
+def adjustedFrac(p):
+    
+    maskmod = (p['PMBMOD']==28)
+    mask = (p['PMBFRACT']==0)
+    
+    p.loc[maskmod & mask, 'PMBFRACT'] = 1
+    
     
 ##############################################################################################################################
 #Calcul de l'âge initial (l'âge du deuxième assuré qui n'existe pas est fixé à 999)
@@ -182,8 +213,8 @@ def projectionLengh(p):
     p.loc[mask,'residualTermM']=((ageMaxAX-p.loc[mask,'residualTermM'])*12)-p.loc[mask,'DurationIfInitial']
 
 
- # Traitement des mod 58 (il faut ajuster les ages d'abord)
-    adjustedAgeHO(p)
+ # Traitement age de certaines modalité (il faut ajuster les ages d'abord)
+    adjustedAge(p)
     mask=(p['PMBMOD']==58)
     p.loc[mask,'residualTermM']=((ageMaxHO-p.loc[mask,'Age1AtEntry'])*12)-p.loc[mask,'DurationIfInitial']
     
@@ -196,7 +227,7 @@ def projectionLengh(p):
 #Correction des ages et du résidual terme pour Axiprotect et Preciso (Réplication Prophet) A supprimer pour corriger
 ##############################################################################################################################
 
-def adjustAgesAndTermForAX(p):
+def adjustAgesAndTerm(p):
 
 #    p=porN
     mask=(p['PMBMOD']==70)|(p['PMBMOD']==25)|(p['PMBMOD']==26)
@@ -240,23 +271,18 @@ def adjustAgesAndTermForAX(p):
     
     
 ##############################################################################################################################
-#Correction des ages pour HOSPITALIS. A supprimer pour corriger
+#Correction des ages pour HOSPITALIS/SERENITE . A supprimer pour corriger
 ########################################################################################################################
     
-def adjustedAgeHO(p):
+def adjustedAge(p):
     
-   
-    
-    mask=(p['PMBMOD']==58)
-    
+    mask=(p['PMBMOD']==58)|(p['PMBMOD']==11)
     
     date1=pd.to_datetime(p.loc[mask,'CLIDTNAISS'])
        
     moisnaiss1 = date1.dt.month*1
     
-    
     dateDebut=pd.to_datetime(p.loc[mask,'POLDTDEB'])
-    
     
 #  Condition présente dans les DCS
     mask2 =(np.absolute(date1.dt.month - dateDebut.dt.month) == 6)
@@ -273,6 +299,58 @@ def adjustedAgeHO(p):
     p.loc[mask,'Age2AtEntry']=999
     
    
+    
+    
+##############################################################################################################################
+#Correction des ages et residual pour TEMPORAIRE. A supprimer pour corriger
+########################################################################################################################
+
+def adjustedAgeTEMP(p):
+    # p=porN
+            
+    mask=(p['PMBMOD']==3)|(p['PMBMOD']==28)
+    
+    date1=pd.to_datetime(p.loc[mask,'CLIDTNAISS'])
+    
+    date2=pd.to_datetime(p.loc[mask,'CLIDTNAISS2'])
+    
+    dateDebut=pd.to_datetime(p.loc[mask,'POLDTDEB'])
+         
+    age1=(((12*(dateDebut.dt.year-date1.dt.year)+dateDebut.dt.month-date1.dt.month+(dateDebut.dt.day/100)-(date1.dt.day/100))/12)+0.5).astype(int)
+    age2=(((12*(dateDebut.dt.year-date2.dt.year)+dateDebut.dt.month-date2.dt.month+(dateDebut.dt.day/100)-(date2.dt.day/100))/12)+0.5).astype(int)
+
+    p.loc[mask,'Age1AtEntry']=age1
+    p.loc[mask,'Age2AtEntry']=age2
+ 
+    mask1=(mask) & (p['POLNBTETE']==1)    
+    p.loc[mask1,'residualTermM']= p.loc[mask1,'POLDURC']*12-p.loc[mask1,'DurationIfInitial']
+
+    mask2=(mask) & (p['POLNBTETE']==2) 
+    
+   
+    p.loc[mask2,'residualTermM']= p.loc[mask2,'POLDURC']*12-p.loc[mask2,'DurationIfInitial']
+ 
+    decalage=pd.ExcelFile(path  + '/Hypotheses/Decalage.xlsx').parse("Feuil1")
+    
+    decalage=decalage['DECALAGE'].to_dict()
+
+    p.loc[mask2,'ageDiff']=abs(p.loc[mask2,'Age1AtEntry']-p.loc[mask2,'Age2AtEntry'])
+    p.loc[mask1,'ageDiff']=p.loc[mask1,'ageDiff'].fillna(0)
+
+    
+    p['ageDecalage']=p['ageDiff'].map(decalage)
+
+    p.loc[mask2,'Age1AtEntry']=np.minimum(p.loc[mask2,'Age1AtEntry'],p.loc[mask2,'Age2AtEntry'])+ p.loc[mask2,'ageDecalage']
+    
+    p.loc[mask,'Age2AtEntry']=999
+    
+    p.loc[p['residualTermM']<0,'residualTermM']=0
+            
+        
+        
+        
+        
+        
     
 ##############################################################################################################################
 #Permet de formater la dataframe du portefeuille des polices avant d'entrer dans la classe Hypo
@@ -333,16 +411,24 @@ def portfolioPreProcessing(p):
     p['PMbasePGG']=p['PMBPRVMAT']+p['PMBPBEN']+p['PMBREC']+p['PMBRECCPL']
     
     #Traitement des ages et policy terme selon Prophet pour mod70 (nous pensons que cela est erroné)
-    adjustAgesAndTermForAX(p)
+    adjustAgesAndTerm(p)
+    
+    #Traitement des ages et policy terme selon Prophet pour les produits temporaires (nous pensons que cela est erroné)
+    adjustedAgeTEMP(p)
     
     # Ajout de la colonne contenant les chargements d'acquisition
     premiumLoading(p)
     
+    # Ajout de la colonne contenant les chargements de gestion
+    premiumGestion(p)
+    
+    
     #Ajout d'une colonne contenant les frais de fractionnement
     fraisFractionnement(p)
     
-    # Ajustement des ages d'Hospitalis (Cela est erronné), ceci n'a pas lieu d'être, il est déjà fait dans projectionLengh(p)
-    # adjustedAgeHO(p)
+    # JO Ajustement des fractionnements pour des polices avec frac = 0
+    adjustedFrac(p)
+    
     
 
 
@@ -698,7 +784,16 @@ class Hypo:
         #Dimensionner pour les runs et le portefeuille en appel    
         myReduction=myReduction[:,:,self.runs]
         
-        return myReduction
+        
+        # JO mensualisé selon le fractionnement le taux de reduction annuel/ JO ajout également de self.frac() qui était à 12 avant
+        myReduction = 1-(1-myReduction)**(1/self.frac())
+        
+        
+        #  Reduction rate au temps 0 = 0
+        myReduction[:,0,:] = 0
+        
+        # JO ajout de isLapse car la reduction n'apparait uniquement le mois d'avant le paiement de la prime
+        return myReduction*self.isLapse()
 
 #Retourne les taux de commissions incluant les commissions de gestion     
     def commissions(self):

@@ -45,3 +45,34 @@ Il faudra supprimer dans adjusted reserve la variable agelimite.
 et il ne prend pas la prime totale
 
 -AX la methode premiumPrincipale prend en compte la fin de la garantie principale à 65 ans ce qui est erroné, il faudra enlever la condition sur l'âge limite
+
+
+
+
+
+
+CHANGEMENT APPORTé DANS PARAMÈTRE
+
+- Ajout de AdjustedAge pour ajuster les âges pour certaines modalités
+
+- Ajout de adjustedAgeTEMP pour ajuster les âges d'une autre façon pour certaines modalité
+
+- Traitement des âges dans projectionLengh qui doit se faire avant le calcul de 'residualTermM'
+
+- Reduction rate corrigé, ajout du calcul en fonction du fractionnement ainsi qu'ajout de isLapse dans le return
+
+- ajout d'une fonction permettant de calculé les chargements de GESTION'
+
+
+
+CHANGEMENT APPORTER DANS PRODUITS
+
+- J'ai rajouter les produits HOSPITALIS (HO) et Preciso (PREC) en copiant collant certaines formule, il faut déterminé quelles sont les formule à remonté
+
+
+
+
+
+CHANGEMENT DANS QRY
+
+- Ajout de POLSIT dans Qry.txt (nécessaire pour les produits avec réduction possible)

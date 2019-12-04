@@ -135,6 +135,68 @@ class Portfolio(Hypo):
             
         return self
 
+
+
+#  LOOP A CHECK, modification nécessaire pour ne pas avoir d'écart (est utilisé pour MOD11 uniquement)
+    def loopSaving(self):
+            
+        nbrPolIf=self.one()
+        nbrDeath=self.zero()
+        nbrSurrender=self.zero()
+        nbrPolIfSM=self.zero()
+
+        lapseTiming=0.5
+        nbrMaturities=self.zero()
+        nbrNewRed = self.zero()
+        matRate=self.zero()
+        
+        polTermM=self.polTermM()
+        
+        matRate[polTermM + 1==self.durationIf()]=1
+        
+        lapseD=np.around(0.5 * self.lapse().astype(float), decimals = 45)
+        lapse = self.lapse()
+        
+        
+        reduction = self.reduction()
+        
+        qxy=self.qxyExpMens()
+        qxyD = np.round(0.5 * self.qxyExpMens().astype(float), decimals = 45)
+        
+        lapse=self.lapse()
+             
+        for i in range(1,self.shape[1]):
+            
+            nbrMaturities[:,i,:]=nbrPolIf[:,i-1,:]*matRate[:,i,:]
+            
+            nbrPolIfSM[:,i,:]=nbrPolIf[:,i-1,:] - nbrMaturities[:,i,:]
+            
+            nbrDeath[:,i,:]=nbrPolIfSM[:,i,:]*qxy[:,i,:]*(1-(lapseD[:,i,:]))
+            
+            nbrSurrender[:,i,:]=nbrPolIfSM[:,i,:]*lapse[:,i,:]*(1-(qxyD[:,i,:]))
+            
+            nbrNewRed[:,i,:] = (nbrPolIf[:,i-1,:] - nbrDeath[:,i,:] - nbrSurrender[:,i,:] - nbrMaturities[:,i,:]) * reduction[:,i,:]
+            
+            nbrPolIf[:,i,:]=nbrPolIf[:,i-1,:]-nbrDeath[:,i,:]-nbrSurrender[:,i,:]- nbrNewRed[:,i,:] - nbrMaturities[:,i,:]
+    
+    #Définition des variables récursives
+        
+        #Nombre de polices actives                                 
+        self.nbrPolIf=nbrPolIf
+        #Nombre de police actives en déduisant les échéances du mois
+        self.nbrPolIfSM=nbrPolIfSM
+        #Nombre de décès
+        self.nbrDeath=nbrDeath
+        #Nombre d'annulation de contrat
+        self.nbrSurrender=nbrSurrender
+        #Nombre de nouvelle réduction
+        self.nbrNewRed = nbrNewRed
+        return self
+
+
+
+
+
 #Retourne la durée écoulée depuis le dernier paiement de prime   
     def timeBeforeNextPay(self):
 

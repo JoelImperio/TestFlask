@@ -420,7 +420,7 @@ pol = PRECI()
 # pol.ids([2142501])
 #pol.mod([9])
 #pol.modHead([9],2)
-
+aa = pol.p
 #a=pol.nbrPolIf
 #b=pol.nbrPolIfSM
 #c=pol.nbrMaturities
@@ -456,6 +456,7 @@ z.to_csv(r'check.csv',header=False)
 
 
 
+aa.to_excel("check portefeuille.xlsx", header = True )
 
 
 
