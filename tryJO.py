@@ -33,6 +33,7 @@ class TEMP(Portfolio):
     def update(self,subPortfolio):
         super().update(subPortfolio)
         self.loopNoSaving()
+        
     
     
 # #  Retourne un vecteur de temps t (représente t dans prophet)
@@ -130,13 +131,10 @@ class TEMP(Portfolio):
 
 
 
-
-
-
     # Modalité 28 
 class EPP28(Portfolio):
     mods=[28]
-
+    addSumAssuree = 7500
 
     
     def __init__(self,run=allRuns,\
@@ -146,12 +144,13 @@ class EPP28(Portfolio):
         self.p=self.mod(self.mods)
 
 
-    
 #Permet de relancer l'update() en intégrant des methodes de la sous-classe (ICI la loop inforce possède la possibilité de réduction)
     def update(self,subPortfolio):
         super().update(subPortfolio)
         self.loopSaving()
-
+        self.loopReduction()
+        self.epargnAcqu()
+        self.pbAcqu()
 
 # Créer un vecteur de temporel en année depuis le début de la projection qui dépend du duration if
     def time(self):
@@ -165,21 +164,20 @@ class EPP28(Portfolio):
         return increment
 
 
-
-
 # Ici se trouve la projection des primes dans le futur en tenant compte de l'indexation
     def premIndex(self):
         
-        txIndex = (pol.p['POLINDEX'].to_numpy()[:,np.newaxis,np.newaxis]/100) * pol.one()
+        txIndex = (self.p['POLINDEX'].to_numpy()[:,np.newaxis,np.newaxis]/100) * self.one()
        
         # Les primes sont forcées à 0 lorsque la police est réduite
         mask = (self.p['POLSIT']==9)|(self.p['POLSIT']==4)|(self.p['PMBFRACT']==0)|(self.p['PMBFRACT']==5)
         premAnn = self.p['POLPRTOT'] * (1-mask)
         premAnn = premAnn.to_numpy()[:,np.newaxis,np.newaxis] * self.one()
-        premIndex = premAnn * (1 + txIndex)**pol.time()
+        premIndex = premAnn * (1 + txIndex)**self.time()
         
         return  premIndex
         # return premIndex
+
 
 #  Vecteur des primes total
     def totalPrem(self):
@@ -189,9 +187,7 @@ class EPP28(Portfolio):
 
 
 
-
-# Calcul de la prime pure annuelle
-        
+# Calcul de la prime pure annuelle  
     def ppurePP(self):
         
         #  Condition qui met des primes à 0 pour des fractionnements 5 ou 0 et polices réduite
@@ -199,7 +195,7 @@ class EPP28(Portfolio):
         premRider = (self.p['POLPRCPL9'] + self.p['POLPRCPLA']) * (1-mask)
         premRider = premRider.to_numpy()[:,np.newaxis,np.newaxis] * self.one()
         
-        # Determine les frais d'acquisition en fonction de l'année du contrat
+        # Determine les frais d'acquisition en fonction de l'année du contrat (A CHANGER CAR ON AURA SUREMENT DES CHGT SUR 1 2 ou 3 ANS pour d'autres polices)
         acquisitionLoading = (self.durationIf()<=12) * self.p['aquisitionLoading'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
         
         annPrem = self.premIndex()
@@ -224,12 +220,11 @@ class EPP28(Portfolio):
 #  calcul de l'épargne acquise par police hors PB
     def epargAcqu(self):
         
-        initEpargne = self.p['PMBPRVMAT']
+        initEpargne = self.p['PMBPRVMAT'].to_numpy()[:,np.newaxis]
         epargnAcquPP = self.zero()
         epargnAcquPP[:,0,:] = initEpargne
         prEncInv = self.prEncInvPP()
-        
-        # taux interet mensualisé
+    # taux interet mensualisé
         txInteret = self.txInt()
         
         for i in range(1,self.shape[1]):
@@ -240,26 +235,95 @@ class EPP28(Portfolio):
     
     
     
-    
-    
 #  PB acquise depuis le début du contrat
-        
     def pbAcqu(self):
-        
-        initPB = self.p['PMBPBEN']
-        pbAcquPP = self.zero()
-        pbAcquPP[:,0,:] = initPB
-        
-        # taux interet mensualisé
+        zero = self.zero()
+        initPB = self.p['PMBPBEN'].to_numpy()[:,np.newaxis]
+        pupBBenPP = self.zero()
+        pupBBenPP[:,0,:] = initPB
+        pbAcquAVPUP = self.zero()
+        pbAcquAPPUP =self.zero()
+    # taux interet mensualisé
         txInteret = self.txInt()
+        noPupsIf = self.nbrPupsIf
+        noNewPups = self.nbrNewRed
         
-#  Possibilité de le faire sans loop
+#  Possibilité de le faire sans loop (A VERIFIER)
         for i in range(1,self.shape[1]):
         
-            pbAcquPP[:,i,:]= pbAcquPP[:,i-1,:] * txInteret[:,i,:]
+            pupBBenPP[:,i,:] = pupBBenPP[:,i-1,:] * txInteret[:,i,:]
             
-        return pbAcquPP
+            pbAcquAVPUP[:,i,:] = pbAcquAPPUP[:,i-1,:] * txInteret[:,i,:]
+            
+            pbAcquAPPUP[:,i,:] = (pbAcquAVPUP[:,i,:] * (noPupsIf[:,i,:] - noNewPups[:,i,:]) + pupBBenPP[:,i,:] * noNewPups[:,i,:]) / noPupsIf[:,i,:]
+            # pbAcquAPPUP[:,i,:][noPupsIf[:,i,:] == 0] = zero[:,i,:]
+            
+    #Définition des variables récursives
+        #pb acquise par police AVANT nouvelle réduction                                 
+        self.pbAcquAVPUP=np.nan_to_num(pbAcquAVPUP)
+        #PB acquise par police APRES nouvelle réduction 
+        self.pbAcquAPPUP=np.nan_to_num(pbAcquAPPUP)
 
+
+
+
+
+
+
+# epargne acquise par police réduite APRES/AVANT nouvelles réductions
+    # @property
+    def epargnAcqu(self):
+        
+        eppAcquAPPUP = self.zero()
+        noPupsIf = self.nbrPupsIf
+        noNewPups = self.nbrNewRed
+        epAcquAVPUP = self.zero()
+        txInteret = self.txInt()
+        pupBenPP =self.epargAcqu()
+        
+        for i in range(1,self.shape[1]):
+            
+            epAcquAVPUP[:,i,:] = eppAcquAPPUP[:,i-1,:] * txInteret[:,i,:]
+            
+            eppAcquAPPUP[:,i,:] = (epAcquAVPUP[:,i,:] * (noPupsIf[:,i,:] - noNewPups[:,i,:]) + pupBenPP[:,i,:] * noNewPups[:,i,:]) / noPupsIf[:,i,:]
+
+           
+        
+        
+    #Définition des variables récursives
+        #Epargne acquise par police AVANT nouvelle réduction                                 
+        self.epAcquAVPUP=np.nan_to_num(epAcquAVPUP)
+        #Epargne acquise par police APRES nouvelle réduction 
+        self.eppAcquAPPUP=np.nan_to_num(eppAcquAPPUP)
+        
+        self.pupBenPP = np.nan_to_num(pupBenPP)
+
+
+        
+# benefice en cas de mort d'une police réduite
+        
+    def pupDeath(self):
+        return np.nan_to_num(self.epAcquAVPUP + self.pbAcquAVPUP)
+    
+
+
+# benefit en cas de mort (DEATH OUTGO)
+    def deathClaim(self):
+        
+        deathBenefit = self.pbAcquAPPUP + self.epargAcqu() + self.addSumAssuree
+        
+        deathClaim = deathBenefit * self.nbrDeath + self.pupDeath() * self.nbrPupDeath
+        
+        return np.nan_to_num(deathClaim)
+
+    
+    def test(self):
+        
+        pbAcquAPPUP = self.pbAcquAPPUP
+        pbAcquAPPUP[:,0,:] = self.p['PMBPBEN'].to_numpy()[:,np.newaxis]
+    
+        return pbAcquAPPUP + self.epargAcqu()
+    
 ##############################################################################################################################
 ###################################DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES#############################################
 ##############################################################################################################################
@@ -267,12 +331,23 @@ class EPP28(Portfolio):
         return self
 
 pol = EPP28()
-pol.ids([1912101])
-
-check = pol.ppurePP()
-check2 = pol.prEncInvPP()
-epp = pol.epargAcqu()
-pbb = pol.pbAcqu()
+# pol.ids([493202, 524401])
+testt = pol.test()
+nopupif = pol.nbrPupsIf
+nonvewred = pol.nbrNewRed
+epAcquAVPUP = pol.epAcquAVPUP
+eppAcquAPPUP33 = pol.eppAcquAPPUP
+pupEben = pol.pbAcqu()
+deathbenef = pol.deathClaim()
+pupdthbPP = pol.pupDeath()
+pbAcquAVPUP = pol.pbAcquAVPUP
+pbacquAPPUP = pol.pbAcquAPPUP
+deathpup=pol.nbrPupDeath
+epargneacquise = pol.epargAcqu()
+# check = pol.ppurePP()
+# check2 = pol.prEncInvPP()
+# epp = pol.epargAcqu()
+# pbb = pol.pbAcqu()
 # pol = HO()
 #pol=AX()
 #pol=AX(run=[4,5])
@@ -309,12 +384,12 @@ r=pol.totalCommissions()
 #pgg=pol.PGG()
 # ll = pol.l_val()
 nn = pol.nbrNewRed
-
+pupbenPPP = pol.pupBenPP
 print("Class X--- %s sec" %'%.2f'%  (time.time() - start_time))
 
  # pol.p=pol.modHead(pol.modHeads)
 
-
+iii = pol.eppAcquAPPUP
 
 
 ##############################################################################################################################
@@ -322,8 +397,8 @@ print("Class X--- %s sec" %'%.2f'%  (time.time() - start_time))
 ##############################################################################################################################
 def testerCas(self):
     return self
-iii = pol.totalPrem()
-monCas=o
+# iii = pol.totalPrem()
+monCas=deathbenef
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])

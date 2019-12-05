@@ -154,14 +154,15 @@ class Portfolio(Hypo):
         
         matRate[polTermM + 1==self.durationIf()]=1
         
-        lapseD=np.around(0.5 * self.lapse().astype(float), decimals = 45)
+        lapseD=0.5 * self.lapse()
         lapse = self.lapse()
         
         
         reduction = self.reduction()
         
         qxy=self.qxyExpMens()
-        qxyD = np.round(0.5 * self.qxyExpMens().astype(float), decimals = 45)
+ 
+        qxyD =0.5 * self.qxyExpMens()
         
         lapse=self.lapse()
              
@@ -192,6 +193,75 @@ class Portfolio(Hypo):
         #Nombre de nouvelle réduction
         self.nbrNewRed = nbrNewRed
         return self
+
+
+
+
+
+
+
+
+
+# calcul des propabilité inforce des réduction
+
+    def loopReduction(self):
+        
+        noNewPups = self.nbrNewRed
+        
+        nbrPupsIf=self.zero()
+        nbrPupDeath=self.zero()
+        nbrPupSurrender=self.zero()
+        nbrPupIfSM=self.zero()
+
+        lapseTiming=0.5
+        nbrPupMaturities=self.zero()
+
+        matRate=self.zero()
+        
+        polTermM=self.polTermM()
+        
+        matRate[polTermM + 1==self.durationIf()]=1
+        
+        lapse = self.lapse()
+        
+        qxy=self.qxyExpMens()
+        
+        lapse=self.lapse()
+             
+        for i in range(1,self.shape[1]):
+            
+            nbrPupMaturities[:,i,:]=nbrPupsIf[:,i-1,:]*matRate[:,i,:]
+            
+            nbrPupIfSM[:,i,:]=nbrPupsIf[:,i-1,:] - nbrPupMaturities[:,i,:]
+            
+            nbrPupDeath[:,i,:]=nbrPupIfSM[:,i,:]*qxy[:,i,:]*(1-(lapseTiming*lapse[:,i,:]))
+            
+            nbrPupSurrender[:,i,:]=nbrPupIfSM[:,i,:]*lapse[:,i,:]*(1-(lapseTiming*qxy[:,i,:]))
+            
+            nbrPupsIf[:,i,:]=nbrPupsIf[:,i-1,:]-nbrPupDeath[:,i,:]-nbrPupSurrender[:,i,:] - nbrPupMaturities[:,i,:] + noNewPups[:,i,:]
+    
+    #Définition des variables récursives
+        
+        #Nombre de polices actives                                 
+        self.nbrPupsIf=nbrPupsIf
+        #Nombre de police actives en déduisant les échéances du mois
+        self.nbrPupIfSM=nbrPupIfSM
+        #Nombre de décès
+        self.nbrPupDeath=nbrPupDeath
+        #Nombre d'annulation de contrat
+        self.nbrPupSurrender=nbrPupSurrender
+
+
+
+        return self
+       
+
+
+
+
+
+
+
 
 
 

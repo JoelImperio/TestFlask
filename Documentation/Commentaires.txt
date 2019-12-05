@@ -51,6 +51,10 @@ et il ne prend pas la prime totale
 
 
 
+
+
+
+
 CHANGEMENT APPORTé DANS PARAMÈTRE
 
 - Ajout de AdjustedAge pour ajuster les âges pour certaines modalités
@@ -63,6 +67,12 @@ CHANGEMENT APPORTé DANS PARAMÈTRE
 
 - ajout d'une fonction permettant de calculé les chargements de GESTION'
 
+- Ajout de la loop permettant de calculer les polices réduite inforce
+
+
+
+
+
 
 
 CHANGEMENT APPORTER DANS PRODUITS
@@ -73,6 +83,8 @@ CHANGEMENT APPORTER DANS PRODUITS
 
 
 
+
+
 CHANGEMENT DANS QRY
 
-- Ajout de POLSIT dans Qry.txt (nécessaire pour les produits avec réduction possible)
+- Ajout de POLSIT et POLCPLA et POLCPL9 dans Qry.txt (nécessaire pour les produits avec réduction possible)
