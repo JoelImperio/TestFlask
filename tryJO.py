@@ -162,6 +162,18 @@ class EPP28(Portfolio):
         increment = np.floor(increment)
         
         return increment
+    
+    
+# Créer un vecteur correspondans a calendar_month dans prophet (le mois de la projection)
+    def calendarMonth(self):
+        
+        increment = np.cumsum(self.one(), axis = 1) -2
+        increment = increment%12 +1
+        # increment[:,0,:] = 12
+        return increment
+    
+    
+    
 
 
 # Ici se trouve la projection des primes dans le futur en tenant compte de l'indexation
@@ -237,32 +249,34 @@ class EPP28(Portfolio):
     
 #  PB acquise depuis le début du contrat
     def pbAcqu(self):
-        zero = self.zero()
+    
         initPB = self.p['PMBPBEN'].to_numpy()[:,np.newaxis]
         pupBBenPP = self.zero()
         pupBBenPP[:,0,:] = initPB
         pbAcquAVPUP = self.zero()
         pbAcquAPPUP =self.zero()
-    # taux interet mensualisé
+        # taux interet mensualisé
         txInteret = self.txInt()
         noPupsIf = self.nbrPupsIf
         noNewPups = self.nbrNewRed
         
-#  Possibilité de le faire sans loop (A VERIFIER)
+        #  Possibilité de le faire sans loop (A VERIFIER)
         for i in range(1,self.shape[1]):
         
             pupBBenPP[:,i,:] = pupBBenPP[:,i-1,:] * txInteret[:,i,:]
             
             pbAcquAVPUP[:,i,:] = pbAcquAPPUP[:,i-1,:] * txInteret[:,i,:]
             
-            pbAcquAPPUP[:,i,:] = (pbAcquAVPUP[:,i,:] * (noPupsIf[:,i,:] - noNewPups[:,i,:]) + pupBBenPP[:,i,:] * noNewPups[:,i,:]) / noPupsIf[:,i,:]
+            pbAcquAPPUP[:,i,:] = np.nan_to_num((pbAcquAVPUP[:,i,:] * (noPupsIf[:,i,:] - noNewPups[:,i,:]) + pupBBenPP[:,i,:] * noNewPups[:,i,:]) / noPupsIf[:,i,:])
             # pbAcquAPPUP[:,i,:][noPupsIf[:,i,:] == 0] = zero[:,i,:]
             
-    #Définition des variables récursives
+        #Définition des variables récursives
         #pb acquise par police AVANT nouvelle réduction                                 
-        self.pbAcquAVPUP=np.nan_to_num(pbAcquAVPUP)
+        self.pbAcquAVPUP=pbAcquAVPUP
         #PB acquise par police APRES nouvelle réduction 
-        self.pbAcquAPPUP=np.nan_to_num(pbAcquAPPUP)
+        self.pbAcquAPPUP=pbAcquAPPUP
+        # PB acquise
+        self.pbAcquPP = pupBBenPP
 
 
 
@@ -285,18 +299,18 @@ class EPP28(Portfolio):
             
             epAcquAVPUP[:,i,:] = eppAcquAPPUP[:,i-1,:] * txInteret[:,i,:]
             
-            eppAcquAPPUP[:,i,:] = (epAcquAVPUP[:,i,:] * (noPupsIf[:,i,:] - noNewPups[:,i,:]) + pupBenPP[:,i,:] * noNewPups[:,i,:]) / noPupsIf[:,i,:]
-
+            eppAcquAPPUP[:,i,:] = np.nan_to_num((epAcquAVPUP[:,i,:] * (noPupsIf[:,i,:] - noNewPups[:,i,:]) + pupBenPP[:,i,:] * noNewPups[:,i,:]) / noPupsIf[:,i,:])
            
+        
         
         
     #Définition des variables récursives
         #Epargne acquise par police AVANT nouvelle réduction                                 
-        self.epAcquAVPUP=np.nan_to_num(epAcquAVPUP)
+        self.epAcquAVPUP=epAcquAVPUP
         #Epargne acquise par police APRES nouvelle réduction 
-        self.eppAcquAPPUP=np.nan_to_num(eppAcquAPPUP)
+        self.eppAcquAPPUP=eppAcquAPPUP
         
-        self.pupBenPP = np.nan_to_num(pupBenPP)
+        self.pupBenPP = pupBenPP
 
 
         
@@ -307,22 +321,71 @@ class EPP28(Portfolio):
     
 
 
-# benefit en cas de mort (DEATH OUTGO)
+
+#  epargne et PB calculée au taux de PB
+        
+    # def eparPB(self):
+        
+    #     txIntAnn = self.p['POLINTERG'].to_numpy()[:,np.newaxis, np.newaxis] * self.one()/100
+    #     initPB = self.p['PMBPBEN'].to_numpy()[:,np.newaxis]
+    #     initEpargne = self.p['PMBPRVMAT'].to_numpy()[:,np.newaxis]
+        
+    #     eparPB = self.zero()
+    #     eparPB[:,0,:] = initPB + initEpargne
+        
+    #     calendarMonth = self.calendarMonth()
+        
+    #     for i in range(1,self.shape[1]):
+    #         # eparPB[:,i,:] = eparPB[:,i-1,:] * (1 + txIntAnn[:,i,:])/(1+ txIntAnn[:,i,:]**(((12 - (12-calendarMonth[:,i,:])%12 ))/12))
+    #         eparPB[:,i,:] = eparPB[:,i-1,:] * (1 + txIntAnn[:,i,:])**(calendarMonth/12)
+
+    #     return eparPB
+
+
+
+# benefit en cas de mort (DEATH_OUTGO)
     def deathClaim(self):
         
-        deathBenefit = self.pbAcquAPPUP + self.epargAcqu() + self.addSumAssuree
+        deathBenefit = self.pbAcquPP + self.epargAcqu() + self.addSumAssuree
         
         deathClaim = deathBenefit * self.nbrDeath + self.pupDeath() * self.nbrPupDeath
         
         return np.nan_to_num(deathClaim)
 
     
+    
+    
+    
+    def mathresBA(self):
+
+        return self.epargAcqu() + self.pbAcquPP
+    
+    
+    
+#  benefit en cas d'annulation (SURR_OUTGO)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     def test(self):
         
-        pbAcquAPPUP = self.pbAcquAPPUP
-        pbAcquAPPUP[:,0,:] = self.p['PMBPBEN'].to_numpy()[:,np.newaxis]
+
     
-        return pbAcquAPPUP + self.epargAcqu()
+        return self.pbAcquPP + self.epargAcqu() + self.addSumAssuree
     
 ##############################################################################################################################
 ###################################DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES#############################################
@@ -331,19 +394,21 @@ class EPP28(Portfolio):
         return self
 
 pol = EPP28()
-# pol.ids([493202, 524401])
+pol.ids([956002])
 testt = pol.test()
-nopupif = pol.nbrPupsIf
-nonvewred = pol.nbrNewRed
-epAcquAVPUP = pol.epAcquAVPUP
-eppAcquAPPUP33 = pol.eppAcquAPPUP
-pupEben = pol.pbAcqu()
+# nopupif = pol.nbrPupsIf
+# nonvewred = pol.nbrNewRed
+# epAcquAVPUP = pol.epAcquAVPUP
+# eppAcquAPPUP33 = pol.eppAcquAPPUP
+# pupEben = pol.pbAcqu()
 deathbenef = pol.deathClaim()
-pupdthbPP = pol.pupDeath()
-pbAcquAVPUP = pol.pbAcquAVPUP
-pbacquAPPUP = pol.pbAcquAPPUP
-deathpup=pol.nbrPupDeath
-epargneacquise = pol.epargAcqu()
+# pupdthbPP = pol.pupDeath()
+# pbAcquAVPUP = pol.pbAcquAVPUP
+# pbacquAPPUP = pol.pbAcquAPPUP
+# deathpup=pol.nbrPupDeath
+# epargneacquise = pol.epargAcqu()
+# pbacquPP= pol.pbAcquPP
+# eparPB = pol.eparPB()
 # check = pol.ppurePP()
 # check2 = pol.prEncInvPP()
 # epp = pol.epargAcqu()
