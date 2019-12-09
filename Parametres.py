@@ -101,7 +101,7 @@ def premiumLoading(p):
     
     # Epargne retraite mod28
     mask=(p['PMBMOD']==28)
-    p.loc[mask,'aquisitionLoading']=40.5
+    p.loc[mask,'aquisitionLoading']= (45 * np.minimum(p['POLDURC'], 20) /20)
     
     
     

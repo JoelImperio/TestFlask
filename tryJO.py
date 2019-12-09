@@ -135,6 +135,7 @@ class TEMP(Portfolio):
 class EPP28(Portfolio):
     mods=[28]
     addSumAssuree = 7500
+    premDCmaladie = 48
 
     
     def __init__(self,run=allRuns,\
@@ -188,7 +189,6 @@ class EPP28(Portfolio):
         premIndex = premAnn * (1 + txIndex)**self.time()
         
         return  premIndex
-        # return premIndex
 
 
 #  Vecteur des primes total
@@ -202,9 +202,10 @@ class EPP28(Portfolio):
 # Calcul de la prime pure annuelle  
     def ppurePP(self):
         
-        #  Condition qui met des primes à 0 pour des fractionnements 5 ou 0 et polices réduite
+        
+       #  Condition qui met des primes à 0 pour des fractionnements 5 ou 0 et polices réduite
         mask = (self.p['POLSIT']==9)|(self.p['POLSIT']==4)|(self.p['PMBFRACT']==0)|(self.p['PMBFRACT']==5)
-        premRider = (self.p['POLPRCPL9'] + self.p['POLPRCPLA']) * (1-mask)
+        premRider = (self.p['POLPRCPL9']) * (1-mask)
         premRider = premRider.to_numpy()[:,np.newaxis,np.newaxis] * self.one()
         
         # Determine les frais d'acquisition en fonction de l'année du contrat (A CHANGER CAR ON AURA SUREMENT DES CHGT SUR 1 2 ou 3 ANS pour d'autres polices)
@@ -219,7 +220,7 @@ class EPP28(Portfolio):
 #  calcul de la prime encaissée investie par police
     def prEncInvPP(self):
         
-        return self.ppurePP()/self.frac()
+        return self.isPremPay() * self.ppurePP()/self.frac()
 
 
 #  taux d'intêret mensualisé
@@ -394,7 +395,7 @@ class EPP28(Portfolio):
         return self
 
 pol = EPP28()
-pol.ids([956002])
+# pol.ids([1023002])
 testt = pol.test()
 # nopupif = pol.nbrPupsIf
 # nonvewred = pol.nbrNewRed
@@ -406,8 +407,8 @@ deathbenef = pol.deathClaim()
 # pbAcquAVPUP = pol.pbAcquAVPUP
 # pbacquAPPUP = pol.pbAcquAPPUP
 # deathpup=pol.nbrPupDeath
-# epargneacquise = pol.epargAcqu()
-# pbacquPP= pol.pbAcquPP
+epargneacquise = pol.epargAcqu()
+pbacquPP= pol.pbAcquPP
 # eparPB = pol.eparPB()
 # check = pol.ppurePP()
 # check2 = pol.prEncInvPP()
@@ -474,5 +475,5 @@ ss = pol.p
 ss.to_excel("check portefeuille.xlsx", header = True )
 #Visualiser une dimension d'un numpy qui n'apparait pas
 test = pol.reduction()
-data=test
-a=pd.DataFrame(data[:,:,0])
+# data=pupEben
+# a=pd.DataFrame(data[:,:,0])
