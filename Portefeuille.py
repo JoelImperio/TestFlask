@@ -152,17 +152,16 @@ class Portfolio(Hypo):
         
         polTermM=self.polTermM()
         
-        matRate[polTermM + 1==self.durationIf()]=1
+        matRate[polTermM+1 ==self.durationIf()]=1
         
-        lapseD=0.5 * self.lapse()
+        lapseD=lapseTiming * self.lapse()
         lapse = self.lapse()
-        
         
         reduction = self.reduction()
         
         qxy=self.qxyExpMens()
  
-        qxyD =0.5 * self.qxyExpMens()
+        qxyD =lapseTiming * self.qxyExpMens()
         
         lapse=self.lapse()
              
@@ -180,6 +179,7 @@ class Portfolio(Hypo):
             
             nbrPolIf[:,i,:]=nbrPolIf[:,i-1,:]-nbrDeath[:,i,:]-nbrSurrender[:,i,:]- nbrNewRed[:,i,:] - nbrMaturities[:,i,:]
     
+    
     #Définition des variables récursives
         
         #Nombre de polices actives                                 
@@ -192,6 +192,9 @@ class Portfolio(Hypo):
         self.nbrSurrender=nbrSurrender
         #Nombre de nouvelle réduction
         self.nbrNewRed = nbrNewRed
+        # Nombre de nouvelle maturités
+        self.nbrNewMat = nbrMaturities
+        
         return self
 
 
@@ -220,7 +223,7 @@ class Portfolio(Hypo):
         
         polTermM=self.polTermM()
         
-        matRate[polTermM + 1==self.durationIf()]=1
+        matRate[polTermM+1 ==self.durationIf()]=1
         
         lapse = self.lapse()
         
@@ -240,6 +243,7 @@ class Portfolio(Hypo):
             
             nbrPupsIf[:,i,:]=nbrPupsIf[:,i-1,:]-nbrPupDeath[:,i,:]-nbrPupSurrender[:,i,:] - nbrPupMaturities[:,i,:] + noNewPups[:,i,:]
     
+    
     #Définition des variables récursives
         
         #Nombre de polices actives                                 
@@ -250,16 +254,11 @@ class Portfolio(Hypo):
         self.nbrPupDeath=nbrPupDeath
         #Nombre d'annulation de contrat
         self.nbrPupSurrender=nbrPupSurrender
-
-
+        # Nombre de police réduite arrivant à maturité
+        self.nbrPupMat = nbrPupMaturities
 
         return self
        
-
-
-
-
-
 
 
 

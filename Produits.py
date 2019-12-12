@@ -416,7 +416,7 @@ pol = PRECI()
 #pol=FU()
 # pol=AX()
 #pol=FU(run=[4,5])
-
+nomat = pol.nbrMaturities
 # pol.ids([2142501])
 #pol.mod([9])
 #pol.modHead([9],2)

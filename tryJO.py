@@ -135,7 +135,8 @@ class TEMP(Portfolio):
 class EPP28(Portfolio):
     mods=[28]
     addSumAssuree = 7500
-    premDCmaladie = 48
+    protectionAvCap = 25000
+    
 
     
     def __init__(self,run=allRuns,\
@@ -152,6 +153,8 @@ class EPP28(Portfolio):
         self.loopReduction()
         self.epargnAcqu()
         self.pbAcqu()
+        self.matOutgo()
+
 
 # Créer un vecteur de temporel en année depuis le début de la projection qui dépend du duration if
     def time(self):
@@ -176,7 +179,6 @@ class EPP28(Portfolio):
     
     
 
-
 # Ici se trouve la projection des primes dans le futur en tenant compte de l'indexation
     def premIndex(self):
         
@@ -191,12 +193,13 @@ class EPP28(Portfolio):
         return  premIndex
 
 
-#  Vecteur des primes total
-    def totalPrem(self):
+
+#  Vecteur des primes total encourue inforce
+    def totalPremium(self):
         
         totPrem = self.isPremPay() * self.premIndex() * self.nbrPolIfSM/self.frac()
+        
         return totPrem
-
 
 
 # Calcul de la prime pure annuelle  
@@ -218,8 +221,7 @@ class EPP28(Portfolio):
     
     
 #  calcul de la prime encaissée investie par police
-    def prEncInvPP(self):
-        
+    def prEncInvPP(self): 
         return self.isPremPay() * self.ppurePP()/self.frac()
 
 
@@ -230,7 +232,7 @@ class EPP28(Portfolio):
 
 
 
-#  calcul de l'épargne acquise par police hors PB
+  # calcul de l'épargne acquise par police hors PB
     def epargAcqu(self):
         
         initEpargne = self.p['PMBPRVMAT'].to_numpy()[:,np.newaxis]
@@ -240,6 +242,7 @@ class EPP28(Portfolio):
     # taux interet mensualisé
         txInteret = self.txInt()
         
+    # loop de l'épargne acquise par police, (epargne acquise t-1 + prime investie capitalisé au taux d'intêret)
         for i in range(1,self.shape[1]):
         
             epargnAcquPP[:,i,:]= (epargnAcquPP[:,i-1,:] + prEncInv[:,i,:]) * txInteret[:,i,:]
@@ -250,28 +253,31 @@ class EPP28(Portfolio):
     
 #  PB acquise depuis le début du contrat
     def pbAcqu(self):
-    
-        initPB = self.p['PMBPBEN'].to_numpy()[:,np.newaxis]
+        
         pupBBenPP = self.zero()
+        initPB = self.p['PMBPBEN'].to_numpy()[:,np.newaxis]
         pupBBenPP[:,0,:] = initPB
         pbAcquAVPUP = self.zero()
         pbAcquAPPUP =self.zero()
+        
         # taux interet mensualisé
         txInteret = self.txInt()
         noPupsIf = self.nbrPupsIf
         noNewPups = self.nbrNewRed
         
-        #  Possibilité de le faire sans loop (A VERIFIER)
+        #  Possibilité de peut-être le faire sans loop (A VERIFIER)
         for i in range(1,self.shape[1]):
         
             pupBBenPP[:,i,:] = pupBBenPP[:,i-1,:] * txInteret[:,i,:]
             
             pbAcquAVPUP[:,i,:] = pbAcquAPPUP[:,i-1,:] * txInteret[:,i,:]
             
+# DIVISION PAR 0 A REGLER !!!!
             pbAcquAPPUP[:,i,:] = np.nan_to_num((pbAcquAVPUP[:,i,:] * (noPupsIf[:,i,:] - noNewPups[:,i,:]) + pupBBenPP[:,i,:] * noNewPups[:,i,:]) / noPupsIf[:,i,:])
-            # pbAcquAPPUP[:,i,:][noPupsIf[:,i,:] == 0] = zero[:,i,:]
+            
             
         #Définition des variables récursives
+        
         #pb acquise par police AVANT nouvelle réduction                                 
         self.pbAcquAVPUP=pbAcquAVPUP
         #PB acquise par police APRES nouvelle réduction 
@@ -286,7 +292,6 @@ class EPP28(Portfolio):
 
 
 # epargne acquise par police réduite APRES/AVANT nouvelles réductions
-    # @property
     def epargnAcqu(self):
         
         eppAcquAPPUP = self.zero()
@@ -300,12 +305,12 @@ class EPP28(Portfolio):
             
             epAcquAVPUP[:,i,:] = eppAcquAPPUP[:,i-1,:] * txInteret[:,i,:]
             
+ # DIVISION PAR 0 A REGLER !!!!           
             eppAcquAPPUP[:,i,:] = np.nan_to_num((epAcquAVPUP[:,i,:] * (noPupsIf[:,i,:] - noNewPups[:,i,:]) + pupBenPP[:,i,:] * noNewPups[:,i,:]) / noPupsIf[:,i,:])
            
+         
         
-        
-        
-    #Définition des variables récursives
+   #Définition des variables récursives
         #Epargne acquise par police AVANT nouvelle réduction                                 
         self.epAcquAVPUP=epAcquAVPUP
         #Epargne acquise par police APRES nouvelle réduction 
@@ -347,23 +352,220 @@ class EPP28(Portfolio):
 # benefit en cas de mort (DEATH_OUTGO)
     def deathClaim(self):
         
-        deathBenefit = self.pbAcquPP + self.epargAcqu() + self.addSumAssuree
+        addSumAssuree = self.p['POLCAPAUT'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
+        
+        deathBenefit = self.pbAcquPP + self.epargAcqu() + addSumAssuree
         
         deathClaim = deathBenefit * self.nbrDeath + self.pupDeath() * self.nbrPupDeath
         
         return np.nan_to_num(deathClaim)
 
+
+
+
+    
+    #Retourne la réserve mathémathique ajustée
+    def adjustedReserve(self):
+
+  # Age limite pour hospitalis
+        pol.agelimite=((pol.age()-1)<=75)
+           
+        annualPrem =  (pol.p['POLPRCPL9']).to_numpy()[:,np.newaxis,np.newaxis]
+        annualPrem = annualPrem / pol.frac()   
+        riderC =  annualPrem * pol.isPremPay() *pol.dcAccident() * pol.nbrPolIfSM
+        pol.agelimite = pol.agelimite * pol.one()
+        #Calcul du risque en cours
+        riderIncPP=annualPrem*pol.agelimite*pol.isPremPay()
+        riderIncPP2=annualPrem*pol.agelimite
+        
+# Ne prend pas en compte les risque en cours du modelpoint ??? à modifier
+        # precPP=(pol.p['PMBREC'] + pol.p['PMBRECCPL']).to_numpy()[:,np.newaxis,np.newaxis] * pol.one()
+        precPP = pol.zero()
+        frek=pol.frac()
+
+        for i in range(1,pol.shape[1]):
+            precPP[:,i,:]=precPP[:,i-1,:]+riderIncPP[:,i,:] - ((frek[:,i,:]/12)*riderIncPP2[:,i,:])
+            
+        # CaFracPC=pol.p['fraisFract'].to_numpy()[:,np.newaxis,np.newaxis]
+        # CaPremPC=pol.p['aquisitionLoading'].to_numpy()[:,np.newaxis,np.newaxis]
+        
+        # ppureEnc = (annualPrem * (1-CaPremPC) / CaFracPC)* pol.isPremPay() *pol.nbrPolIfSM
+        
+        # mathResBA=np.maximum(precPP,0)
+        # mathResPP=mathResBA 
+        # provMathIf=mathResPP*pol.nbrPolIf
+        # mathresIF=provMathIf
+        
+        # mathResIfcorr=pol.zero()       
+        # mathResIfcorr[:,1:,:]=mathresIF[:,:-1,:]  
+        # mathResIfcorr = mathResIfcorr - riderC + ppureEnc
+
+        # reserve=mathResIfcorr
+        # reserve=np.maximum(reserve,0)
+        
+        return precPP
+        
     
     
+ 
+    
+  
+    
+# Calcul des sorties dûes aux maturité des polices (MAT_OUTGO)
+    def matOutgo(self):
+        
+        matBenPP = self.epargAcqu() + self.pbAcquPP
+        noMats = self.nbrNewMat
+        pupMatbPP =  self.epAcquAVPUP + self.pbAcquAPPUP
+        noPupMat = self.nbrPupMat
+        matOutgo = self.zero()
+        
+        for i in range(1,self.shape[1]):
+            
+            matOutgo[:,i,:] = matBenPP[:,i-1,:] * noMats[:,i,:] + pupMatbPP[:,i-1,:] * noPupMat[:,i,:]
+           
+ #Définition des variables récursives
+        self.matBenPP = matBenPP
+        self.noMats = noMats
+        self.pupMatbPP = pupMatbPP
+        self.noPupMat = noPupMat
+        
+        # return matBenIF + matBenPPUPif
+        return matOutgo
     
     
     def mathresBA(self):
 
-        return self.epargAcqu() + self.pbAcquPP
+        # return self.epargAcqu() + self.pbAcquPP 
+        return self.epargAcqu() + self.pbAcquPP + self.adjustedReserve()      
+
+
+
+#  benefit en cas d'annulation (SURR_OUTGO)    
+    def surrOutgo(self):
+        
+    # Surrender outgo pour les polices non réduites:
+        surrIf = self.mathresBA() * self.nbrSurrender
+        
+    # Surrender Outgo pour les polices réduites:
+        surrRed = (self.pbAcquAPPUP + self.eppAcquAPPUP) * self.nbrPupSurrender
+         
+        return surrIf + surrRed
+    
+  
+ # ici on détermine le capital pour Protection d'avenir en fonction de l'âge
+    def capPA(self):
+        
+        capPA = self.zero()
+        capPA[self.age() <= 55]= 25000
+        capPA[(self.age() > 55)]= 5000
+        capPA[self.age() > 65]= 0
+        capPA[self.p['POLPRCPL9'] == 0]=0
+        return capPA
     
     
     
-#  benefit en cas d'annulation (SURR_OUTGO)
+    
+# prime complémentaire encourue
+    
+    def riderCostPP(self):
+        
+    # Age limite pour mod28
+        self.agelimite=((self.age()-1)<=75)
+           
+        annualPrem =  (self.p['POLPRCPL9']).to_numpy()[:,np.newaxis,np.newaxis]
+        annualPrem = annualPrem / self.frac()   
+        riderC =  annualPrem * self.isPremPay() * self.dcAccident() 
+        self.agelimite = self.agelimite * self.one()
+
+        return riderC
+    
+
+    
+# benefice en cas de sinistre complémentaire (RIDERC_OUTGO)
+    def riderCOutgo(self):
+        
+        riderCoutgo = self.riderCostPP() * self.nbrPolIfSM + self.nbrDeath * self.capPA()
+        
+        return riderCoutgo
+
+        
+        
+
+# Total prestations
+    def totalClaim(self):
+        
+        return self.surrOutgo() + self.deathClaim() + self.riderCOutgo() + self.matOutgo()
+    
+    
+    
+    
+    
+    
+##############################################################################################################################
+###################################  CALCUL DES EXPENSES  #############################################################
+##############################################################################################################################
+    
+    
+    #Retourne le coût par police pour les polices avec réduction possible
+    def unitExpenseRed(self):
+        
+        inflation=np.roll(self.inflation(),[1],axis=1)
+        inflation[:,0,:]=0
+        
+        coutParPolice=self.fraisGestion()
+
+        cost=coutParPolice*inflation*(self.nbrPolIfSM + self.nbrPupIfSM)
+        
+        return cost
+
+    
+    
+    # Calcul des provisions mathématiques en cours
+    def provMathIf(self):
+        
+        provMathIf = self.mathresBA() * self.nbrPolIf + (self.eppAcquAPPUP + self.pbAcquAPPUP) * self.nbrPupsIf
+    
+        return provMathIf
+    
+    
+    
+    
+    
+    
+    # calcul des provisions techniques en cours
+    def provTechIf(self):
+        
+        provTechPP = self.mathresBA() - self.adjustedReserve()
+        
+        pupMathRes = self.eppAcquAPPUP + self.pbAcquAPPUP
+        
+        provTechIf = provTechPP * self.nbrPolIf + self.nbrPupsIf * pupMathRes
+    
+        return provTechIf
+    
+    
+    
+    #  calcul des provisions techniques ajustée (PROV_TECH_AJ)
+    def provTechAj(self):
+        
+        provTechAj = self.zero()
+        provTechIf = self.provTechIf()
+        primeInvest = self.prEncInvPP() * self.nbrPolIfSM
+        riderCoutgo = self.riderCOutgo()
+        
+        for i in range(1,self.shape[1]):
+        
+            provTechAj[:,i,:] = provTechIf[:,i-1,:] + primeInvest[:,i,:] - riderCoutgo[:,i,:]
+        
+        
+        return provTechAj
+    
+    
+    # calcul des intêret techniques crédités (INT_CRED_T)
+    def intCred(self):
+        
+        return (self.txInt()-1) * self.provTechAj()
     
     
     
@@ -372,21 +574,44 @@ class EPP28(Portfolio):
     
     
     
+    # Calcul des provisions mathématiques ajustées (PROV_MATH_AJ)
     
-    
-    
-    
-    
-    
+    def provMathAj(self):
+        
+        provMathIf = self.provMathIf()
+        riderCoutgo = self.riderCOutgo()
+        provMathAj = self.zero()
+        rfinAnn = self.zero()
+        resFinMois = self.zero()
+        totIntCred = self.zero()
+        oTaxblInc = self.zero()
+        txInt = self.txInt()
+        provTechAj = self.provTechAj()
+        calendarMonth = self.calendarMonth()
+        totIntCred =  self.intCred()
+        rate = self.rate()
+        
+        
+        for i in range(1,self.shape[1]):
+            
+            oTaxblInc[:,i,:] = provMathAj[:,i,:] * rate[:,i,:]
+            
+            resFinMois[:,i,:] = oTaxblInc[:,i,:] - totIntCred[:,i,:]
+            
+            rfinAnn[:,i,:] = rfinAnn[:,i-1,:] + resFinMois[:,i,:]
+            
+            provMathAj[:,i,:] = provMathIf[:,i-1,:] + rfinAnn[:,i-1,:] - oExp[:,i,:] - riderCoutgo[:,i,:]
+        
+        
+        
+        return provMathAj
     
     
     
     
     def test(self):
         
-
-    
-        return self.pbAcquPP + self.epargAcqu() + self.addSumAssuree
+        return self.pbAcquPP + self.epargAcqu() + self.addSumAssuree 
     
 ##############################################################################################################################
 ###################################DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES#############################################
@@ -395,8 +620,25 @@ class EPP28(Portfolio):
         return self
 
 pol = EPP28()
-# pol.ids([1023002])
-testt = pol.test()
+pol.ids([1023002])
+# matougto = pol.matOutgo()
+# benpp = pol.matBenPP
+# nomat = pol.noMats
+# pupmat = pol.pupMatbPP
+# nopupmat = pol.noPupMat
+# surrOutgo = pol.surrOutgo()
+eppAcquAPPUP = pol.eppAcquAPPUP
+pbAcquAPPUP = pol.pbAcquAPPUP
+# riderincpp = pol.riderCostPP()
+# totclaim = pol.totalClaim()
+# protectionavenir = pol.capPA()
+# provtechIf = pol.provTechIf()
+# provmathif = pol.provMathIf()
+# provtechAj = pol.provTechAj()
+# riecostoutgo = pol.riderCOutgo()
+provmathAj = pol.provMathAj()
+# testt = pol.test()
+mathresBA = pol.mathresBA()
 # nopupif = pol.nbrPupsIf
 # nonvewred = pol.nbrNewRed
 # epAcquAVPUP = pol.epAcquAVPUP
@@ -407,8 +649,8 @@ deathbenef = pol.deathClaim()
 # pbAcquAVPUP = pol.pbAcquAVPUP
 # pbacquAPPUP = pol.pbAcquAPPUP
 # deathpup=pol.nbrPupDeath
-epargneacquise = pol.epargAcqu()
-pbacquPP= pol.pbAcquPP
+# epargneacquise = pol.epargAcqu()
+# pbacquPP= pol.pbAcquPP
 # eparPB = pol.eparPB()
 # check = pol.ppurePP()
 # check2 = pol.prEncInvPP()
@@ -418,7 +660,7 @@ pbacquPP= pol.pbAcquPP
 #pol=AX()
 #pol=AX(run=[4,5])
 # chck = pol.isVal()
-
+adjustRES = pol.adjustedReserve()
 #pol.mod([70])
 # pol.modHead([3],1)
 # aa = pol.p
@@ -437,8 +679,8 @@ e=pol.nbrSurrender
 #k=pol.risqueEnCour()
 # l=pol.adjustedReserve()
 # m=pol.reserveExpense()
-# n=pol.unitExpense()
-o=pol.totalPrem()
+n=pol.unitExpense()
+o=pol.totalPremium()
 # q=pol.totalClaim()
 r=pol.totalCommissions()
 # s=pol.totalExpense()
@@ -461,10 +703,11 @@ iii = pol.eppAcquAPPUP
 ##############################################################################################################################
 #TESTER DES CAS
 ##############################################################################################################################
+
 def testerCas(self):
     return self
 # iii = pol.totalPrem()
-monCas=deathbenef
+monCas=provmathif
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
@@ -474,6 +717,6 @@ z.to_csv(r'check.csv',header=False)
 ss = pol.p
 ss.to_excel("check portefeuille.xlsx", header = True )
 #Visualiser une dimension d'un numpy qui n'apparait pas
-test = pol.reduction()
+# test = pol.reduction()
 # data=pupEben
 # a=pd.DataFrame(data[:,:,0])

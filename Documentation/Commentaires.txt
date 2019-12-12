@@ -72,9 +72,6 @@ CHANGEMENT APPORTé DANS PARAMÈTRE
 
 
 
-
-
-
 CHANGEMENT APPORTER DANS PRODUITS
 
 - J'ai rajouter les produits HOSPITALIS (HO) et Preciso (PREC) en copiant collant certaines formule, il faut déterminé quelles sont les formule à remonté
@@ -88,3 +85,11 @@ CHANGEMENT APPORTER DANS PRODUITS
 CHANGEMENT DANS QRY
 
 - Ajout de POLSIT et POLCPLA et POLCPL9 dans Qry.txt (nécessaire pour les produits avec réduction possible)
+
+
+
+
+
+CHANGEMENT A EFFECTUER:
+
+- Il faudrait ajouté encore un T temporel pour les polices avec maturité, car la maturité arrive en t+1 et les projections se terminent en t
