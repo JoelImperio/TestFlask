@@ -137,7 +137,7 @@ class Portfolio(Hypo):
 
 
 
-#  LOOP A CHECK, modification nécessaire pour ne pas avoir d'écart (est utilisé pour MOD11 uniquement)
+#  LOOP A CHECK, modification nécessaire pour ne pas avoir d'écart 
     def loopSaving(self):
             
         nbrPolIf=self.one()
@@ -201,10 +201,6 @@ class Portfolio(Hypo):
 
 
 
-
-
-
-
 # calcul des propabilité inforce des réduction
 
     def loopReduction(self):
@@ -259,10 +255,6 @@ class Portfolio(Hypo):
 
         return self
        
-
-
-
-
 
 
 

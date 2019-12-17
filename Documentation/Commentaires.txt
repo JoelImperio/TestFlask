@@ -57,6 +57,14 @@ et il ne prend pas la prime totale
 
 CHANGEMENT APPORTé DANS PARAMÈTRE
 
+- Ajout modalité 28 dans premiumLoading() pour PRECISO et Mod28
+
+- ajout d'une fonction permettant de calculé les chargements de GESTION qui concerne la mod28
+
+- Ajout des frais de fractionnement dans la fonction pour PRECISO
+
+- Ajout d'une fonction qui permet d'ajusté les fractionnements 0 pour PRECISO
+
 - Ajout de AdjustedAge pour ajuster les âges pour certaines modalités
 
 - Ajout de adjustedAgeTEMP pour ajuster les âges d'une autre façon pour certaines modalité
@@ -65,7 +73,7 @@ CHANGEMENT APPORTé DANS PARAMÈTRE
 
 - Reduction rate corrigé, ajout du calcul en fonction du fractionnement ainsi qu'ajout de isLapse dans le return
 
-- ajout d'une fonction permettant de calculé les chargements de GESTION'
+
 
 - Ajout de la loop permettant de calculer les polices réduite inforce
 

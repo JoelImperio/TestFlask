@@ -327,7 +327,6 @@ def adjustedAgeTEMP(p):
 
     mask2=(mask) & (p['POLNBTETE']==2) 
     
-   
     p.loc[mask2,'residualTermM']= p.loc[mask2,'POLDURC']*12-p.loc[mask2,'DurationIfInitial']
  
     decalage=pd.ExcelFile(path  + '/Hypotheses/Decalage.xlsx').parse("Feuil1")
@@ -336,8 +335,7 @@ def adjustedAgeTEMP(p):
 
     p.loc[mask2,'ageDiff']=abs(p.loc[mask2,'Age1AtEntry']-p.loc[mask2,'Age2AtEntry'])
     p.loc[mask1,'ageDiff']=p.loc[mask1,'ageDiff'].fillna(0)
-
-    
+ 
     p['ageDecalage']=p['ageDiff'].map(decalage)
 
     p.loc[mask2,'Age1AtEntry']=np.minimum(p.loc[mask2,'Age1AtEntry'],p.loc[mask2,'Age2AtEntry'])+ p.loc[mask2,'ageDecalage']
@@ -347,10 +345,7 @@ def adjustedAgeTEMP(p):
     p.loc[p['residualTermM']<0,'residualTermM']=0
             
         
-        
-        
-        
-        
+       
     
 ##############################################################################################################################
 #Permet de formater la dataframe du portefeuille des polices avant d'entrer dans la classe Hypo
@@ -375,7 +370,6 @@ def portfolioPreProcessing(p):
     
     #Une police mod 70 est par construction déjà échue le premier mois elle ne rentre pas dans prophet
     p=p.drop(p.loc[p['PMBPOL'].isin([1054602])].index)
-    
     
     agesInitial(p)
     
@@ -422,15 +416,13 @@ def portfolioPreProcessing(p):
     # Ajout de la colonne contenant les chargements de gestion
     premiumGestion(p)
     
-    
     #Ajout d'une colonne contenant les frais de fractionnement
     fraisFractionnement(p)
     
-    # JO Ajustement des fractionnements pour des polices avec frac = 0
+    # Ajustement des fractionnements pour des polices avec frac = 0
     adjustedFrac(p)
     
     
-
 
     return p
 
