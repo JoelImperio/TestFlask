@@ -176,7 +176,6 @@ class EPP28(Portfolio):
         increment = np.cumsum(self.one(), axis = 1) -2
         increment = increment%12 +1
 
-        # increment[:,0,:] = 12
         return increment
     
     
@@ -283,8 +282,7 @@ class EPP28(Portfolio):
             
 # DIVISION PAR 0 A REGLER !!!!
             pbAcquAPPUP[:,i,:] = np.nan_to_num((pbAcquAVPUP[:,i,:] * (noPupsIf[:,i,:] - noNewPups[:,i,:]) + pupBBenPP[:,i,:] * noNewPups[:,i,:]) / noPupsIf[:,i,:])
-            
-            
+                  
     #Définition des variables récursives
         # PB acquise par police AVANT nouvelle réduction                                 
         self.pbAcquAVPUP=pbAcquAVPUP
@@ -312,8 +310,6 @@ class EPP28(Portfolio):
  # DIVISION PAR 0 A REGLER !!!!           
             eppAcquAPPUP[:,i,:] = np.nan_to_num((epAcquAVPUP[:,i,:] * (noPupsIf[:,i,:] - noNewPups[:,i,:]) + pupBenPP[:,i,:] * noNewPups[:,i,:]) / noPupsIf[:,i,:])
 
-         
-        
    #Définition des variables récursives
         #Epargne acquise par police AVANT nouvelle réduction                                 
         self.epAcquAVPUP=epAcquAVPUP
@@ -435,10 +431,8 @@ class EPP28(Portfolio):
     
     
     def mathresBA(self):
-
         # return self.epargAcqu() + self.pbAcquPP 
         return self.epargAcqu() + self.pbAcquPP + self.adjustedReserve()      
-
 
 
 #  benefit en cas d'annulation (SURR_OUTGO)    
@@ -527,9 +521,7 @@ class EPP28(Portfolio):
     
     
     
-    
-    
-    # calcul des provisions techniques en cours
+    # calcul des provisions techniques en cours, inforce
     def provTechIf(self):
         
         provTechPP = self.mathresBA() - self.adjustedReserve()
@@ -553,7 +545,6 @@ class EPP28(Portfolio):
         for i in range(1,self.shape[1]):
         
             provTechAj[:,i,:] = provTechIf[:,i-1,:] + primeInvest[:,i,:] - riderCoutgo[:,i,:]
-        
         
         return provTechAj
     
@@ -620,7 +611,7 @@ class EPP28(Portfolio):
             rfinAnn[:,i,:] = (rfinAnn[:,i-1,:] + resFinMois[:,i,:]) * rfinMonth[:,i,:]
             
    #Définition des variables récursives
-        # Résultat financier en fin de mois
+        # Résultat financier en fin de mois non constaté
         self.resFinMois = resFinMois
         # Résultat de l'année en cours non constaté
         self.rfinAnn=rfinAnn
@@ -674,7 +665,7 @@ totalExpense = pol.totalExpense()
 resfin = pol.rfinAnn
 resfinmois = pol.resFinMois
 resReldMat = pol.resReldMat
-
+matoutgo = pol.matOutgo()
 provmathif = pol.provMathIf()
 provtechAj = pol.provTechAj()
 riecostoutgo = pol.riderCOutgo()
@@ -682,6 +673,7 @@ riecostoutgo = pol.riderCOutgo()
 # testt = pol.test()
 # mathresBA = pol.mathresBA()
 nopupif = pol.nbrPupsIf
+nomat = pol.noMats
 # nonvewred = pol.nbrNewRed
 # epAcquAVPUP = pol.epAcquAVPUP
 # eppAcquAPPUP33 = pol.eppAcquAPPUP
@@ -749,7 +741,7 @@ iii = pol.eppAcquAPPUP
 def testerCas(self):
     return self
 # iii = pol.totalPrem()
-monCas=provMathAj
+monCas=matoutgo
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])

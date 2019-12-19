@@ -152,7 +152,7 @@ class Portfolio(Hypo):
         
         polTermM=self.polTermM()
         
-        matRate[polTermM+1 ==self.durationIf()]=1
+        matRate[polTermM+2 ==self.durationIf()]=1
         
         lapseD=lapseTiming * self.lapse()
         lapse = self.lapse()
