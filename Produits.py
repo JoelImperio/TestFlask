@@ -236,14 +236,11 @@ class HO(Portfolio):
 #Retourne la réserve mathémathique ajustée
     def adjustedReserve(self):
 
-        # Age limite pour hospitalis
-        agelimite=((self.age()-1)<=75)
-        agelimite = agelimite * self.one()
+        agelimite=self.agelimite
            
         annualPrem = (self.p['POLPRVIEHT'] + self.p['POLPRCPL2']).to_numpy()[:,np.newaxis,np.newaxis]
         annualPrem = annualPrem / self.frac()   
  
-
         
         #Calcul du risque en cours
         riderIncPP=annualPrem*agelimite*self.isPremPay()
@@ -261,54 +258,24 @@ class HO(Portfolio):
         mathresIF=provMathIf
         mathResIfcorr=pol.zero()       
         mathResIfcorr[:,1:,:]=mathresIF[:,:-1,:]        
-        reserve=mathResIfcorr
+
+        #Primes pure encaissées
+        annPremPP=(self.p['POLPRVIEHT']+ self.p['POLPRCPL2']).to_numpy()[:,np.newaxis,np.newaxis]
+        CaFracPC=self.p['fraisFract'].to_numpy()[:,np.newaxis,np.newaxis]
+        CaPremPC=self.p['aquisitionLoading'].to_numpy()[:,np.newaxis,np.newaxis]
+        
+        prInventPP=(annPremPP*(1-CaPremPC))/CaFracPC
+        prPurePP=prInventPP
+        ppEncPP=(prPurePP/self.frac())*self.isPremPay()
+        pPureEnc=ppEncPP*self.nbrPolIfSM
+       
+        #Sortie pour les claim principaux
+        riderCostOutgo=annualPrem*self.hospi()*self.isPremPay()*agelimite
+        
+        reserve=mathResIfcorr+pPureEnc-riderCostOutgo
         reserve=np.maximum(reserve,0)
         
         return reserve
-#Retourne la réserve mathémathique ajustée
-    # def adjustedReserve(self):
-     
-    #     #Calcul du risque en cours
-    #     annualPrem = (self.p['POLPRVIEHT'] + self.p['POLPRCPL2']).to_numpy()[:,np.newaxis,np.newaxis]
-    #     annualPrem = annualPrem / self.frac()  
-    #     riderIncPP=annualPrem*self.isPremPay()*self.agelimite
-    #     riderIncPP2=annualPrem*self.agelimite
-    #     precPP=self.zero()
-    #     frek=self.frac()
- 
-
-    #     for i in range(1,self.shape[1]):
-        
-    #         precPP[:,i,:]=precPP[:,i-1,:]+riderIncPP[:,i,:] - ((frek[:,i,:]/12)*riderIncPP2[:,i,:])
-                   
-    #     mathResBA=np.maximum(precPP,0)
-    #     mathResPP=mathResBA 
-    #     provMathIf=mathResPP*self.nbrPolIf
-    #     mathresIF=provMathIf
-        
-    #     mathResIfcorr=self.zero()       
-    #     mathResIfcorr[:,1:,:]=mathresIF[:,:-1,:]        
-        
-    #     #Primes pure encaissées
-    #     annPremPP=(self.p['POLPRVIEHT']+ self.p['POLPRCPL2']).to_numpy()[:,np.newaxis,np.newaxis]
-    #     CaFracPC=self.p['fraisFract'].to_numpy()[:,np.newaxis,np.newaxis]
-    #     CaPremPC=self.p['aquisitionLoading'].to_numpy()[:,np.newaxis,np.newaxis]
-        
-    #     prInventPP=(annPremPP*(1-CaPremPC))/CaFracPC
-    #     prPurePP=prInventPP
-    #     ppEncPP=(prPurePP/self.frac())*self.isPremPay()
-    #     pPureEnc=ppEncPP*self.nbrPolIfSM
-        
-           
-    #     #Sortie pour les claim principaux
-    #     # riderCostOutgo=self.premiumPrincipal()*self.dcAccident()*self.isPremPay()*self.agelimite
-    #     riderCostOutgo=self.zero()
-        
-
-    #     reserve=mathResIfcorr+pPureEnc-riderCostOutgo
-    #     reserve=np.maximum(reserve,0)
-        
-    #     return reserve
  
 #Retourne le total des claim pour l'hospitalisation par maladie (RIDERC_OUTGO)
     def claimHospiHealth(self):
