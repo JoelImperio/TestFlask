@@ -48,8 +48,10 @@ et il ne prend pas la prime totale
 
 
 
+- HO dans l'adjusted Reserve la prime pure est forcée à 0 dans prophet et les frais d'aquisition ne sont donc pas pris en compte.
+Nous avons maintenu la fonction tel que dans AX en introduisant dans Paramètre un PremiumLoading à 100%, il faudra le corriger à 25%
 
-
+-HO l'adjusted Reserve, l'age limite est corrigé d'un an nous pensons qu'il faut éliminer ce décalage fin à 75 ans
 
 
 

@@ -93,6 +93,14 @@ def premiumLoading(p):
 #Les frais d'aquisition sont erronés il faut changer pour 0.32   
     p.loc[mask,'aquisitionLoading']=0.25   
 #    p.loc[mask,'aquisitionLoading']=0.32       
+
+    #HO
+    mask=(p['PMBMOD']==58)
+
+#Les frais d'aquisition sont erronés il faut changer pour 0.25   
+    p.loc[mask,'aquisitionLoading']=1  
+#    p.loc[mask,'aquisitionLoading']=0.25
+
     
     # PRECI
     mask=(p['PMBMOD']==25)|(p['PMBMOD']==26)
@@ -199,11 +207,11 @@ def projectionLengh(p):
     p.loc[mask,'residualTermM']=((ageMaxFU-p.loc[mask,'residualTermM'])*12)-p.loc[mask,'DurationIfInitial']
  
     #Nous pensons que cette variante est plus correct car dans le mod 9 la police continue jusqu'à 65 ans du plus jeune assuré
-    #Il faut ajouté le code commenté pour prendre en compte le changement et supprimé le mod neuf du mask du mod 8
-   
-#    mask=(p['PMBMOD']==9)    
-#    p.loc[mask,'residualTermM']=p.loc[mask,['Age2AtEntry','Age1AtEntry']].min(axis=1)
-#    p.loc[mask,'residualTermM']=((ageMaxFU-p.loc[mask,'residualTermM'])*12)-p.loc[mask,'DurationIfInitial']
+    #Il faut ajouté le code commenté pour prendre en compte le changement et supprimé le mod neuf du mask du mod 8 
+    mask=(p['PMBMOD']==9)    
+
+    p.loc[mask,'residualTermM']=p.loc[mask,['Age2AtEntry','Age1AtEntry']].min(axis=1)
+    p.loc[mask,'residualTermM']=((ageMaxFU-p.loc[mask,'residualTermM'])*12)-p.loc[mask,'DurationIfInitial']
 
 
 #Traitement du mod 70
@@ -213,8 +221,7 @@ def projectionLengh(p):
     p.loc[mask,'residualTermM']=((ageMaxAX-p.loc[mask,'residualTermM'])*12)-p.loc[mask,'DurationIfInitial']
 
 
- # Traitement age de certaines modalité (il faut ajuster les ages d'abord)
-    adjustedAge(p)
+ # Traitement du mod 58
     mask=(p['PMBMOD']==58)
     p.loc[mask,'residualTermM']=((ageMaxHO-p.loc[mask,'Age1AtEntry'])*12)-p.loc[mask,'DurationIfInitial']
     
@@ -230,6 +237,15 @@ def projectionLengh(p):
 def adjustAgesAndTerm(p):
 
 #    p=porN
+    
+#Traitement des mods 8 et 9
+    
+    mask=(p['PMBMOD']==8)|(p['PMBMOD']==9)
+    
+    p.loc[mask,'residualTermM']=p.loc[mask,['Age2AtEntry','Age1AtEntry']].max(axis=1)
+    p.loc[mask,'residualTermM']=((65-p.loc[mask,'residualTermM'])*12)-p.loc[mask,'DurationIfInitial']
+    
+#Traitement des mod 70,25,26
     mask=(p['PMBMOD']==70)|(p['PMBMOD']==25)|(p['PMBMOD']==26)
     
     date1=pd.to_datetime(p.loc[mask,'CLIDTNAISS'])
@@ -268,14 +284,11 @@ def adjustAgesAndTerm(p):
     
     p.loc[p['residualTermM']<0,'residualTermM']=0
 
-    
-    
+
 ##############################################################################################################################
 #Correction des ages pour HOSPITALIS/SERENITE . A supprimer pour corriger
 ########################################################################################################################
-    
-def adjustedAge(p):
-    
+       
     mask=(p['PMBMOD']==58)|(p['PMBMOD']==11)
     
     date1=pd.to_datetime(p.loc[mask,'CLIDTNAISS'])
@@ -294,6 +307,9 @@ def adjustedAge(p):
     age1=(((12*(dateDebut.dt.year-date1.dt.year)+dateDebut.dt.month-moisnaiss1)/12)+0.5).astype(int)
 
     p.loc[mask,'Age1AtEntry']=age1
+    
+    mask=(p['PMBMOD']==58)
+    p.loc[mask,'residualTermM']=((75-p.loc[mask,'Age1AtEntry'])*12)-p.loc[mask,'DurationIfInitial']
 
 # On force l'age 2 à 999 car les DCS ne prennent pas en compte la 2ème tête
     p.loc[mask,'Age2AtEntry']=999
@@ -305,8 +321,6 @@ def adjustedAge(p):
 #Correction des ages et residual pour TEMPORAIRE. A supprimer pour corriger
 ########################################################################################################################
 
-def adjustedAgeTEMP(p):
-    # p=porN
             
     mask=(p['PMBMOD']==3)|(p['PMBMOD']==28)
     
@@ -406,10 +420,7 @@ def portfolioPreProcessing(p):
     
     #Traitement des ages et policy terme selon Prophet pour mod70 (nous pensons que cela est erroné)
     adjustAgesAndTerm(p)
-    
-    #Traitement des ages et policy terme selon Prophet pour les produits temporaires (nous pensons que cela est erroné)
-    adjustedAgeTEMP(p)
-    
+        
     # Ajout de la colonne contenant les chargements d'acquisition
     premiumLoading(p)
     

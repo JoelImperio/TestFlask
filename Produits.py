@@ -217,8 +217,6 @@ print("Class AX--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 class HO(Portfolio):
     mods=[58]
-    ageLimite = 75
-
     
     def __init__(self,run=allRuns,\
                  PortfolioNew=True, SinistralityNew=True,LapseNew=True,CostNew=True,RateNew=True ):
@@ -226,6 +224,8 @@ class HO(Portfolio):
              myPortfolioNew=PortfolioNew, mySinistralityNew=SinistralityNew,myLapseNew=LapseNew,myCostNew=CostNew,myRateNew=RateNew)
         self.p=self.mod(self.mods)
         
+#L'age limite est erroné, il faudra supprimer cette condition  
+        self.agelimite=(self.age()<=76)
 
 #Permet de relancer l'update() en intégrant des methodes de la sous-classe
     def update(self,subPortfolio):
@@ -237,16 +237,17 @@ class HO(Portfolio):
     def adjustedReserve(self):
 
         # Age limite pour hospitalis
-        self.agelimite=((self.age()-1)<=self.ageLimite)
+        agelimite=((self.age()-1)<=75)
+        agelimite = agelimite * self.one()
            
         annualPrem = (self.p['POLPRVIEHT'] + self.p['POLPRCPL2']).to_numpy()[:,np.newaxis,np.newaxis]
         annualPrem = annualPrem / self.frac()   
  
-        self.agelimite = self.agelimite * self.one()
+
         
         #Calcul du risque en cours
-        riderIncPP=annualPrem*self.agelimite*self.isPremPay()
-        riderIncPP2=annualPrem*self.agelimite
+        riderIncPP=annualPrem*agelimite*self.isPremPay()
+        riderIncPP2=annualPrem*agelimite
         precPP=(self.p['PMBREC'] + self.p['PMBRECCPL']).to_numpy()[:,np.newaxis,np.newaxis] * self.one()
         frek=self.frac()
 
@@ -264,6 +265,50 @@ class HO(Portfolio):
         reserve=np.maximum(reserve,0)
         
         return reserve
+#Retourne la réserve mathémathique ajustée
+    # def adjustedReserve(self):
+     
+    #     #Calcul du risque en cours
+    #     annualPrem = (self.p['POLPRVIEHT'] + self.p['POLPRCPL2']).to_numpy()[:,np.newaxis,np.newaxis]
+    #     annualPrem = annualPrem / self.frac()  
+    #     riderIncPP=annualPrem*self.isPremPay()*self.agelimite
+    #     riderIncPP2=annualPrem*self.agelimite
+    #     precPP=self.zero()
+    #     frek=self.frac()
+ 
+
+    #     for i in range(1,self.shape[1]):
+        
+    #         precPP[:,i,:]=precPP[:,i-1,:]+riderIncPP[:,i,:] - ((frek[:,i,:]/12)*riderIncPP2[:,i,:])
+                   
+    #     mathResBA=np.maximum(precPP,0)
+    #     mathResPP=mathResBA 
+    #     provMathIf=mathResPP*self.nbrPolIf
+    #     mathresIF=provMathIf
+        
+    #     mathResIfcorr=self.zero()       
+    #     mathResIfcorr[:,1:,:]=mathresIF[:,:-1,:]        
+        
+    #     #Primes pure encaissées
+    #     annPremPP=(self.p['POLPRVIEHT']+ self.p['POLPRCPL2']).to_numpy()[:,np.newaxis,np.newaxis]
+    #     CaFracPC=self.p['fraisFract'].to_numpy()[:,np.newaxis,np.newaxis]
+    #     CaPremPC=self.p['aquisitionLoading'].to_numpy()[:,np.newaxis,np.newaxis]
+        
+    #     prInventPP=(annPremPP*(1-CaPremPC))/CaFracPC
+    #     prPurePP=prInventPP
+    #     ppEncPP=(prPurePP/self.frac())*self.isPremPay()
+    #     pPureEnc=ppEncPP*self.nbrPolIfSM
+        
+           
+    #     #Sortie pour les claim principaux
+    #     # riderCostOutgo=self.premiumPrincipal()*self.dcAccident()*self.isPremPay()*self.agelimite
+    #     riderCostOutgo=self.zero()
+        
+
+    #     reserve=mathResIfcorr+pPureEnc-riderCostOutgo
+    #     reserve=np.maximum(reserve,0)
+        
+    #     return reserve
  
 #Retourne le total des claim pour l'hospitalisation par maladie (RIDERC_OUTGO)
     def claimHospiHealth(self):
@@ -420,8 +465,8 @@ class PRECI(Portfolio):
 def tester(self):
     return self
 
-pol = HO()
-#pol=FU()
+# pol = HO()
+pol=FU()
 # pol=AX()
 #pol=FU(run=[4,5])
 # nomat = pol.nbrMaturities
@@ -440,7 +485,7 @@ pol = HO()
 #i=pol.fraisVisiteClaim()
 #j=pol.timeBeforeNextPay()
 #k=pol.risqueEnCour()
-#l=pol.adjustedReserve()
+l=pol.adjustedReserve()
 #m=pol.reserveExpense()
 #n=pol.unitExpense()
 #o=pol.totalPremium()
@@ -450,10 +495,10 @@ pol = HO()
 t=pol.BEL()
 
 bel=np.sum(pol.BEL(), axis=0)
-#pgg=pol.PGG()
+# pgg=pol.PGG()
 
 
-monCas=t
+monCas=l
 
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
