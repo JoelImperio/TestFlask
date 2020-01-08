@@ -218,7 +218,6 @@ print("Class AX--- %s sec" %'%.2f'%  (time.time() - start_time))
 class HO(Portfolio):
     mods=[58]
     ageLimite = 75
-    # complPremium=pol.p['POLPRCPL2']
 
     
     def __init__(self,run=allRuns,\
@@ -232,14 +231,6 @@ class HO(Portfolio):
     def update(self,subPortfolio):
         super().update(subPortfolio)
         self.loopNoSaving()
-
-
-#Retourne le total des claim pour les garanties complémentaires (RIDERC_OUTGO)
-    def claimCompl(self):
-        
-        annualPrem = (self.p['POLPRVIEHT'] + self.p['POLPRCPL2']).to_numpy()[:,np.newaxis,np.newaxis]
-        annualPrem = annualPrem / self.frac()
-        return self.hospi() * annualPrem * self.nbrPolIfSM * self.isPremPay()
 
 
 #Retourne la réserve mathémathique ajustée
@@ -273,10 +264,30 @@ class HO(Portfolio):
         reserve=np.maximum(reserve,0)
         
         return reserve
-    
-    
-    def totalClaim(self):
-        return self.claimCompl()
+ 
+#Retourne le total des claim pour l'hospitalisation par maladie (RIDERC_OUTGO)
+    def claimHospiHealth(self):
+        
+        annualPrem = (self.p['POLPRVIEHT']).to_numpy()[:,np.newaxis,np.newaxis]
+        annualPrem = annualPrem / self.frac()
+        
+        return self.hospi() * annualPrem * self.nbrPolIfSM * self.isPremPay()
+
+#Retourne le total des claim pour l'hospitalisation par accident (RIDERC_OUTGO)
+    def claimHospiAccident(self):
+        
+        annualPrem = (self.p['POLPRCPL2']).to_numpy()[:,np.newaxis,np.newaxis]
+        annualPrem = annualPrem / self.frac()
+        
+        return self.hospi() * annualPrem * self.nbrPolIfSM * self.isPremPay()
+
+#Retourne le total des claim pour la garantie hospitalisation par maladie
+    def claimPrincipal(self):
+        return self.claimHospiHealth()
+
+#Retourne le total des claim pour les garanties hospitalisation par accident
+    def claimCompl(self):
+        return self.claimHospiAccident() 
 
 
 
@@ -413,11 +424,11 @@ pol = HO()
 #pol=FU()
 # pol=AX()
 #pol=FU(run=[4,5])
-nomat = pol.nbrMaturities
+# nomat = pol.nbrMaturities
 # pol.ids([2142501])
 #pol.mod([9])
 #pol.modHead([9],2)
-aa = pol.p
+# aa = pol.p
 #a=pol.nbrPolIf
 #b=pol.nbrPolIfSM
 #c=pol.nbrMaturities
@@ -433,7 +444,7 @@ aa = pol.p
 #m=pol.reserveExpense()
 #n=pol.unitExpense()
 #o=pol.totalPremium()
-q=pol.totalClaim()
+# q=pol.totalClaim()
 #r=pol.totalCommissions()
 #s=pol.totalExpense()
 t=pol.BEL()
@@ -453,7 +464,7 @@ z.to_csv(r'check.csv',header=False)
 
 
 
-aa.to_excel("check portefeuille.xlsx", header = True )
+# aa.to_excel("check portefeuille.xlsx", header = True )
 
 
 
