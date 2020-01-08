@@ -389,7 +389,7 @@ class Portfolio(Hypo):
 ###################################DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES#############################################
 ##############################################################################################################################
 def testerPortfolio():
-    return 0
+    return
   
 #myPolicies=Portfolio(runs=[4,5])
 #myPolicies=Portfolio()

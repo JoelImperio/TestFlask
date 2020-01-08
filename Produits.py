@@ -248,15 +248,15 @@ class HO(Portfolio):
         precPP=(self.p['PMBREC'] + self.p['PMBRECCPL']).to_numpy()[:,np.newaxis,np.newaxis] * self.one()
         frek=self.frac()
 
-        for i in range(1,pol.shape[1]):
+        for i in range(1,self.shape[1]):
     
             precPP[:,i,:]=precPP[:,i-1,:]+riderIncPP[:,i,:] - ((frek[:,i,:]/12)*riderIncPP2[:,i,:])
             
         mathResBA=np.maximum(precPP,0)
         mathResPP=mathResBA 
-        provMathIf=mathResPP*pol.nbrPolIf
+        provMathIf=mathResPP*self.nbrPolIf
         mathresIF=provMathIf
-        mathResIfcorr=pol.zero()       
+        mathResIfcorr=self.zero()       
         mathResIfcorr[:,1:,:]=mathresIF[:,:-1,:]        
 
         #Primes pure encaissées
@@ -335,7 +335,7 @@ class PRECI(Portfolio):
 
 #Retourne les primes pures   
     def purePremium(self):
-        prem=pol.p['POLPRVIEHT']
+        prem=self.p['POLPRVIEHT']
         return prem.to_numpy()[:,np.newaxis,np.newaxis]/self.frac()
     
     
@@ -432,7 +432,7 @@ class PRECI(Portfolio):
 def tester(self):
     return self
 
-pol = HO()
+# pol = HO()
 # pol=FU()
 # pol=AX()
 #pol=FU(run=[4,5])
@@ -452,7 +452,7 @@ pol = HO()
 #i=pol.fraisVisiteClaim()
 #j=pol.timeBeforeNextPay()
 #k=pol.risqueEnCour()
-l=pol.adjustedReserve()
+# l=pol.adjustedReserve()
 #m=pol.reserveExpense()
 #n=pol.unitExpense()
 #o=pol.totalPremium()
@@ -461,17 +461,17 @@ l=pol.adjustedReserve()
 #s=pol.totalExpense()
 # t=pol.BEL()
 
-bel=np.sum(pol.BEL(), axis=0)
+# bel=np.sum(pol.BEL(), axis=0)
 # pgg=pol.PGG()
 
 
-monCas=l
+# monCas=l
 
-zz=np.sum(monCas, axis=0)
-zzz=np.sum(zz[:,0])
-z=pd.DataFrame(monCas[:,:,0])
-z=z.sum()
-z.to_csv(r'check.csv',header=False)
+# zz=np.sum(monCas, axis=0)
+# zzz=np.sum(zz[:,0])
+# z=pd.DataFrame(monCas[:,:,0])
+# z=z.sum()
+# z.to_csv(r'check.csv',header=False)
 
 
 

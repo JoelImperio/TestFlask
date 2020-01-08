@@ -40,7 +40,7 @@ def portfolioExtractionToCSV():
 #Inputs global permet de déterminer les date de calcul
 ##############################################################################################################################  
 def dateInputs():
-    return self
+    return
 
 dateCalcul='20181231'
 dateFinCalcul='20521231' #A mon avis doit être remplacer par date expiration des polices (calculé dans projectionLengh())
@@ -445,7 +445,7 @@ def portfolioPreProcessing(p):
 #- La table de mortalité d'expérience
 ##############################################################################################################################
 def chargementINPUTS(PortefeuilleEtHypothèses):
-    return self,PortefeuilleEtHypothèses
+    return PortefeuilleEtHypothèses
 
 hypN=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypothèses")
 hypN_1=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypothèses")
@@ -910,9 +910,9 @@ def testerHypo():
     return 0
 
 #myHypo=Hypo(Run=[0,5])
-myHypo=Hypo()
+# myHypo=Hypo()
 
-myHypo.mod([25])
+# myHypo.mod([25])
 # p = myHypo.ids([10105])
 #myHypo.groupe(['MI3.5'])
 

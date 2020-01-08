@@ -1,7 +1,6 @@
 from Portefeuille import Portfolio
 from Parametres import allRuns
-from Produits import FU,AX
-import numpy as np
+from Produits import FU,AX,HO
 import pandas as pd
 import time
 import os, os.path
@@ -18,18 +17,25 @@ class RUNPGG():
 #Retourne une df avec la PGG pour chaque sous-portefeuille
     def pggParSousPortefeuille(self,runNumber=allRuns,\
                                isPortfolioNew=True, isSinistralityNew=True,isLapseNew=True,isCostNew=True,isRateNew=True):
-            
+
+#Ajout de funéraille           
         fu=FU(run=runNumber,PortfolioNew=isPortfolioNew, SinistralityNew=isSinistralityNew,\
               LapseNew=isLapseNew,CostNew=isCostNew,RateNew=isRateNew)    
         fu=fu.PGG()
  
-#Celui-ci est faux mais sert à verifier que l'adition des sous-portefeuille se passe bien      
+#Ajout d'axiprotect      
         ax=AX(run=runNumber,PortfolioNew=isPortfolioNew, SinistralityNew=isSinistralityNew,\
               LapseNew=isLapseNew,CostNew=isCostNew,RateNew=isRateNew)    
         ax=ax.PGG()
-        
+
+#Ajout d'hospitalis      
+        ho=HO(run=runNumber,PortfolioNew=isPortfolioNew, SinistralityNew=isSinistralityNew,\
+              LapseNew=isLapseNew,CostNew=isCostNew,RateNew=isRateNew)    
+        ho=ho.PGG()
+
+#Agrégation des sous-portefeuille dans une DF       
         pggTotal=pd.DataFrame(fu)
-        pggTotal=pggTotal.append([ax])
+        pggTotal=pggTotal.append([ax,ho])
         
         
         return pggTotal
@@ -91,10 +97,10 @@ class RUNPGG():
  
 run=RUNPGG()
 
-#a=run.pggParSousPortefeuille()
-#b=run.pggTotal()
-#c=run.deltaAnalysisSousPortefeuille()
-#d=run.deltaAnalysisPGG()
+a=run.pggParSousPortefeuille()
+b=run.pggTotal()
+c=run.deltaAnalysisSousPortefeuille()
+d=run.deltaAnalysisPGG()
 
 
 
