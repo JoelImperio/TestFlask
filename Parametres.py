@@ -208,10 +208,11 @@ def projectionLengh(p):
  
     #Nous pensons que cette variante est plus correct car dans le mod 9 la police continue jusqu'à 65 ans du plus jeune assuré
     #Il faut ajouté le code commenté pour prendre en compte le changement et supprimé le mod neuf du mask du mod 8 
-    mask=(p['PMBMOD']==9)    
+ 
+    # mask=(p['PMBMOD']==9)    
 
-    p.loc[mask,'residualTermM']=p.loc[mask,['Age2AtEntry','Age1AtEntry']].min(axis=1)
-    p.loc[mask,'residualTermM']=((ageMaxFU-p.loc[mask,'residualTermM'])*12)-p.loc[mask,'DurationIfInitial']
+    # p.loc[mask,'residualTermM']=p.loc[mask,['Age2AtEntry','Age1AtEntry']].min(axis=1)
+    # p.loc[mask,'residualTermM']=((ageMaxFU-p.loc[mask,'residualTermM'])*12)-p.loc[mask,'DurationIfInitial']
 
 
 #Traitement du mod 70
@@ -238,12 +239,6 @@ def adjustAgesAndTerm(p):
 
 #    p=porN
     
-#Traitement des mods 8 et 9
-    
-    mask=(p['PMBMOD']==8)|(p['PMBMOD']==9)
-    
-    p.loc[mask,'residualTermM']=p.loc[mask,['Age2AtEntry','Age1AtEntry']].max(axis=1)
-    p.loc[mask,'residualTermM']=((65-p.loc[mask,'residualTermM'])*12)-p.loc[mask,'DurationIfInitial']
     
 #Traitement des mod 70,25,26
     mask=(p['PMBMOD']==70)|(p['PMBMOD']==25)|(p['PMBMOD']==26)
@@ -378,6 +373,8 @@ def portfolioPreProcessing(p):
     
     #Une date de naissance a été corrigée rétroactivement, nous replacons la date de naissance présente à la clôture    
     p.loc[p['PMBPOL'].isin([60602]), 'CLIDTNAISS2'] = '19551009'
+
+    p.loc[p['PMBPOL'].isin([786502]), 'CLIDTNAISS'] = '19611028'
     
     #Lorsque la police a une tête l'age du deuxième assuré est 0 donc il né à la date début de la police (ensuite 999 ans)
     p.loc[p.POLNBTETE==1, 'CLIDTNAISS2'] = p.loc[p.POLNBTETE==1, 'POLDTDEB']

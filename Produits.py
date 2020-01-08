@@ -492,7 +492,7 @@ l=pol.adjustedReserve()
 # q=pol.totalClaim()
 #r=pol.totalCommissions()
 #s=pol.totalExpense()
-t=pol.BEL()
+# t=pol.BEL()
 
 bel=np.sum(pol.BEL(), axis=0)
 # pgg=pol.PGG()
