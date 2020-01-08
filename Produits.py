@@ -465,8 +465,8 @@ class PRECI(Portfolio):
 def tester(self):
     return self
 
-# pol = HO()
-pol=FU()
+pol = HO()
+# pol=FU()
 # pol=AX()
 #pol=FU(run=[4,5])
 # nomat = pol.nbrMaturities
