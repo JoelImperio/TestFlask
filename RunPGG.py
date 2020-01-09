@@ -97,9 +97,9 @@ class RUNPGG():
  
 run=RUNPGG()
 
-a=run.pggParSousPortefeuille()
-b=run.pggTotal()
-c=run.deltaAnalysisSousPortefeuille()
+# a=run.pggParSousPortefeuille()
+# b=run.pggTotal()
+# c=run.deltaAnalysisSousPortefeuille()
 d=run.deltaAnalysisPGG()
 
 
