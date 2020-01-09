@@ -912,7 +912,7 @@ def testerHypo():
 #myHypo=Hypo(Run=[0,5])
 # myHypo=Hypo()
 
-# myHypo.mod([25])
+# myHypo.mod([8,9,70,58])
 # p = myHypo.ids([10105])
 #myHypo.groupe(['MI3.5'])
 
@@ -920,7 +920,7 @@ def testerHypo():
 ###Les méthodes de la class
 
 #za=myHypo.tout
-#zb=myHypo.p
+# zb=myHypo.p
 #zc=myHypo.runs
 #zd=myHypo.shape
 #ze=myHypo.one()
