@@ -155,15 +155,14 @@ def fraisFractionnement(p):
 
     
 ##############################################################################################################################
-#Permet d'ajuster les fractionnement pour les polices avec fractionnement 0 (On force à 1 dans les DCS)
+#Permet d'ajuster les polices réduite avec un fractionnement annuel 1 (Replication DCS)
 ##############################################################################################################################  
     
 def adjustedFrac(p):
     
-    maskmod = (p['PMBMOD']==28)
-    mask = (p['PMBFRACT']==0)
-    
-    p.loc[maskmod & mask, 'PMBFRACT'] = 1
+    mask = (p['PMBMOD'].isin([28,29,30,31,32,33,36])) & (p['PMBFRACT']==0)    
+    p.loc[mask, 'PMBFRACT'] = 1
+    p.loc[mask,'POLPRTOT']=0
     
     
 ##############################################################################################################################
@@ -427,7 +426,7 @@ def portfolioPreProcessing(p):
     #Ajout d'une colonne contenant les frais de fractionnement
     fraisFractionnement(p)
     
-    # Ajustement des fractionnements pour des polices avec frac = 0
+    # Ajustement des fractionnements pour des polices avec frac = 0 (réduites)
     adjustedFrac(p)
     
     

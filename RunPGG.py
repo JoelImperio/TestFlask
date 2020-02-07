@@ -1,6 +1,6 @@
 from Portefeuille import Portfolio
 from Parametres import allRuns
-from Produits import FU,AX,HO
+from Produits import FU,AX,HO,PR
 import pandas as pd
 import time
 import os, os.path
@@ -33,9 +33,14 @@ class RUNPGG():
               LapseNew=isLapseNew,CostNew=isCostNew,RateNew=isRateNew)    
         ho=ho.PGG()
 
+#Ajout des PRECISO     
+        pr=PR(run=runNumber,PortfolioNew=isPortfolioNew, SinistralityNew=isSinistralityNew,\
+              LapseNew=isLapseNew,CostNew=isCostNew,RateNew=isRateNew)    
+        pr=pr.PGG()
+
 #Agrégation des sous-portefeuille dans une DF       
         pggTotal=pd.DataFrame(fu)
-        pggTotal=pggTotal.append([ax,ho])
+        pggTotal=pggTotal.append([ax,ho,pr])
         
         
         return pggTotal

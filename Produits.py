@@ -312,7 +312,7 @@ print("Class HO--- %s sec" %'%.2f'%  (time.time() - start_time))
 #Création de la class Preciso et Preciso Plus
 ############################################################################################################################
 
-class PRECI(Portfolio):
+class PR(Portfolio):
     mods=[25,26]
     ageLimite = 65
     # complPremium=pol.p['POLPRCPL2']
@@ -324,8 +324,6 @@ class PRECI(Portfolio):
              myPortfolioNew=PortfolioNew, mySinistralityNew=SinistralityNew,myLapseNew=LapseNew,myCostNew=CostNew,myRateNew=RateNew)
         self.p=self.mod(self.mods)
         
-        
-
 
 #Permet de relancer l'update() en intégrant des methodes de la sous-classe
     def update(self,subPortfolio):
@@ -339,7 +337,7 @@ class PRECI(Portfolio):
         return prem.to_numpy()[:,np.newaxis,np.newaxis]/self.frac()
     
     
-#Retourne les primes des garanties complémentaires    
+#Retourne les primes conditionnés au nombre de polices en vigueur    
     def premiumPrincipal(self):
         return self.purePremium()*self.nbrPolIfSM
 
@@ -435,6 +433,7 @@ def tester(self):
 # pol = HO()
 # pol=FU()
 # pol=AX()
+pol=PR()
 #pol=FU(run=[4,5])
 # nomat = pol.nbrMaturities
 # pol.ids([2142501])
@@ -459,19 +458,19 @@ def tester(self):
 # q=pol.totalClaim()
 #r=pol.totalCommissions()
 #s=pol.totalExpense()
-# t=pol.BEL()
+t=pol.BEL()
 
-# bel=np.sum(pol.BEL(), axis=0)
+bel=np.sum(pol.BEL(), axis=0)
 # pgg=pol.PGG()
 
 
-# monCas=l
+monCas=t
 
-# zz=np.sum(monCas, axis=0)
-# zzz=np.sum(zz[:,0])
-# z=pd.DataFrame(monCas[:,:,0])
-# z=z.sum()
-# z.to_csv(r'check.csv',header=False)
+zz=np.sum(monCas, axis=0)
+zzz=np.sum(zz[:,0])
+z=pd.DataFrame(monCas[:,:,0])
+z=z.sum()
+z.to_csv(r'check.csv',header=False)
 
 
 
@@ -479,5 +478,8 @@ def tester(self):
 # aa.to_excel("check portefeuille.xlsx", header = True )
 
 
+#Visualiser une dimension d'un numpy qui n'apparait pas
+#data=pol.lapse()
+#a=pd.DataFrame(data[:,:,4])
 
 
