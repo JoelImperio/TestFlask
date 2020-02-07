@@ -658,27 +658,27 @@ pol = EPP28()
 # totclaim = pol.totalClaim()
 # protectionavenir = pol.capPA()
 # provtechIf = pol.provTechIf()
-adjMathRes2 = pol.adjMathRes2
-provMathAj = pol.provMathAj
-oTaxblInc=pol.oTaxblInc
-totalExpense = pol.totalExpense()
-resfin = pol.rfinAnn
-resfinmois = pol.resFinMois
-resReldMat = pol.resReldMat
-matoutgo = pol.matOutgo()
-provmathif = pol.provMathIf()
-provtechAj = pol.provTechAj()
-riecostoutgo = pol.riderCOutgo()
+# adjMathRes2 = pol.adjMathRes2
+# provMathAj = pol.provMathAj
+# oTaxblInc=pol.oTaxblInc
+# totalExpense = pol.totalExpense()
+# resfin = pol.rfinAnn
+# resfinmois = pol.resFinMois
+# resReldMat = pol.resReldMat
+# matoutgo = pol.matOutgo()
+# provmathif = pol.provMathIf()
+# provtechAj = pol.provTechAj()
+# riecostoutgo = pol.riderCOutgo()
 # provmathAj = pol.provMathAj()
 # testt = pol.test()
 # mathresBA = pol.mathresBA()
-nopupif = pol.nbrPupsIf
-nomat = pol.noMats
+# nopupif = pol.nbrPupsIf
+# nomat = pol.noMats
 # nonvewred = pol.nbrNewRed
 # epAcquAVPUP = pol.epAcquAVPUP
 # eppAcquAPPUP33 = pol.eppAcquAPPUP
 # pupEben = pol.pbAcqu()
-deathbenef = pol.deathClaim()
+# deathbenef = pol.deathClaim()
 # pupdthbPP = pol.pupDeath()
 # pbAcquAVPUP = pol.pbAcquAVPUP
 # pbacquAPPUP = pol.pbAcquAPPUP
@@ -694,17 +694,17 @@ deathbenef = pol.deathClaim()
 #pol=AX()
 #pol=AX(run=[4,5])
 # chck = pol.isVal()
-adjustRES = pol.adjustedReserve()
+# adjustRES = pol.adjustedReserve()
 #pol.mod([70])
 # pol.modHead([3],1)
 # aa = pol.p
 # cc= pol.accidentalDeathClaim()
 # oo = pol.nbrNewPups
-a=pol.nbrPolIf
-b=pol.nbrPolIfSM
+# a=pol.nbrPolIf
+# b=pol.nbrPolIfSM
 #c=pol.nbrMaturities
-d=pol.nbrDeath
-e=pol.nbrSurrender
+# d=pol.nbrDeath
+# e=pol.nbrSurrender
 #f=pol.premiumCompl()
 #g=pol.purePremium()
 # h=pol.deathClaim()
@@ -713,20 +713,20 @@ e=pol.nbrSurrender
 #k=pol.risqueEnCour()
 # l=pol.adjustedReserve()
 # m=pol.reserveExpense()
-n=pol.unitExpenseRed()
+# n=pol.unitExpenseRed()
 o=pol.totalPremium()
 # q=pol.totalClaim()
-r=pol.totalCommissions()
+# r=pol.totalCommissions()
 # s=pol.totalExpense()
 # t=pol.BEL()
 #u=pol.polTermM
 # t = pol.claimCompl()
 # tt = pol.adjustedReserve()
-bel=np.sum(pol.BEL(), axis=0)
+# bel=np.sum(pol.BEL(), axis=0)
 #pgg=pol.PGG()
 # ll = pol.l_val()
-nn = pol.nbrNewRed
-pupbenPPP = pol.pupBenPP
+# nn = pol.nbrNewRed
+# pupbenPPP = pol.pupBenPP
 print("Class X--- %s sec" %'%.2f'%  (time.time() - start_time))
 
  # pol.p=pol.modHead(pol.modHeads)
@@ -741,7 +741,7 @@ iii = pol.eppAcquAPPUP
 def testerCas(self):
     return self
 # iii = pol.totalPrem()
-monCas=matoutgo
+monCas=o
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])

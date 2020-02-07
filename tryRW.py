@@ -55,11 +55,23 @@ class EP(Portfolio):
     def totalPremium(self):
         premInc=(self.p['POLPRTOT'])[:,np.newaxis,np.newaxis]/self.frac()
         
-
         
-        prem=premInc*self.nbrPolIfSM*self.isPremPay()
+        prem=premInc*self.nbrPolIfSM*self.isPremPay()*self.indexation()
         
         return prem
+
+# Créer un vecteur de temporel en année depuis le début de la projection qui dépend du duration if
+    def indexation(self):
+        
+        durif = self.p['DurationIfInitial'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()-1
+        durif = np.remainder(durif, 12)
+        increment = np.cumsum(self.one(), axis = 1) -1 + durif
+        increment = increment/12
+        increment = np.floor(increment)
+        
+        indexation=(self.one()+(self.p['POLINDEX'].to_numpy()[:,np.newaxis,np.newaxis]/100) )**increment
+        
+        return indexation
 
 ##############################################################################################################################
 ###################################DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES#############################################
@@ -80,8 +92,10 @@ pol = EP()
 #pol=EP(run=[4,5])
 # pol.ids([363001])
 # pol.ids([128202])
-pol.ids([679402])
-# pol.mod([28])
+# pol.ids([679402])
+# pol.ids([1023002])
+
+pol.mod([28])
 #pol.modHead([9],2)
 aa = pol.p
 #a=pol.nbrPolIf
@@ -107,6 +121,7 @@ o=pol.totalPremium()
 # bel=np.sum(pol.BEL(), axis=0)
 # pgg=pol.PGG()
 
+a=pol.indexation()
 
 monCas=o
 
