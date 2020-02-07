@@ -21,7 +21,6 @@ start_time = time.time()
 class EP(Portfolio):
     mods=[28,29,30,31,32,33,36]
     # mods=[28]
-    ageLimite = 65
 
     
     def __init__(self,run=allRuns,\
