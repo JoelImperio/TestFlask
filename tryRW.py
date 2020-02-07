@@ -51,6 +51,15 @@ class EP(Portfolio):
     def claimCompl(self):
         return self.accidentalDeathClaim() 
 
+#Retourne les primes totales perçues
+    def totalPremium(self):
+        premInc=(self.p['POLPRTOT'])[:,np.newaxis,np.newaxis]/self.frac()
+        
+
+        
+        prem=premInc*self.nbrPolIfSM*self.isPremPay()
+        
+        return prem
 
 ##############################################################################################################################
 ###################################DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES#############################################
@@ -71,7 +80,8 @@ pol = EP()
 #pol=EP(run=[4,5])
 # pol.ids([363001])
 # pol.ids([128202])
-pol.mod([28])
+pol.ids([679402])
+# pol.mod([28])
 #pol.modHead([9],2)
 aa = pol.p
 #a=pol.nbrPolIf

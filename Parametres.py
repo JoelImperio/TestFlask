@@ -900,6 +900,8 @@ class Hypo:
         myPayement[:,0,:] = 0
         
         return myPayement
+
+
     
   
 ##############################################################################################################################
@@ -909,7 +911,7 @@ def testerHypo():
     return 0
 
 #myHypo=Hypo(Run=[0,5])
-# myHypo=Hypo()
+myHypo=Hypo()
 
 # myHypo.mod([8,9,70,58])
 # p = myHypo.ids([10105])
@@ -925,7 +927,7 @@ def testerHypo():
 #ze=myHypo.one()
 #zf=myHypo.zero()
 #zg=myHypo.vide()
-#zh=myHypo.templateAllYear()
+zh=myHypo.templateAllYear()
 #zi=myHypo.fraisGestion()
 #zj=myHypo.fraisGestionPlacement()
 #zk=myHypo.rate()
@@ -941,6 +943,7 @@ def testerHypo():
 #zu=myHypo.reduction()
 #zv=myHypo.commissions()
 #zw=myHypo.inflation()
+zx=myHypo.isNewYear()
 # qq =myHypo.polTermM()
 print("Class Hypo--- %s sec" %'%.2f'%  (time.time() - start_time))
 
