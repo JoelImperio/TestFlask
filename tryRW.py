@@ -20,7 +20,7 @@ start_time = time.time()
 
 class EP(Portfolio):
     mods=[28,29,30,31,32,33,36]
-    # mods=[28]
+
 
     
     def __init__(self,run=allRuns,\
@@ -91,11 +91,11 @@ def tester(self):
 pol = EP()
 #pol=EP(run=[4,5])
 # pol.ids([363001])
-# pol.ids([128202])
-# pol.ids([553501])
-# pol.ids([1920601])
+# pol.ids([1900401])
+# pol.ids([1777802])
+pol.ids([515503,1736301,1900401,2168101,2396001,2500001,2500101,2466301])
 
-pol.mod([36])
+# pol.mod([36])
 #pol.modHead([9],2)
 aa = pol.p
 #a=pol.nbrPolIf

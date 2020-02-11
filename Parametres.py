@@ -320,7 +320,7 @@ def adjustAgesAndTerm(p):
 ########################################################################################################################
 
             
-    mask=(p['PMBMOD']==28)|(p['PMBMOD']==29)|(p['PMBMOD']==30)|(p['PMBMOD']==31)|(p['PMBMOD']==32)
+    mask=(p['PMBMOD'].isin([28,29,30,31,32,33,36]))
     
     date1=pd.to_datetime(p.loc[mask,'CLIDTNAISS'])
     
@@ -385,8 +385,8 @@ def portfolioPreProcessing(p):
     #Une police mod 70 est par construction déjà échue le premier mois elle ne rentre pas dans prophet
     p=p.drop(p.loc[p['PMBPOL'].isin([1054602])].index)
     
-    #Police suspendu avec un prime total <> 0 dans mod 29
-    p.loc[p['PMBPOL'].isin([515503]), 'POLPRTOT'] = 0
+    #Police suspendu avec un prime total <> 0 dans les épargnes
+    p.loc[p['PMBPOL'].isin([515503,1736301,1900401,2168101,2396001,2500001,2500101,2466301]), 'POLPRTOT'] = 0
     
     agesInitial(p)
     
