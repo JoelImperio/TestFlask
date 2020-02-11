@@ -36,19 +36,6 @@ class EP(Portfolio):
         self.loopSaving()
         self.loopReduction()
 
-#Retourne les sinistres décès 
-    # def deathClaim(self):
-    #     nbDeath=self.nbrDeath
-        
-    #     addSumAssuree = self.p['POLCAPAUT'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
-        
-    #     capital=self.p['PMBCAPIT'].to_numpy()[:,np.newaxis,np.newaxis]
-        
-    #     nbrPupDeath=self.nbrPupDeath
-        
-    #     capitalPUP=
-        
-    #     return nbDeath*capital
 
 #Retourne les claims de la garantie principale (DEATH_OUTGO)
     def claimPrincipal(self):

@@ -714,8 +714,8 @@ pol = EPP28()
 # l=pol.adjustedReserve()
 # m=pol.reserveExpense()
 # n=pol.unitExpenseRed()
-o=pol.totalPremium()
-# q=pol.totalClaim()
+# o=pol.totalPremium()
+q=pol.totalClaim()
 # r=pol.totalCommissions()
 # s=pol.totalExpense()
 # t=pol.BEL()
@@ -741,7 +741,7 @@ iii = pol.eppAcquAPPUP
 def testerCas(self):
     return self
 # iii = pol.totalPrem()
-monCas=o
+monCas=q
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
