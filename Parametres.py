@@ -385,7 +385,7 @@ def portfolioPreProcessing(p):
     #Une police mod 70 est par construction déjà échue le premier mois elle ne rentre pas dans prophet
     p=p.drop(p.loc[p['PMBPOL'].isin([1054602])].index)
     
-    #Police suspendu avec un prime total <> 0 dans les épargnes
+    #Police suspendu avec un prime total <> 0 dans les épargnes (il serait préférable d'avoir une condition sur POLSIT =4 )
     p.loc[p['PMBPOL'].isin([515503,1736301,1900401,2168101,2396001,2500001,2500101,2466301]), 'POLPRTOT'] = 0
     
     agesInitial(p)
