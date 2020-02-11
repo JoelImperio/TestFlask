@@ -15,12 +15,12 @@ start_time = time.time()
 
     
 ##############################################################################################################################
-#Création de la class Preciso et Preciso Plus
+#Création de la class Epargne
 ############################################################################################################################
 
 class EP(Portfolio):
     mods=[28,29,30,31,32,33,36]
-
+    
 
     
     def __init__(self,run=allRuns,\
@@ -34,28 +34,53 @@ class EP(Portfolio):
     def update(self,subPortfolio):
         super().update(subPortfolio)
         self.loopSaving()
+        self.loopReduction()
 
+#Retourne les sinistres décès 
+    # def deathClaim(self):
+    #     nbDeath=self.nbrDeath
+        
+    #     addSumAssuree = self.p['POLCAPAUT'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
+        
+    #     capital=self.p['PMBCAPIT'].to_numpy()[:,np.newaxis,np.newaxis]
+        
+    #     nbrPupDeath=self.nbrPupDeath
+        
+    #     capitalPUP=
+        
+    #     return nbDeath*capital
 
-#Retourne les primes pures   
-    def purePremium(self):
-        prem=self.p['POLPRVIEHT']
-        return prem.to_numpy()[:,np.newaxis,np.newaxis]/self.frac()
-    
-
-
-#Retourne le total des claim pour la garantie principale    
+#Retourne les claims de la garantie principale (DEATH_OUTGO)
     def claimPrincipal(self):
-        return self.deathClaim()
+        return self.zero()
 
-#Retourne le total des claim pour les garanties complémentaires
+#Retourne les claims des garanties complémentaires (RIDERC_OUTGO)
     def claimCompl(self):
-        return self.accidentalDeathClaim() 
+        return self.zero()
+
+#Retourne les rachats totaux (SURR_OUTGO)
+    def surrender(self):
+        return self.zero()
+
+#Retourne les rachats partiels (PARTSV_OUTGO)
+    def partialSurrender(self):
+        return self.zero()
+
+#Retourne les échéances (MAT_OUTGO)
+    def maturity(self):
+        return self.zero()
+
+
+#Retourne le total des prestations payées  
+    def totalClaim(self):  
+        return self.claimPrincipal() + self.claimCompl()\
+            +self.surrender() + self.partialSurrender()+self.maturity()
+
 
 #Retourne les primes totales perçues
     def totalPremium(self):
         premInc=(self.p['POLPRTOT'])[:,np.newaxis,np.newaxis]/self.frac()
-        
-        
+           
         prem=premInc*self.nbrPolIfSM*self.isPremPay()*self.indexation()
         
         return prem
@@ -93,9 +118,9 @@ pol = EP()
 # pol.ids([363001])
 # pol.ids([1900401])
 # pol.ids([1777802])
-pol.ids([515503,1736301,1900401,2168101,2396001,2500001,2500101,2466301])
+# pol.ids([515503,1736301,1900401,2168101,2396001,2500001,2500101,2466301])
 
-# pol.mod([36])
+pol.mod([28])
 #pol.modHead([9],2)
 aa = pol.p
 #a=pol.nbrPolIf
@@ -112,8 +137,8 @@ aa = pol.p
 # l=pol.adjustedReserve()
 #m=pol.reserveExpense()
 #n=pol.unitExpense()
-o=pol.totalPremium()
-# q=pol.totalClaim()
+# o=pol.totalPremium()
+q=pol.totalClaim()
 # r=pol.totalCommissions()
 # s=pol.totalExpense()
 # t=pol.BEL()
@@ -123,7 +148,7 @@ o=pol.totalPremium()
 
 a=pol.indexation()
 
-monCas=o
+monCas=q
 
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])

@@ -334,6 +334,7 @@ class Portfolio(Hypo):
     def totalClaim(self):  
         return self.claimPrincipal() + self.claimCompl()
 
+
 #Retourne le total des commissions payées
     def totalCommissions(self):
         return self.totalPremium()*self.commissions()
