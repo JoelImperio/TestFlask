@@ -198,6 +198,7 @@ def projectionLengh(p):
     ageMaxFU=65
     ageMaxAX=80
     ageMaxHO=75
+    # ageMaxEP=55
   
 #Traitement des mods 8 et 9
     mask=(p['PMBMOD']==8)|(p['PMBMOD']==9)
@@ -224,7 +225,10 @@ def projectionLengh(p):
  # Traitement du mod 58
     mask=(p['PMBMOD']==58)
     p.loc[mask,'residualTermM']=((ageMaxHO-p.loc[mask,'Age1AtEntry'])*12)-p.loc[mask,'DurationIfInitial']
-    
+
+ # # Traitement du mod 29
+ #    mask=(p['PMBMOD']==29)
+ #    p.loc[mask,'residualTermM']=((ageMaxEP-p.loc[mask,'Age1AtEntry'])*12)-p.loc[mask,'DurationIfInitial']    
     
     #Replacer 999 pour les deuxièmes assurés des polices à une tête
     p.loc[p['POLNBTETE']==1,'Age2AtEntry']=999
@@ -316,7 +320,7 @@ def adjustAgesAndTerm(p):
 ########################################################################################################################
 
             
-    mask=(p['PMBMOD']==3)|(p['PMBMOD']==28)
+    mask=(p['PMBMOD']==28)|(p['PMBMOD']==29)|(p['PMBMOD']==30)|(p['PMBMOD']==31)|(p['PMBMOD']==32)
     
     date1=pd.to_datetime(p.loc[mask,'CLIDTNAISS'])
     
@@ -380,6 +384,9 @@ def portfolioPreProcessing(p):
     
     #Une police mod 70 est par construction déjà échue le premier mois elle ne rentre pas dans prophet
     p=p.drop(p.loc[p['PMBPOL'].isin([1054602])].index)
+    
+    #Police suspendu avec un prime total <> 0 dans mod 29
+    p.loc[p['PMBPOL'].isin([515503]), 'POLPRTOT'] = 0
     
     agesInitial(p)
     

@@ -92,10 +92,10 @@ pol = EP()
 #pol=EP(run=[4,5])
 # pol.ids([363001])
 # pol.ids([128202])
-# pol.ids([679402])
-# pol.ids([1023002])
+# pol.ids([553501])
+# pol.ids([1920601])
 
-pol.mod([28])
+pol.mod([36])
 #pol.modHead([9],2)
 aa = pol.p
 #a=pol.nbrPolIf
