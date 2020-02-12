@@ -90,7 +90,7 @@ class Portfolio(Hypo):
 ###############################################DEBUT DES METHODES DE PROJECTION###############################################
 ##############################################################################################################################
         
-#Cette Loop permets de passer sur l'entier des périodes de projection et renvoie l'ensemble des variables récusrives
+#Cette Loop renvoie l'ensemble des variables récusrives pour les produits risques
     def loopNoSaving(self):
         
         nbrPolIf=self.one()
@@ -135,126 +135,6 @@ class Portfolio(Hypo):
             
         return self
 
-
-
-#  LOOP A CHECK, modification nécessaire pour ne pas avoir d'écart 
-    def loopSaving(self):
-            
-        nbrPolIf=self.one()
-        nbrDeath=self.zero()
-        nbrSurrender=self.zero()
-        nbrPolIfSM=self.zero()
-
-        lapseTiming=0.5
-        nbrMaturities=self.zero()
-        nbrNewRed = self.zero()
-        matRate=self.zero()
-        
-        polTermM=self.polTermM()
-        
-        matRate[polTermM+1 ==self.durationIf()]=1
-        
-        lapseD=lapseTiming * self.lapse()
-        lapse = self.lapse()
-        
-        reduction = self.reduction()
-        
-        qxy=self.qxyExpMens()
- 
-        qxyD =lapseTiming * self.qxyExpMens()
-        
-        lapse=self.lapse()
-             
-        for i in range(1,self.shape[1]):
-            
-            nbrMaturities[:,i,:]=nbrPolIf[:,i-1,:]*matRate[:,i,:]
-            
-            nbrPolIfSM[:,i,:]=nbrPolIf[:,i-1,:] - nbrMaturities[:,i,:]
-            
-            nbrDeath[:,i,:]=nbrPolIfSM[:,i,:]*qxy[:,i,:]*(1-(lapseD[:,i,:]))
-            
-            nbrSurrender[:,i,:]=nbrPolIfSM[:,i,:]*lapse[:,i,:]*(1-(qxyD[:,i,:]))
-            
-            nbrNewRed[:,i,:] = (nbrPolIf[:,i-1,:] - nbrDeath[:,i,:] - nbrSurrender[:,i,:] - nbrMaturities[:,i,:]) * reduction[:,i,:]
-            
-            nbrPolIf[:,i,:]=nbrPolIf[:,i-1,:]-nbrDeath[:,i,:]-nbrSurrender[:,i,:]- nbrNewRed[:,i,:] - nbrMaturities[:,i,:]
-    
-    
-    #Définition des variables récursives
-        
-        #Nombre de polices actives                                 
-        self.nbrPolIf=nbrPolIf
-        #Nombre de police actives en déduisant les échéances du mois
-        self.nbrPolIfSM=nbrPolIfSM
-        #Nombre de décès
-        self.nbrDeath=nbrDeath
-        #Nombre d'annulation de contrat
-        self.nbrSurrender=nbrSurrender
-        #Nombre de nouvelle réduction
-        self.nbrNewRed = nbrNewRed
-        # Nombre de nouvelle maturités
-        self.nbrNewMat = nbrMaturities
-        
-        return self
-
-
-
-
-
-# calcul des propabilité inforce des réduction
-
-    def loopReduction(self):
-        
-        noNewPups = self.nbrNewRed
-        
-        nbrPupsIf=self.zero()
-        nbrPupDeath=self.zero()
-        nbrPupSurrender=self.zero()
-        nbrPupIfSM=self.zero()
-
-        lapseTiming=0.5
-        nbrPupMaturities=self.zero()
-
-        matRate=self.zero()
-        
-        polTermM=self.polTermM()
-        
-        matRate[polTermM+1 ==self.durationIf()]=1
-        
-        lapse = self.lapse()
-        
-        qxy=self.qxyExpMens()
-        
-        lapse=self.lapse()
-             
-        for i in range(1,self.shape[1]):
-            
-            nbrPupMaturities[:,i,:]=nbrPupsIf[:,i-1,:]*matRate[:,i,:]
-            
-            nbrPupIfSM[:,i,:]=nbrPupsIf[:,i-1,:] - nbrPupMaturities[:,i,:]
-            
-            nbrPupDeath[:,i,:]=nbrPupIfSM[:,i,:]*qxy[:,i,:]*(1-(lapseTiming*lapse[:,i,:]))
-            
-            nbrPupSurrender[:,i,:]=nbrPupIfSM[:,i,:]*lapse[:,i,:]*(1-(lapseTiming*qxy[:,i,:]))
-            
-            nbrPupsIf[:,i,:]=nbrPupsIf[:,i-1,:]-nbrPupDeath[:,i,:]-nbrPupSurrender[:,i,:] - nbrPupMaturities[:,i,:] + noNewPups[:,i,:]
-    
-    
-    #Définition des variables récursives
-        
-        #Nombre de polices actives                                 
-        self.nbrPupsIf=nbrPupsIf
-        #Nombre de police actives en déduisant les échéances du mois
-        self.nbrPupIfSM=nbrPupIfSM
-        #Nombre de décès
-        self.nbrPupDeath=nbrPupDeath
-        #Nombre d'annulation de contrat
-        self.nbrPupSurrender=nbrPupSurrender
-        # Nombre de police réduite arrivant à maturité
-        self.nbrPupMat = nbrPupMaturities
-
-        return self
-       
 
 
 
@@ -318,21 +198,60 @@ class Portfolio(Hypo):
                       
         return reserve
 
+#Retourne un vecteur des indexaction avec 1+taux
+    def indexation(self):
+        
+        durif = self.p['DurationIfInitial'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()-1
+        durif = np.remainder(durif, 12)
+        increment = np.cumsum(self.one(), axis = 1) -1 + durif
+        increment = increment/12
+        increment = np.floor(increment)
+        
+        indexation=(self.one()+(self.p['POLINDEX'].to_numpy()[:,np.newaxis,np.newaxis]/100) )**increment
+        
+        return indexation
+
+#  taux d'intêret technique des polices mensualisé
+    def txInt(self):
+        txInteret = ((1+self.p['POLINTERG']/100)**(1/12)).to_numpy()[:,np.newaxis,np.newaxis] * self.one()
+        return txInteret
+
+#Retourne les claims de la garantie principale (DEATH_OUTGO)
+    def claimPrincipal(self):
+        return self.zero()
+
+#Retourne les claims des garanties complémentaires (RIDERC_OUTGO)
+    def claimCompl(self):
+        return self.zero()
+
+#Retourne les rachats totaux (SURR_OUTGO)
+    def surrender(self):
+        return self.zero()
+
+#Retourne les rachats partiels (PARTSV_OUTGO)
+    def partialSurrender(self):
+        return self.zero()
+
+#Retourne les échéances (MAT_OUTGO)
+    def maturity(self):
+        return self.zero()
+
 ##############################################################################################################################
 ###########################################DEBUT DES COMPOSANTES DU BEL#######################################################
 ##############################################################################################################################
 
 #Retourne les primes totales perçues
     def totalPremium(self):
-        premInc=self.p['POLPRTOT'][:,np.newaxis,np.newaxis]/self.frac()
-        
-        prem=premInc*self.nbrPolIfSM*self.isPremPay()
+        premInc=(self.p['POLPRTOT'])[:,np.newaxis,np.newaxis]/self.frac()
+           
+        prem=premInc*self.nbrPolIfSM*self.isPremPay()*self.indexation()
         
         return prem
 
-#Retourne le total des sinistres payés  
+#Retourne le total des prestations payées  
     def totalClaim(self):  
-        return self.claimPrincipal() + self.claimCompl()
+        return self.claimPrincipal() + self.claimCompl()\
+            +self.surrender() + self.partialSurrender()+self.maturity()
 
 
 #Retourne le total des commissions payées
