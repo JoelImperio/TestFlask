@@ -54,7 +54,7 @@ Nous avons maintenu la fonction tel que dans AX en introduisant dans Paramètre 
 -HO l'adjusted Reserve, l'age limite est corrigé d'un an nous pensons qu'il faut éliminer ce décalage fin à 75 ans
 
 
-
+- Les polices épargnes ne prennent pas en compte de rachats partiels (partialSurrender)PARTSV_OUTGO
 
 
 CHANGEMENT APPORTé DANS PARAMÈTRE

@@ -233,7 +233,7 @@ class EPP28(Portfolio):
         return self.isPremPay() * self.ppurePP()/self.frac()
 
 
-#  taux d'intêret mensualisé
+#  taux d'intêret technique des polices mensualisé
     def txInt(self):
         txInteret = ((1+self.p['POLINTERG']/100)**(1/12)).to_numpy()[:,np.newaxis,np.newaxis] * self.one()
         return txInteret
