@@ -907,7 +907,14 @@ class Hypo:
         
         return myPayement
 
-
+#Renvoi un vecteur des années de projection pour par rapport aux anniversaires des polices partant de 0
+    def projectionYear(self):
+        
+        durif = self.p['DurationIfInitial'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()-1
+        durif = np.remainder(durif, 12)
+        increment = np.cumsum(self.one(), axis = 1) -1 + durif
+        
+        return np.floor(increment/12)
     
   
 ##############################################################################################################################
