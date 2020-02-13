@@ -34,6 +34,8 @@ class EP(Portfolio):
     def update(self,subPortfolio):
         super().update(subPortfolio)
         self.loopSaving()
+        self.pbAcqu()
+        self.epargnAcqu()
 
 #Cette Loop renvoie l'ensemble des variables récusrives pour les produits épargnes
     def loopSaving(self):
@@ -123,7 +125,137 @@ class EP(Portfolio):
       
         return self
 
+# Ici se trouve la projection des primes dans le futur en tenant compte de l'indexation
+    def premIndex(self):
+        
+        txIndex = (self.p['POLINDEX'].to_numpy()[:,np.newaxis,np.newaxis]/100) * self.one()
+       
+
+        premAnn = self.p['POLPRTOT'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
+        premIndex = premAnn * (1 + txIndex)**self.time()
+        
+        return  premIndex
+
+# Créer un vecteur de temporel en année depuis le début de la projection qui dépend du duration if
+    def time(self):
+        
+        durif = self.p['DurationIfInitial'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()-1
+        durif = np.remainder(durif, 12)
+        increment = np.cumsum(self.one(), axis = 1) -1 + durif
+        increment = increment/12
+        increment = np.floor(increment)
+        
+        return increment
+ 
+    def deathClaim(self):
+        
+        addSumAssuree = self.p['POLCAPAUT'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
+        
+        deathBenefit = self.pbAcquPP + self.epargAcqu() + addSumAssuree
+        
+        deathClaim = deathBenefit * self.nbrDeath + self.pupDeath() * self.nbrPupDeath
+        
+        return np.nan_to_num(deathClaim)
+
+#Calcul de l'épargne acquise par police hors PB
+    def epargAcqu(self):
+        
+        initEpargne = self.p['PMBPRVMAT'].to_numpy()[:,np.newaxis]
+        epargnAcquPP = self.zero()
+        epargnAcquPP[:,0,:] = initEpargne
+        prEncInv = self.prEncInvPP()
     
+    # taux interet mensualisé
+        txInteret = self.txInt()
+        
+    # loop de l'épargne acquise par police, (epargne acquise t-1 + prime investie capitalisé au taux d'intêret)
+        for i in range(1,self.shape[1]):
+        
+            epargnAcquPP[:,i,:]= (epargnAcquPP[:,i-1,:] + prEncInv[:,i,:]) * txInteret[:,i,:]
+            
+        return epargnAcquPP
+
+#Calcul de la prime encaissée investie par police
+    def prEncInvPP(self): 
+        return self.isPremPay() * self.ppurePP()/self.frac()
+
+#Calcul de la prime pure annuelle  
+    def ppurePP(self):
+        
+       #Condition qui met des primes à 0 pour des fractionnements 5 ou 0 et polices réduite
+        mask = (self.p['POLSIT']==9)|(self.p['POLSIT']==4)|(self.p['PMBFRACT']==0)|(self.p['PMBFRACT']==5)
+        premRider = (self.p['POLPRCPL9']) * (1-mask)
+        premRider = premRider.to_numpy()[:,np.newaxis,np.newaxis] * self.one()
+        
+        #Determine les frais d'acquisition en fonction de l'année du contrat (A CHANGER CAR ON AURA SUREMENT DES CHGT SUR 1 2 ou 3 ANS pour d'autres polices)
+        acquisitionLoading = (self.durationIf()<=12) * self.p['aquisitionLoading'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
+        
+        annPrem = self.premIndex()
+        gestionLoading = self.p['gestionLoading'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
+        ppure = (annPrem -  premRider)*(1-gestionLoading -acquisitionLoading )
+        return ppure
+
+# benefice en cas de mort d'une police réduite
+        
+    def pupDeath(self):
+        return np.nan_to_num(self.epAcquAVPUP + self.pbAcquAVPUP)
+
+#  PB acquise depuis le début du contrat
+    def pbAcqu(self):
+        
+        pupBBenPP = self.zero()
+        initPB = self.p['PMBPBEN'].to_numpy()[:,np.newaxis]
+        pupBBenPP[:,0,:] = initPB
+        pbAcquAVPUP = self.zero()
+        pbAcquAPPUP =self.zero()
+        
+        # taux interet mensualisé
+        txInteret = self.txInt()
+        noPupsIf = self.nbrPupsIf
+        noNewPups = self.nbrNewRed
+        
+        #  Possibilité de peut-être le faire sans loop (A VERIFIER)
+        for i in range(1,self.shape[1]):
+        
+            pupBBenPP[:,i,:] = pupBBenPP[:,i-1,:] * txInteret[:,i,:]
+            
+            pbAcquAVPUP[:,i,:] = pbAcquAPPUP[:,i-1,:] * txInteret[:,i,:]
+            
+# DIVISION PAR 0 A REGLER !!!!
+            pbAcquAPPUP[:,i,:] = np.nan_to_num((pbAcquAVPUP[:,i,:] * (noPupsIf[:,i,:] - noNewPups[:,i,:]) + pupBBenPP[:,i,:] * noNewPups[:,i,:]) / noPupsIf[:,i,:])
+                  
+    #Définition des variables récursives
+        # PB acquise par police AVANT nouvelle réduction                                 
+        self.pbAcquAVPUP=pbAcquAVPUP
+        # PB acquise par police APRES nouvelle réduction 
+        self.pbAcquAPPUP=pbAcquAPPUP
+        # PB acquise
+        self.pbAcquPP = pupBBenPP
+
+# epargne acquise par police réduite APRES/AVANT nouvelles réductions
+    def epargnAcqu(self):
+        
+        eppAcquAPPUP = self.zero()
+        noPupsIf = self.nbrPupsIf
+        noNewPups = self.nbrNewRed
+        epAcquAVPUP = self.zero()
+        txInteret = self.txInt()
+        pupBenPP =self.epargAcqu()
+        
+        for i in range(1,self.shape[1]):
+            
+            epAcquAVPUP[:,i,:] = eppAcquAPPUP[:,i-1,:] * txInteret[:,i,:]
+            
+ # DIVISION PAR 0 A REGLER !!!!           
+            eppAcquAPPUP[:,i,:] = np.nan_to_num((epAcquAVPUP[:,i,:] * (noPupsIf[:,i,:] - noNewPups[:,i,:]) + pupBenPP[:,i,:] * noNewPups[:,i,:]) / noPupsIf[:,i,:])
+
+   #Définition des variables récursives
+        #Epargne acquise par police AVANT nouvelle réduction                                 
+        self.epAcquAVPUP=epAcquAVPUP
+        #Epargne acquise par police APRES nouvelle réduction 
+        self.eppAcquAPPUP=eppAcquAPPUP
+        
+        self.pupBenPP = pupBenPP
 
 #Retourne les claims de la garantie principale (DEATH_OUTGO)
     def claimPrincipal(self):
@@ -183,7 +315,7 @@ aa = pol.p
 #m=pol.reserveExpense()
 #n=pol.unitExpense()
 # o=pol.totalPremium()
-q=pol.totalClaim()
+# q=pol.totalClaim()
 # r=pol.totalCommissions()
 # s=pol.totalExpense()
 # t=pol.BEL()
@@ -191,8 +323,9 @@ q=pol.totalClaim()
 # bel=np.sum(pol.BEL(), axis=0)
 # pgg=pol.PGG()
 
+gg=pol.deathClaim()
 
-monCas=q
+monCas=gg
 
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])

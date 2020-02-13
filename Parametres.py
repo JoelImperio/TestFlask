@@ -158,10 +158,11 @@ def fraisFractionnement(p):
 #Permet d'ajuster les polices réduite avec un fractionnement annuel 1 (Replication DCS)
 ##############################################################################################################################  
     
-def adjustedFrac(p):
+def adjustedFracAndPremium(p):
     
     mask = (p['PMBMOD'].isin([28,29,30,31,32,33,36])) & (p['PMBFRACT']==0)    
     p.loc[mask, 'PMBFRACT'] = 1
+    mask= mask | (p['POLSIT']==4) 
     p.loc[mask,'POLPRTOT']=0
     
     
@@ -385,9 +386,7 @@ def portfolioPreProcessing(p):
     #Une police mod 70 est par construction déjà échue le premier mois elle ne rentre pas dans prophet
     p=p.drop(p.loc[p['PMBPOL'].isin([1054602])].index)
     
-    #Police suspendu avec un prime total <> 0 dans les épargnes (il serait préférable d'avoir une condition sur POLSIT =4 )
-    p.loc[p['PMBPOL'].isin([515503,1736301,1900401,2168101,2396001,2500001,2500101,2466301]), 'POLPRTOT'] = 0
-    
+
     agesInitial(p)
     
 #Formatage des colonnes et création des colonnes utiles    
@@ -434,7 +433,7 @@ def portfolioPreProcessing(p):
     fraisFractionnement(p)
     
     # Ajustement des fractionnements pour des polices avec frac = 0 (réduites)
-    adjustedFrac(p)
+    adjustedFracAndPremium(p)
     
     
 
