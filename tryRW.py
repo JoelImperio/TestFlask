@@ -9,11 +9,7 @@ import os, os.path
 path = os.path.dirname(os.path.abspath(__file__))
 start_time = time.time()
 
-##############################################################################################################################
-#Création de la class X
-##############################################################################################################################
 
-    
 ##############################################################################################################################
 #Création de la class Epargne
 ############################################################################################################################
@@ -126,15 +122,15 @@ class EP(Portfolio):
         return self
 
 # Ici se trouve la projection des primes dans le futur en tenant compte de l'indexation
-    def premIndex(self):
+    def annualPremium(self):
         
         txIndex = (self.p['POLINDEX'].to_numpy()[:,np.newaxis,np.newaxis]/100) * self.one()
        
 
         premAnn = self.p['POLPRTOT'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
-        premIndex = premAnn * (1 + txIndex)**self.time()
+        annualPremium = premAnn * (1 + txIndex)**self.time()
         
-        return  premIndex
+        return  annualPremium
 
 # Créer un vecteur de temporel en année depuis le début de la projection qui dépend du duration if
     def time(self):
@@ -155,7 +151,7 @@ class EP(Portfolio):
         
         deathClaim = deathBenefit * self.nbrDeath + self.pupDeath() * self.nbrPupDeath
         
-        return np.nan_to_num(deathClaim)
+        return deathClaim
 
 #Calcul de l'épargne acquise par police hors PB
     def epargAcqu(self):
@@ -181,16 +177,13 @@ class EP(Portfolio):
 
 #Calcul de la prime pure annuelle  
     def ppurePP(self):
-        
-       #Condition qui met des primes à 0 pour des fractionnements 5 ou 0 et polices réduite
-        mask = (self.p['POLSIT']==9)|(self.p['POLSIT']==4)|(self.p['PMBFRACT']==0)|(self.p['PMBFRACT']==5)
-        premRider = (self.p['POLPRCPL9']) * (1-mask)
-        premRider = premRider.to_numpy()[:,np.newaxis,np.newaxis] * self.one()
+
+        premRider = self.p['POLPRCPL9'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
         
         #Determine les frais d'acquisition en fonction de l'année du contrat (A CHANGER CAR ON AURA SUREMENT DES CHGT SUR 1 2 ou 3 ANS pour d'autres polices)
         acquisitionLoading = (self.durationIf()<=12) * self.p['aquisitionLoading'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
         
-        annPrem = self.premIndex()
+        annPrem = self.annualPremium()
         gestionLoading = self.p['gestionLoading'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
         ppure = (annPrem -  premRider)*(1-gestionLoading -acquisitionLoading )
         return ppure
@@ -221,9 +214,16 @@ class EP(Portfolio):
             
             pbAcquAVPUP[:,i,:] = pbAcquAPPUP[:,i-1,:] * txInteret[:,i,:]
             
+            a=pbAcquAVPUP[:,i,:] * (noPupsIf[:,i,:] - noNewPups[:,i,:]) + pupBBenPP[:,i,:] * noNewPups[:,i,:]
+            b=noPupsIf[:,i,:]
+            pbAcquAPPUP[:,i,:] = np.divide(a,b,out=np.zeros_like(a), where=b!=0) 
+            
 # DIVISION PAR 0 A REGLER !!!!
-            pbAcquAPPUP[:,i,:] = np.nan_to_num((pbAcquAVPUP[:,i,:] * (noPupsIf[:,i,:] - noNewPups[:,i,:]) + pupBBenPP[:,i,:] * noNewPups[:,i,:]) / noPupsIf[:,i,:])
-                  
+            
+            
+            # pbAcquAPPUP[:,i,:] = np.nan_to_num((pbAcquAVPUP[:,i,:] * (noPupsIf[:,i,:] - noNewPups[:,i,:]) + pupBBenPP[:,i,:] * noNewPups[:,i,:]) / noPupsIf[:,i,:])
+                 
+  
     #Définition des variables récursives
         # PB acquise par police AVANT nouvelle réduction                                 
         self.pbAcquAVPUP=pbAcquAVPUP
@@ -246,8 +246,13 @@ class EP(Portfolio):
             
             epAcquAVPUP[:,i,:] = eppAcquAPPUP[:,i-1,:] * txInteret[:,i,:]
             
+            a=epAcquAVPUP[:,i,:] * (noPupsIf[:,i,:] - noNewPups[:,i,:]) + pupBenPP[:,i,:] * noNewPups[:,i,:]
+            b=noPupsIf[:,i,:]
+            eppAcquAPPUP[:,i,:]=np.divide(a,b,out=np.zeros_like(a), where=b!=0) 
+            
+            
  # DIVISION PAR 0 A REGLER !!!!           
-            eppAcquAPPUP[:,i,:] = np.nan_to_num((epAcquAVPUP[:,i,:] * (noPupsIf[:,i,:] - noNewPups[:,i,:]) + pupBenPP[:,i,:] * noNewPups[:,i,:]) / noPupsIf[:,i,:])
+            # eppAcquAPPUP[:,i,:] = np.nan_to_num((epAcquAVPUP[:,i,:] * (noPupsIf[:,i,:] - noNewPups[:,i,:]) + pupBenPP[:,i,:] * noNewPups[:,i,:]) / noPupsIf[:,i,:])
 
    #Définition des variables récursives
         #Epargne acquise par police AVANT nouvelle réduction                                 
