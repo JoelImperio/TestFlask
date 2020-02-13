@@ -16,7 +16,7 @@ start_time = time.time()
 
 class EP(Portfolio):
     mods=[28,29,30,31,32,33,36]
-    
+    ageLimite = 75    
 
     
     def __init__(self,run=allRuns,\
@@ -232,14 +232,47 @@ class EP(Portfolio):
 
 #Retourne les rachats totaux (SURR_OUTGO)
     def surrender(self):
-        return self.zero()
+        
+        #Rachats des polices active
+        surrIf = self.mathresBA() * self.nbrSurrender
+        
+        #Rachat des polices réduites
+        surrRed = (self.pbAcquAPPUP + self.eppAcquAPPUP) * self.nbrPupSurrender        
+        
+        return surrIf + surrRed
 
 #Retourne les échéances (MAT_OUTGO)
     def maturity(self):
         return self.zero()
 
+#mathresBA?
+    def mathresBA(self):
 
+        return self.pupBBenPP + self.pbAcquPP + self.adjustedReserve()      
 
+#Retourne la réserve mathémathique ajustée
+    def adjustedReserve(self):
+
+        #Age limite pour Epargne
+        agelimite=((self.age()-1)<=self.ageLimite)* self.one()
+
+        frek=self.frac()
+          
+        premCompl =  self.premiumCompl()/frek 
+        
+        #Calcul du risque en cours
+        riderIncPP=premCompl*agelimite*self.isPremPay()
+        riderIncPP2=premCompl*agelimite
+        
+        precPP = self.zero()
+
+        for i in range(1,self.shape[1]):
+            precPP[:,i,:]=precPP[:,i-1,:]+riderIncPP[:,i,:] - ((frek[:,i,:]/12)*riderIncPP2[:,i,:])
+            
+        
+        return precPP
+    
+    
 ##############################################################################################################################
 ###################################DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES#############################################
 ##############################################################################################################################
@@ -270,7 +303,7 @@ aa = pol.p
 #i=pol.fraisVisiteClaim()
 #j=pol.timeBeforeNextPay()
 #k=pol.risqueEnCour()
-# l=pol.adjustedReserve()
+l=pol.adjustedReserve()
 #m=pol.reserveExpense()
 #n=pol.unitExpense()
 # o=pol.totalPremium()
