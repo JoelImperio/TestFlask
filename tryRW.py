@@ -330,6 +330,9 @@ aa = pol.p
 
 gg=pol.deathClaim()
 
+
+print("Class EP--- %s sec" %'%.2f'%  (time.time() - start_time))
+
 monCas=gg
 
 zz=np.sum(monCas, axis=0)
