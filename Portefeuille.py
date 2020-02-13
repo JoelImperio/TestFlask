@@ -211,7 +211,7 @@ class Portfolio(Hypo):
         
         return indexation
 
-#  taux d'intêret technique des polices mensualisé
+#Retourne le taux d'intêret technique mensualisé (1+i)**(1/12)
     def txInt(self):
         txInteret = ((1+self.p['POLINTERG']/100)**(1/12)).to_numpy()[:,np.newaxis,np.newaxis] * self.one()
         return txInteret
