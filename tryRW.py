@@ -31,7 +31,6 @@ class EP(Portfolio):
         super().update(subPortfolio)
         self.loopSaving()
 
-
 #Cette Loop renvoie l'ensemble des variables récusrives pour les produits épargnes
     def loopSaving(self):
 
