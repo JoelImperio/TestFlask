@@ -339,7 +339,7 @@ purePremium=(annPrem -  premRider)*(1-gestionLoading -acquisitionLoading )
 
 a=(pol.durationIf()<=24)
 
-
+### Dans pbAcquAVPUP il manque la variable PB_INCOR_PUP (mod31)
 # def deathClaim(self):
 
 addSumAssuree = pol.p['POLCAPAUT'].to_numpy()[:,np.newaxis,np.newaxis] * pol.one()
