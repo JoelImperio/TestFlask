@@ -80,7 +80,7 @@ def allocationDesClassPGG(p):
 ##############################################################################################################################
 #Permet d'ajouter une colonne contenant le taux chargement d'ACQUISITION sur prime
 ############################################################################################################################## 
-def premiumLoading(p):
+def premiumAquisitionLoading(p):
     
     #FU
     mask=(p['PMBMOD']==8)|(p['PMBMOD']==9)
@@ -117,7 +117,7 @@ def premiumLoading(p):
 #Permet d'ajouter une colonne contenant le taux chargement de GESTION sur prime
 ###################################################################################################################### 
     
-def premiumGestion(p):
+def premiumGestionLoading(p):
     
     # Mod28
     mask=(p['PMBMOD']==28)
@@ -424,10 +424,10 @@ def portfolioPreProcessing(p):
     adjustAgesAndTerm(p)
         
     # Ajout de la colonne contenant les chargements d'acquisition
-    premiumLoading(p)
+    premiumAquisitionLoading(p)
     
     # Ajout de la colonne contenant les chargements de gestion
-    premiumGestion(p)
+    premiumGestionLoading(p)
     
     #Ajout d'une colonne contenant les frais de fractionnement
     fraisFractionnement(p)

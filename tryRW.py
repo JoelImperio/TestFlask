@@ -208,6 +208,32 @@ class EP(Portfolio):
     def premiumInvested(self):
         return self.isPremPay() * self.premiumPure()/self.frac()
 
+#Retourn la réserve mathémathique incluant la PB
+    def mathresBA(self):
+
+        return  self.epargnAcquPP + self.pbAcquPP + self.riskEnCours()      
+
+#Retourne le risque en cours
+    def riskEnCours(self):
+
+        #Age limite pour Epargne
+        agelimite=((self.age()-1)<=self.ageLimite)* self.one()
+
+        frek=self.frac()
+          
+        premCompl =  self.premiumCompl()/frek 
+        
+        #Calcul du risque en cours
+        riderIncPP=premCompl*agelimite*self.isPremPay()
+        riderIncPP2=premCompl*agelimite
+        
+        precPP = self.zero()
+
+        for i in range(1,self.shape[1]):
+            precPP[:,i,:]=precPP[:,i-1,:]+riderIncPP[:,i,:] - ((frek[:,i,:]/12)*riderIncPP2[:,i,:])
+              
+        return precPP
+
 #Retourne les claims décès
     def deathClaim(self):
         
@@ -245,38 +271,10 @@ class EP(Portfolio):
     def maturity(self):
         return self.zero()
 
-#mathresBA?
-    def mathresBA(self):
 
-        return self.pupBBenPP + self.pbAcquPP + self.adjustedReserve()      
-
-#Retourne la réserve mathémathique ajustée
-    def adjustedReserve(self):
-
-        #Age limite pour Epargne
-        agelimite=((self.age()-1)<=self.ageLimite)* self.one()
-
-        frek=self.frac()
-          
-        premCompl =  self.premiumCompl()/frek 
-        
-        #Calcul du risque en cours
-        riderIncPP=premCompl*agelimite*self.isPremPay()
-        riderIncPP2=premCompl*agelimite
-        
-        precPP = self.zero()
-
-        for i in range(1,self.shape[1]):
-            precPP[:,i,:]=precPP[:,i-1,:]+riderIncPP[:,i,:] - ((frek[:,i,:]/12)*riderIncPP2[:,i,:])
-            
-        
-        return precPP
-    
-    
 ##############################################################################################################################
 ###################################DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES#############################################
 ##############################################################################################################################
-
 
 
 def tester(self):
@@ -289,7 +287,7 @@ pol = EP()
 # pol.ids([1777802])
 # pol.ids([515503,1736301,1900401,2168101,2396001,2500001,2500101,2466301])
 
-pol.mod([28])
+pol.mod([29])
 #pol.modHead([9],2)
 aa = pol.p
 #a=pol.nbrPolIf
@@ -303,7 +301,7 @@ aa = pol.p
 #i=pol.fraisVisiteClaim()
 #j=pol.timeBeforeNextPay()
 #k=pol.risqueEnCour()
-l=pol.adjustedReserve()
+# l=pol.adjustedReserve()
 #m=pol.reserveExpense()
 #n=pol.unitExpense()
 # o=pol.totalPremium()
@@ -315,8 +313,20 @@ l=pol.adjustedReserve()
 # bel=np.sum(pol.BEL(), axis=0)
 # pgg=pol.PGG()
 
-gg=pol.deathClaim()
+gg=pol.claimPrincipal()
 
+
+# def deathClaim(self):
+
+addSumAssuree = pol.p['POLCAPAUT'].to_numpy()[:,np.newaxis,np.newaxis] * pol.one()
+
+deathBenefit = pol.pbAcquPP + pol.epargnAcquPP + addSumAssuree
+
+deathBenefitReduced=pol.epAcquAVPUP + pol.pbAcquAVPUP
+
+deathClaim = deathBenefit * pol.nbrDeath + deathBenefitReduced * pol.nbrPupDeath
+
+a=pol.epargnAcquPP
 
 print("Class EP--- %s sec" %'%.2f'%  (time.time() - start_time))
 
