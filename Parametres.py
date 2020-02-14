@@ -107,11 +107,34 @@ def premiumAquisitionLoading(p):
     p.loc[mask,'aquisitionLoading']=0.25
     
     
-    # Epargne retraite mod28
-    mask=(p['PMBMOD']==28)
-    p.loc[mask,'aquisitionLoading']= (45 * np.minimum(p['POLDURC'], 20) /20)
+    # Epargne retraite mod28 et mod29
+    mask=(p['PMBMOD'].isin([28,29]))
+    p.loc[mask,'aquisitionLoading']= (0.45 * np.minimum(p['POLDURC'], 20) /20)
+    p.loc[mask,'aquisitionLoadingYear2']= 0
+    p.loc[mask,'aquisitionLoadingYear3']= 0    
+
+    # Epargne retraite mod32
+    mask=(p['PMBMOD'].isin([32]))
+    p.loc[mask,'aquisitionLoading']= (0.36 * np.minimum(p['POLDURC'], 20) /20)
+    p.loc[mask,'aquisitionLoadingYear2']= (0.09 * np.minimum(p['POLDURC'], 20) /20)
+    p.loc[mask,'aquisitionLoadingYear3']= 0    
+
+    # Epargne retraite mod33
+    mask=(p['PMBMOD'].isin([33]))
+    p.loc[mask,'aquisitionLoading']= (0.445 * np.minimum(p['POLDURC'], 25) /25)
+    p.loc[mask,'aquisitionLoadingYear2']= (0.395 * np.minimum(p['POLDURC'], 25) /25)
+    p.loc[mask,'aquisitionLoadingYear3']= (0.395 * np.minimum(p['POLDURC'], 25) /25) 
     
-    
+    # Epargne retraite mod30 et mod31 et mod36
+    mask=(p['PMBMOD'].isin([30,31,36]))
+    p.loc[mask,'aquisitionLoading']=0    
+    p.loc[mask,'aquisitionLoadingYear2']= 0
+    p.loc[mask,'aquisitionLoadingYear3']= 0
+
+
+    p['aquisitionLoading'].fillna(0,inplace=True)
+    p['aquisitionLoadingYear2'].fillna(0,inplace=True)
+    p['aquisitionLoadingYear3'].fillna(0,inplace=True)
     
 ##############################################################################################################################
 #Permet d'ajouter une colonne contenant le taux chargement de GESTION sur prime
@@ -119,11 +142,21 @@ def premiumAquisitionLoading(p):
     
 def premiumGestionLoading(p):
     
-    # Mod28
-    mask=(p['PMBMOD']==28)
+    # Mod28 et Mod29
+    mask=(p['PMBMOD'].isin([28,29,32]))
     p.loc[mask,'gestionLoading']=0.07
- 
- 
+    
+    # Mod30
+    mask=(p['PMBMOD'].isin([30,31]))
+    p.loc[mask,'gestionLoading']=0 
+    
+    # Mod33
+    mask=(p['PMBMOD'].isin([33]))
+    p.loc[mask,'gestionLoading']=0.055
+    
+    # Mod36
+    mask=(p['PMBMOD'].isin([36]))
+    p.loc[mask,'gestionLoading']=0.12   
 
 ##############################################################################################################################
 #Permet d'ajouter une colonne contenant les frais de fractionnement
