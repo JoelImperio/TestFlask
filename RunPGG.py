@@ -102,10 +102,10 @@ class RUNPGG():
  
 run=RUNPGG()
 
-# a=run.pggParSousPortefeuille()
+a=run.pggParSousPortefeuille()
 # b=run.pggTotal()
 # c=run.deltaAnalysisSousPortefeuille()
-d=run.deltaAnalysisPGG()
+# d=run.deltaAnalysisPGG()
 
 
 
