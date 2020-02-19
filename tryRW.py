@@ -31,7 +31,6 @@ class EP(Portfolio):
         super().update(subPortfolio)
         self.loopSaving()
 
-
 #Cette Loop renvoie l'ensemble des variables récusrives pour les produits épargnes
     def loopSaving(self):
 
@@ -198,8 +197,13 @@ class EP(Portfolio):
         premRider = self.premiumCompl()
   
         #Determine les frais d'acquisition en fonction de l'année du contrat (A CHANGER CAR ON AURA SUREMENT DES CHGT SUR 1 2 ou 3 ANS pour d'autres polices)
-        acquisitionLoading = (self.durationIf()<=12) * self.p['aquisitionLoading'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
-        
+        # acquisitionLoading = (self.durationIf()<=12) * self.p['aquisitionLoading'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
+        acquisitionLoading=self.one()
+        acquisitionLoading =acquisitionLoading* (self.durationIf()<=12) * self.p['aquisitionLoading'].to_numpy()[:,np.newaxis,np.newaxis]
+        acquisitionLoading =acquisitionLoading* (self.durationIf()<=24) * self.p['aquisitionLoadingYear2'].to_numpy()[:,np.newaxis,np.newaxis]
+        acquisitionLoading =acquisitionLoading* (self.durationIf()<=36) * self.p['aquisitionLoadingYear3'].to_numpy()[:,np.newaxis,np.newaxis]
+        acquisitionLoading =acquisitionLoading* (self.durationIf()>36) * self.zero()
+                     
         gestionLoading = self.p['gestionLoading'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
 
         return (annPrem -  premRider)*(1-gestionLoading -acquisitionLoading )
@@ -207,6 +211,32 @@ class EP(Portfolio):
 #Retourne les primes investis
     def premiumInvested(self):
         return self.isPremPay() * self.premiumPure()/self.frac()
+
+#Retourn la réserve mathémathique incluant la PB
+    def mathresBA(self):
+
+        return  self.epargnAcquPP + self.pbAcquPP + self.riskEnCours()      
+
+#Retourne le risque en cours
+    def riskEnCours(self):
+
+        #Age limite pour Epargne
+        agelimite=((self.age()-1)<=self.ageLimite)* self.one()
+
+        frek=self.frac()
+          
+        premCompl =  self.premiumCompl()/frek 
+        
+        #Calcul du risque en cours
+        riderIncPP=premCompl*agelimite*self.isPremPay()
+        riderIncPP2=premCompl*agelimite
+        
+        precPP = self.zero()
+
+        for i in range(1,self.shape[1]):
+            precPP[:,i,:]=precPP[:,i-1,:]+riderIncPP[:,i,:] - ((frek[:,i,:]/12)*riderIncPP2[:,i,:])
+              
+        return precPP
 
 #Retourne les claims décès
     def deathClaim(self):
@@ -245,38 +275,10 @@ class EP(Portfolio):
     def maturity(self):
         return self.zero()
 
-#mathresBA?
-    def mathresBA(self):
 
-        return self.pupBBenPP + self.pbAcquPP + self.adjustedReserve()      
-
-#Retourne la réserve mathémathique ajustée
-    def adjustedReserve(self):
-
-        #Age limite pour Epargne
-        agelimite=((self.age()-1)<=self.ageLimite)* self.one()
-
-        frek=self.frac()
-          
-        premCompl =  self.premiumCompl()/frek 
-        
-        #Calcul du risque en cours
-        riderIncPP=premCompl*agelimite*self.isPremPay()
-        riderIncPP2=premCompl*agelimite
-        
-        precPP = self.zero()
-
-        for i in range(1,self.shape[1]):
-            precPP[:,i,:]=precPP[:,i-1,:]+riderIncPP[:,i,:] - ((frek[:,i,:]/12)*riderIncPP2[:,i,:])
-            
-        
-        return precPP
-    
-    
 ##############################################################################################################################
 ###################################DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES#############################################
 ##############################################################################################################################
-
 
 
 def tester(self):
@@ -286,10 +288,10 @@ pol = EP()
 #pol=EP(run=[4,5])
 # pol.ids([363001])
 # pol.ids([1900401])
-# pol.ids([1777802])
+pol.ids([1945101])
 # pol.ids([515503,1736301,1900401,2168101,2396001,2500001,2500101,2466301])
 
-pol.mod([28])
+# pol.mod([31])
 #pol.modHead([9],2)
 aa = pol.p
 #a=pol.nbrPolIf
@@ -303,7 +305,7 @@ aa = pol.p
 #i=pol.fraisVisiteClaim()
 #j=pol.timeBeforeNextPay()
 #k=pol.risqueEnCour()
-l=pol.adjustedReserve()
+# l=pol.adjustedReserve()
 #m=pol.reserveExpense()
 #n=pol.unitExpense()
 # o=pol.totalPremium()
@@ -315,12 +317,43 @@ l=pol.adjustedReserve()
 # bel=np.sum(pol.BEL(), axis=0)
 # pgg=pol.PGG()
 
-gg=pol.deathClaim()
+gg=pol.claimPrincipal()
+
+
+# def premiumPure(self):
+
+annPrem = pol.premiumAnnual()      
+premRider = pol.premiumCompl()
+  
+#Determine les frais d'acquisition en fonction de l'année du contrat (A CHANGER CAR ON AURA SUREMENT DES CHGT SUR 1 2 ou 3 ANS pour d'autres polices)
+# acquisitionLoading = (pol.durationIf()<=12) * pol.p['aquisitionLoading'].to_numpy()[:,np.newaxis,np.newaxis] * pol.one()
+acquisitionLoading=pol.one()
+acquisitionLoading =acquisitionLoading* (pol.durationIf()<=12) * pol.p['aquisitionLoading'].to_numpy()[:,np.newaxis,np.newaxis]
+acquisitionLoading =acquisitionLoading* (pol.durationIf()<=24) * pol.p['aquisitionLoadingYear2'].to_numpy()[:,np.newaxis,np.newaxis]
+acquisitionLoading =acquisitionLoading* (pol.durationIf()<=36) * pol.p['aquisitionLoadingYear3'].to_numpy()[:,np.newaxis,np.newaxis]
+    
+gestionLoading = pol.p['gestionLoading'].to_numpy()[:,np.newaxis,np.newaxis] * pol.one()
+
+purePremium=(annPrem -  premRider)*(1-gestionLoading -acquisitionLoading )
+
+a=(pol.durationIf()<=24)
+
+### Dans pbAcquAVPUP il manque la variable PB_INCOR_PUP (mod31)
+# def deathClaim(self):
+
+addSumAssuree = pol.p['POLCAPAUT'].to_numpy()[:,np.newaxis,np.newaxis] * pol.one()
+
+deathBenefit = pol.pbAcquPP + pol.epargnAcquPP + addSumAssuree
+
+deathBenefitReduced=pol.epAcquAVPUP + pol.pbAcquAVPUP
+
+deathClaim = deathBenefit * pol.nbrDeath + deathBenefitReduced * pol.nbrPupDeath
+
 
 
 print("Class EP--- %s sec" %'%.2f'%  (time.time() - start_time))
 
-monCas=gg
+monCas=pol.pbAcquAVPUP
 
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])

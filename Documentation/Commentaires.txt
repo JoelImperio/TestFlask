@@ -56,6 +56,7 @@ Nous avons maintenu la fonction tel que dans AX en introduisant dans Paramètre 
 
 - Les polices épargnes ne prennent pas en compte de rachats partiels (partialSurrender)PARTSV_OUTGO
 
+- Les aquisitions loading semble erroné pour les épargnes à contrôler 
 
 CHANGEMENT APPORTé DANS PARAMÈTRE
 
