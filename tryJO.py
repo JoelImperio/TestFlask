@@ -645,6 +645,20 @@ class EPP28(Portfolio):
         return self
 
 pol = EPP28()
+
+
+
+monCas=pol.pbAcquAPPUP
+
+zz=np.sum(monCas, axis=0)
+zzz=np.sum(zz[:,0])
+z=pd.DataFrame(monCas[:,:,0])
+z=z.sum()
+z.to_csv(r'check.csv',header=False)
+
+
+
+
 # pol.ids([605701, 532301])
 # matougto = pol.matOutgo()
 # benpp = pol.matBenPP
