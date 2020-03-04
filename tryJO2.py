@@ -59,12 +59,42 @@ class EP(Portfolio):
 
 
 #Variables de PB actifs et réduites
-        pupBBenPP = self.zero()
+ # --- A SUPPRIMER   pupBBenPP = self.zero()
         pbAcquAVPUP = self.zero()
         pbAcquAPPUP =self.zero()
         
-        pupBBenPP[:,0,:] = self.p['PMBPBEN'].to_numpy()[:,np.newaxis]
+ # --- A SUPPRIMER   pupBBenPP[:,0,:] = self.p['PMBPBEN'].to_numpy()[:,np.newaxis]
       
+        
+        
+        
+# --- AJOUT JO
+        pbIncorPUP = self.zero()
+        
+        epgTxPB_PUP = self.zero()
+        epgTxPB_PUP[:,0,:] = 0
+        
+        pbCalcPUP = self.zero()
+        allocMonths = self.allocMonths()
+        
+        # Taux annualisé
+        txIntPC = self.txInt()**(12) - 1
+
+        txPbPC = self.txPbPC()/100
+        
+        # taux annualisé
+        txIntPC = self.txInt()**(12) - 1
+        epgTxPB_PP = self.epgTxPB_PP()
+        
+        txTot = 1 + (txPbPC + txIntPC)
+        
+        pbIncorPP = self.zero()
+        pbAcquPP = self.zero()
+        pbAcquPP[:,0,:] = self.p['PMBPBEN'].to_numpy()[:,np.newaxis]
+        pbCalcPP = self.zero()
+        
+        
+        
         
 #Variables biométriques et génériques
         lapseTiming=0.5
@@ -115,15 +145,40 @@ class EP(Portfolio):
             
             eppAcquAPPUP[:,i,:]=np.divide(epTemp,nbrPupsIf[:,i,:],out=np.zeros_like(epTemp), where=nbrPupsIf[:,i,:]!=0)
 
-#Définition des variables de PB pour actives et réduites
-            pupBBenPP[:,i,:] = pupBBenPP[:,i-1,:] * txInteret[:,i,:]
+
             
-            pbAcquAVPUP[:,i,:] = pbAcquAPPUP[:,i-1,:] * txInteret[:,i,:]
+# --- AJOUT JO  
             
-            pbTemp=pbAcquAVPUP[:,i,:] * (nbrPupsIf[:,i,:] - nbrNewRed[:,i,:]) + pupBBenPP[:,i,:] * nbrNewRed[:,i,:]            
+            pbIncorPP[:,i,:] = pbCalcPP[:,i-1,:]
+            
+            pbIncorPUP[:,i,:] = pbCalcPUP[:,i-1,:]
+         
+            pbAcquAVPUP[:,i,:] = (pbAcquAPPUP[:,i-1,:] + pbIncorPUP[:,i,:]) * txInteret[:,i,:]
+
+            pbAcquPP[:,i,:] = (pbAcquPP[:,i-1,:] + pbIncorPP[:,i,:]) * txInteret[:,i,:]
+           
+            
+            
+            #Définition des variables de PB pour actives et réduites
+# --- A SUPPRIMER     pupBBenPP[:,i,:] = (pupBBenPP[:,i-1,:] + pbIncorPUP[:,i,:]) * txInteret[:,i,:]
+        
+            
+
+            pbTemp=pbAcquAVPUP[:,i,:] * (nbrPupsIf[:,i,:] - nbrNewRed[:,i,:]) + pbAcquPP[:,i,:] * nbrNewRed[:,i,:]            
             
             pbAcquAPPUP[:,i,:] = np.divide(pbTemp,nbrPupsIf[:,i,:],out=np.zeros_like(pbTemp), where=nbrPupsIf[:,i,:]!=0)       
 
+
+
+# --- AJOUT JO  
+            epgTxPB_PUP[:,i,:] = (epgTxPB_PUP[:,i-1,:] * (nbrPupsIf[:,i,:] - nbrNewRed[:,i,:]) * (txTot[:,i,:]**(1/12)) + (epgTxPB_PP[:,i,:] *  nbrNewRed[:,i,:])) / nbrPupsIf[:,i,:]
+              
+            pbCalcPP[:,i,:] = np.maximum((epgTxPB_PP[:,i,:] - epargnAcquPP[:,i,:] - pbAcquPP[:,i,:]),0) * allocMonths[:,i,:]
+            
+            pbCalcPUP[:,i,:] = np.maximum((epgTxPB_PUP[:,i,:] - eppAcquAPPUP[:,i,:] - pbAcquAPPUP[:,i,:]),0) * allocMonths[:,i,:]
+
+  
+ 
 
 #Sauvegarde des variables des actifs
        
@@ -170,7 +225,22 @@ class EP(Portfolio):
         # PB acquise par police APRES nouvelle réduction 
         self.pbAcquAPPUP=pbAcquAPPUP
         # PB acquise des polices actives
-        self.pbAcquPP = pupBBenPP      
+# --- A SUPPRIMER   self.pbAcquPP = pupBBenPP      
+        
+
+# --- AJOUT JO
+        #  PB à affecter par police réduite
+        self.pbCalcPUP = pbCalcPUP
+        # epargne et PB des polices réduites calculé au taux PB
+        self.epgTxPB_PUP = epgTxPB_PUP
+        # PB incorporée par contrat réduit
+        self.pbIncorPUP = pbIncorPUP
+        # Montant de PB à affecter par police
+        self.pbCalcPP = pbCalcPP
+        # PB acquise des polices actives
+        self.pbAcquPP = pbAcquPP
+        # PB incorporée par police
+        self.pbIncorPP = pbIncorPP
         
         return
 
@@ -276,26 +346,14 @@ class EP(Portfolio):
         return self.zero()
 
 
+
+
+
+
+
 # =============================================================================
 # --- AJOUT JO 
 # =============================================================================
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -306,7 +364,6 @@ class EP(Portfolio):
         increment = increment%12 +1
 
         return increment
-
 
 
 
@@ -322,8 +379,6 @@ class EP(Portfolio):
 
 
 
-
-
 # Taux de participation aux benefices (TX_PB_PC)
     def txPbPC(self):
         
@@ -334,19 +389,17 @@ class EP(Portfolio):
     
     
     
-    
-    
 # Epargne et PB calculée au Taux de PB
     def epgTxPB_PP(self):
         
-        premiumInvested = pol.premiumInvested()
-        txIntPC = pol.txInt()**(12) - 1
-        epgTxPB_PP = pol.one()
-        txPB_PC = pol.txPbPC()/100
+        premiumInvested = self.premiumInvested()
+        txIntPC = self.txInt()**(12) - 1
+        epgTxPB_PP = self.one()
+        txPB_PC = self.txPbPC()/100
         
         txTot = 1 + (txPB_PC + txIntPC)
         
-        epgTxPB_PP[:,0,:] = pol.p['PMBPBEN'] + pol.p['PMBPRVMAT']
+        epgTxPB_PP[:,0,:] = (self.p['PMBPBEN'] + self.p['PMBPRVMAT']).to_numpy()[:,np.newaxis] 
         
         for i in range(1,self.shape[1]):
         
@@ -358,53 +411,6 @@ class EP(Portfolio):
 
 
 
-# Epargne et PB des polices réduites calculées au taux PB
-    def epgTxPB_PUP(self):
-        
-        
-        txIntPC = pol.txInt()**(12) - 1
-        epgTxPB_PUP = pol.one()
-        txPB_PUP_PC = pol.txPbPC()/100
-        epgTxPB_PUP[:,0,:] = 0
-             
-        noPupsIf = pol.nbrPupsIf
-        noNewPups = pol.nbrNewRed
-        txIntPC = pol.txInt()**(12) - 1
-        epgTxPB_PP = pol.epgTxPB_PP()
-        
-        
-        txTot = 1 + (txPB_PUP_PC + txIntPC)
-        
-        for i in range(1,self.shape[1]):
-        
-            epgTxPB_PUP[:,i,:] = (epgTxPB_PUP[:,i-1,:] * (noPupsIf[:,i,:] - noNewPups[:,i,:]) * (txTot[:,i,:]**(1/12)) + (epgTxPB_PP[:,i,:] *  noNewPups[:,i,:])) / noPupsIf[:,i,:] 
-        
-        return epgTxPB_PUP
-
-
-
-
-
-# PB à affecter par police réduite PB_CALC_PUP
-    def pbCalcPUP(self):
-        
-        epgTxPB_PUP = self.epgTxPB_PUP()
-        eppAcquAPPUP = self.eppAcquAPPUP
-        pbAcquAPPUP = self.pbAcquAPPUP
-        allocMonth = self.allocMonths()
-        pbCalc = np.maximum(epgTxPB_PUP - eppAcquAPPUP - pbAcquAPPUP, 0) * allocMonth
-        return pbCalc
-
-    # def pbIncorpPUP(self):
-        
-        
-
-
-# a = pol.txPbPC()
-
-
-
-# epgTxPB_PP = pol.epgTxPB_PP()
 
 
 
@@ -430,7 +436,7 @@ pol = EP()
 #pol=EP(run=[4,5])
 # pol.ids([363001])
 # pol.ids([1900401])
-pol.ids([605701])
+pol.ids([1945101])
 # pol.ids([515503,1736301,1900401,2168101,2396001,2500001,2500101,2466301])
 
 pbacqAPVUP = pol.pbAcquAVPUP
@@ -498,7 +504,7 @@ deathClaim = deathBenefit * pol.nbrDeath + deathBenefitReduced * pol.nbrPupDeath
 
 print("Class EP--- %s sec" %'%.2f'%  (time.time() - start_time))
 
-monCas=pol.pbAcquAPPUP
+monCas=pol.pbIncorPUP
 
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
