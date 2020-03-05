@@ -288,10 +288,10 @@ pol = EP()
 #pol=EP(run=[4,5])
 # pol.ids([363001])
 # pol.ids([1900401])
-pol.ids([1945101])
+# pol.ids([1945101])
 # pol.ids([515503,1736301,1900401,2168101,2396001,2500001,2500101,2466301])
 
-# pol.mod([31])
+pol.mod([28])
 #pol.modHead([9],2)
 aa = pol.p
 #a=pol.nbrPolIf
@@ -353,7 +353,7 @@ deathClaim = deathBenefit * pol.nbrDeath + deathBenefitReduced * pol.nbrPupDeath
 
 print("Class EP--- %s sec" %'%.2f'%  (time.time() - start_time))
 
-monCas=pol.pbAcquAVPUP
+monCas=pol.surrender()
 
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])

@@ -68,6 +68,7 @@ class EP(Portfolio):
         
         
         
+        
 # --- AJOUT JO
         pbIncorPUP = self.zero()
         
@@ -92,6 +93,11 @@ class EP(Portfolio):
         pbAcquPP = self.zero()
         pbAcquPP[:,0,:] = self.p['PMBPBEN'].to_numpy()[:,np.newaxis]
         pbCalcPP = self.zero()
+        isActive = self.isActive()
+        
+        
+        
+        
         
         
         
@@ -149,18 +155,18 @@ class EP(Portfolio):
             
 # --- AJOUT JO  
             
-            pbIncorPP[:,i,:] = pbCalcPP[:,i-1,:]
+            pbIncorPP[:,i,:] = np.nan_to_num(pbCalcPP[:,i-1,:])
             
-            pbIncorPUP[:,i,:] = pbCalcPUP[:,i-1,:]
+            pbIncorPUP[:,i,:] = np.nan_to_num(pbCalcPUP[:,i-1,:])
          
             pbAcquAVPUP[:,i,:] = (pbAcquAPPUP[:,i-1,:] + pbIncorPUP[:,i,:]) * txInteret[:,i,:]
 
-            pbAcquPP[:,i,:] = (pbAcquPP[:,i-1,:] + pbIncorPP[:,i,:]) * txInteret[:,i,:]
+            pbAcquPP[:,i,:] = (pbAcquPP[:,i-1,:] + pbIncorPP[:,i,:]) * txInteret[:,i,:] * isActive[:,i,:]
            
             
             
             #Définition des variables de PB pour actives et réduites
-# --- A SUPPRIMER     pupBBenPP[:,i,:] = (pupBBenPP[:,i-1,:] + pbIncorPUP[:,i,:]) * txInteret[:,i,:]
+# --- A SUPPRIMER     pupBBenPP[:,i,:] = (pupBBenPP[:,i-1,:]) * txInteret[:,i,:]
         
             
 
@@ -171,11 +177,13 @@ class EP(Portfolio):
 
 
 # --- AJOUT JO  
-            epgTxPB_PUP[:,i,:] = (epgTxPB_PUP[:,i-1,:] * (nbrPupsIf[:,i,:] - nbrNewRed[:,i,:]) * (txTot[:,i,:]**(1/12)) + (epgTxPB_PP[:,i,:] *  nbrNewRed[:,i,:])) / nbrPupsIf[:,i,:]
-              
-            pbCalcPP[:,i,:] = np.maximum((epgTxPB_PP[:,i,:] - epargnAcquPP[:,i,:] - pbAcquPP[:,i,:]),0) * allocMonths[:,i,:]
+            epgTxTEMP = epgTxPB_PUP[:,i-1,:] * (nbrPupsIf[:,i,:] - nbrNewRed[:,i,:]) * (txTot[:,i,:]**(1/12)) + (epgTxPB_PP[:,i,:] *  nbrNewRed[:,i,:])
             
-            pbCalcPUP[:,i,:] = np.maximum((epgTxPB_PUP[:,i,:] - eppAcquAPPUP[:,i,:] - pbAcquAPPUP[:,i,:]),0) * allocMonths[:,i,:]
+            epgTxPB_PUP[:,i,:] =  np.divide(epgTxTEMP, nbrPupsIf[:,i,:], out=np.zeros_like(epgTxTEMP), where=nbrPupsIf[:,i,:]!=0)
+               
+            pbCalcPP[:,i,:] = np.maximum((epgTxPB_PP[:,i,:] - epargnAcquPP[:,i,:] - pbAcquPP[:,i,:]),0) * allocMonths[:,i,:] * isActive[:,i,:]
+            
+            pbCalcPUP[:,i,:] = np.maximum((epgTxPB_PUP[:,i,:] - eppAcquAPPUP[:,i,:] - pbAcquAPPUP[:,i,:]),0) * allocMonths[:,i,:] * isActive[:,i,:]
 
   
  
@@ -219,11 +227,11 @@ class EP(Portfolio):
 
 
 #Sauvgarde des variables de  PB pour actives et réduites
-        
+# ---A MODIFIER JO
         # PB acquise par police AVANT nouvelle réduction                                 
-        self.pbAcquAVPUP=pbAcquAVPUP
+        self.pbAcquAVPUP=np.nan_to_num(pbAcquAVPUP)
         # PB acquise par police APRES nouvelle réduction 
-        self.pbAcquAPPUP=pbAcquAPPUP
+        self.pbAcquAPPUP=np.nan_to_num(pbAcquAPPUP)
         # PB acquise des polices actives
 # --- A SUPPRIMER   self.pbAcquPP = pupBBenPP      
         
@@ -241,6 +249,9 @@ class EP(Portfolio):
         self.pbAcquPP = pbAcquPP
         # PB incorporée par police
         self.pbIncorPP = pbIncorPP
+        # PB incorporée par police réduite
+        self.pbIncorPUP = pbIncorPUP
+        
         
         return
 
@@ -311,13 +322,44 @@ class EP(Portfolio):
 #Retourne les claims décès
     def deathClaim(self):
         
+# =============================================================================
+#    --- AJOUT JO     
+# =============================================================================
+        
+        
         addSumAssuree = self.p['POLCAPAUT'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
+        
+        mask32 = self.p['PMBMOD'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()  == 32
+        
+        mask_55 =mask32 & (self.age() <= 55)
+        mask_55_65 =mask32 & (self.age() > 55) & (self.age() <= 65)       
+        mask_65 =mask32 & (self.age() > 65)
+
+        
+        addSumAssuree[mask_55]=30000
+        addSumAssuree[mask_55_65]=7500        
+        addSumAssuree[mask_65]=2500       
+        
+        
+        mask36 = self.p['PMBMOD'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()  == 36
+        addSumAssuree[mask36]=50000
+        
         
         deathBenefit = self.pbAcquPP + self.epargnAcquPP + addSumAssuree
         
-        deathBenefitReduced=self.epAcquAVPUP + self.pbAcquAVPUP
+        deathBenefitReduced=np.nan_to_num(self.epAcquAVPUP + self.pbAcquAVPUP)
         
         deathClaim = deathBenefit * self.nbrDeath + deathBenefitReduced * self.nbrPupDeath
+        
+
+        # pupDeath = np.nan_to_num(self.epAcquAVPUP + self.pbAcquAVPUP)
+        
+        # deathClaim = deathBenefit * self.nbrDeath + pupDeath * self.nbrPupDeath
+        
+        
+        
+        
+        
         
         return deathClaim
 
@@ -341,9 +383,9 @@ class EP(Portfolio):
         
         return surrIf + surrRed
 
-#Retourne les échéances (MAT_OUTGO)
-    def maturity(self):
-        return self.zero()
+#--- A SUPPRIMER #Retourne les échéances (MAT_OUTGO)
+    # def maturity(self):
+    #     return self.zero()
 
 
 
@@ -355,6 +397,32 @@ class EP(Portfolio):
 # --- AJOUT JO 
 # =============================================================================
 
+
+
+    
+# Calcul des sorties dûes aux maturité des polices (MAT_OUTGO)
+    def maturity(self):
+        
+        matBenPP = self.epargnAcquPP + self.pbAcquPP
+        noMats = self.nbrNewMat
+        pupMatbPP =  self.epAcquAVPUP + self.pbAcquAPPUP
+        noPupMat = self.nbrPupMat
+   
+        matOutgo = self.zero()
+        
+        for i in range(1,self.shape[1]+1):
+            
+            matOutgo[:,i,:] = matBenPP[:,i-1,:] * noMats[:,i,:] + pupMatbPP[:,i-1,:] * noPupMat[:,i,:]
+           
+ #Définition des variables récursives
+        self.matBenPP = matBenPP
+        self.noMats = noMats
+        self.pupMatbPP = pupMatbPP
+        self.noPupMat = noPupMat
+        
+        # return matBenIF + matBenPPUPif
+        return matOutgo
+    
 
 
 # Créer un vecteur correspondans a calendar_month dans prophet (le mois de la projection)
@@ -409,6 +477,19 @@ class EP(Portfolio):
 
 
 
+# Vecteur de 1 et 0 permettant de savoir si police toujours active ou non
+    def isActive(self):
+        
+        moisRestant = self.p['residualTermM'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
+        
+        increment = np.cumsum(self.one(), axis = 1) -1
+
+        mask = moisRestant >= increment
+        
+        return mask
+
+
+
 
 
 
@@ -434,15 +515,15 @@ pol = EP()
 
 
 #pol=EP(run=[4,5])
-# pol.ids([363001])
-# pol.ids([1900401])
-pol.ids([1945101])
+# pol.ids([818801])
+# pol.ids([1748802])
+# pol.ids([493202, 524401])
 # pol.ids([515503,1736301,1900401,2168101,2396001,2500001,2500101,2466301])
 
 pbacqAPVUP = pol.pbAcquAVPUP
 
 
-# pol.mod([31])
+pol.mod([36])
 #pol.modHead([9],2)
 aa = pol.p
 #a=pol.nbrPolIf
@@ -504,7 +585,7 @@ deathClaim = deathBenefit * pol.nbrDeath + deathBenefitReduced * pol.nbrPupDeath
 
 print("Class EP--- %s sec" %'%.2f'%  (time.time() - start_time))
 
-monCas=pol.pbIncorPUP
+monCas=pol.deathClaim()
 
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
