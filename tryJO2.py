@@ -523,7 +523,7 @@ pol = EP()
 pbacqAPVUP = pol.pbAcquAVPUP
 
 
-pol.mod([36])
+pol.mod([31])
 #pol.modHead([9],2)
 aa = pol.p
 #a=pol.nbrPolIf
@@ -585,7 +585,7 @@ deathClaim = deathBenefit * pol.nbrDeath + deathBenefitReduced * pol.nbrPupDeath
 
 print("Class EP--- %s sec" %'%.2f'%  (time.time() - start_time))
 
-monCas=pol.deathClaim()
+monCas=pol.claimPrincipal()
 
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
