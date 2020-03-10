@@ -253,13 +253,15 @@ class EP(Portfolio):
         
         riderPremium=self.p['POLPRCPL9'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
         
-        mask36 = self.p['PMBMOD'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()  == 36
+        mask33_36 = (self.p['PMBMOD'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()  == 36) |\
+            (self.p['PMBMOD'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()  == 33) 
+            
         
-        rider36=self.p['POLPRCPL3'].to_numpy()[:,np.newaxis,np.newaxis] * self.one() \
+        rider33_36=self.p['POLPRCPL3'].to_numpy()[:,np.newaxis,np.newaxis] * self.one() \
             +self.p['POLPRCPL4'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()\
                 # +self.p['POLPRCPLA'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
         
-        riderPremium[mask36]=riderPremium[mask36]+rider36[mask36]
+        riderPremium[mask33_36]=riderPremium[mask33_36]+rider33_36[mask33_36]
             
         
         
@@ -317,6 +319,7 @@ class EP(Portfolio):
         addSumAssuree = self.p['POLCAPAUT'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
         
         mask32 = (self.p['PMBMOD'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()  == 32)
+        mask33 = (self.p['PMBMOD'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()  == 33)
         
         mask_55 = (self.age() <= 55)
         mask_55_65 = (self.age() > 55) & (self.age() <= 65)       
@@ -329,6 +332,8 @@ class EP(Portfolio):
         
         
         deathBenefit = self.pbAcquPP + self.epargnAcquPP + addSumAssuree
+        
+        deathBenefit[mask33]=np.maximum(deathBenefit[mask33]-addSumAssuree[mask33],addSumAssuree[mask33])
         
         deathBenefitReduced=np.nan_to_num(self.epAcquAVPUP + self.pbAcquAVPUP)
         
@@ -470,14 +475,14 @@ pol = EP()
 
 
 #pol=EP(run=[4,5])
-# pol.ids([2184003])
+pol.ids([2172501])
 # pol.ids([1748802])
 # pol.ids([493202, 524401])
 # pol.ids([515503,1736301,1900401,2168101,2396001,2500001,2500101,2466301])
 
 
 
-pol.mod([36])
+# pol.mod([33])
 #pol.modHead([9],2)
 aa = pol.p
 #a=pol.nbrPolIf
@@ -507,23 +512,27 @@ q=pol.totalClaim()
         
 addSumAssuree = pol.p['POLCAPAUT'].to_numpy()[:,np.newaxis,np.newaxis] * pol.one()
 
-mask32 = pol.p['PMBMOD'].to_numpy()[:,np.newaxis,np.newaxis] * pol.one()  == 32
+mask32 = (pol.p['PMBMOD'].to_numpy()[:,np.newaxis,np.newaxis] * pol.one()  == 32)
+mask33 = (pol.p['PMBMOD'].to_numpy()[:,np.newaxis,np.newaxis] * pol.one()  == 33)
 
-mask_55 =mask32 & (pol.age() <= 55)
-mask_55_65 =mask32 & (pol.age() > 55) & (pol.age() <= 65)       
-mask_65 =mask32 & (pol.age() > 65)
+mask_55 = (pol.age() <= 55)
+mask_55_65 = (pol.age() > 55) & (pol.age() <= 65)       
+mask_65 = (pol.age() > 65)
 
 
-addSumAssuree[mask_55]=30000
-addSumAssuree[mask_55_65]=7500        
-addSumAssuree[mask_65]=2500       
+addSumAssuree[mask32 & mask_55]=30000
+addSumAssuree[mask32 & mask_55_65]=7500        
+addSumAssuree[mask32 & mask_65]=2500       
 
 
 deathBenefit = pol.pbAcquPP + pol.epargnAcquPP + addSumAssuree
 
+deathBenefit[mask33]=np.maximum(deathBenefit[mask33]-addSumAssuree[mask33],addSumAssuree[mask33])
+
 deathBenefitReduced=np.nan_to_num(pol.epAcquAVPUP + pol.pbAcquAVPUP)
 
 deathClaim = deathBenefit * pol.nbrDeath + deathBenefitReduced * pol.nbrPupDeath
+
 
 # l'erreur mod 36 vient de epargnAcquPP et in fine des premiums à vérifier
 #il faut crée un mask mod sur la base de l'exemple en death claim pour mettre à jour les primes comple
