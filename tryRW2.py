@@ -66,6 +66,8 @@ class EP(Portfolio):
         pbIncorPUP = self.zero()      
         epgTxPbPUP = self.zero()
         pbCalcPUP = self.zero()
+        pbPupDTHS=self.zero()
+        pbSortDTHS=self.zero()
         
         epgTxPbPUP[:,0,:] = 0
         
@@ -153,9 +155,13 @@ class EP(Portfolio):
 #Définition des variables de PB pour actives et réduites
 
         
-            pbIncorPP[:,i,:] = np.nan_to_num(pbCalcPP[:,i-1,:])
+            pbIncorPP[:,i,:] = np.nan_to_num(pbCalcPP[:,i-1,:] * allocMonths[:,i-1,:])
             
-            pbIncorPUP[:,i,:] = np.nan_to_num(pbCalcPUP[:,i-1,:])
+            pbIncorPUP[:,i,:] = np.nan_to_num(pbCalcPUP[:,i-1,:] * allocMonths[:,i-1,:])
+
+            pbSortDTHS[:,i,:] = np.nan_to_num(pbCalcPP[:,i-1,:] * (1-allocMonths[:,i-1,:]))
+            
+            pbPupDTHS[:,i,:] = np.nan_to_num(pbCalcPUP[:,i-1,:] *(1- allocMonths[:,i-1,:]))
          
             pbAcquAVPUP[:,i,:] = (pbAcquAPPUP[:,i-1,:] + pbIncorPUP[:,i,:]) * txInteret[:,i,:]
 
@@ -169,9 +175,9 @@ class EP(Portfolio):
             
             epgTxPbPUP[:,i,:] =  np.divide(epgTxTEMP, nbrPupsIf[:,i,:], out=np.zeros_like(epgTxTEMP), where=nbrPupsIf[:,i,:]!=0)
                
-            pbCalcPP[:,i,:] = np.maximum((epgTxPB_PP[:,i,:] - epargnAcquPP[:,i,:] - pbAcquPP[:,i,:]),0) * allocMonths[:,i,:] * isActive[:,i,:]
+            pbCalcPP[:,i,:] = np.maximum((epgTxPB_PP[:,i,:] - epargnAcquPP[:,i,:] - pbAcquPP[:,i,:]),0) * isActive[:,i,:]
             
-            pbCalcPUP[:,i,:] = np.maximum((epgTxPbPUP[:,i,:] - eppAcquAPPUP[:,i,:] - pbAcquAPPUP[:,i,:]),0) * allocMonths[:,i,:] * isActive[:,i,:]
+            pbCalcPUP[:,i,:] = np.maximum((epgTxPbPUP[:,i,:] - eppAcquAPPUP[:,i,:] - pbAcquAPPUP[:,i,:]),0) * isActive[:,i,:]
 
   
  
@@ -235,6 +241,10 @@ class EP(Portfolio):
         self.pbIncorPP = pbIncorPP
         # PB incorporée par police réduite
         self.pbIncorPUP = pbIncorPUP
+        # PB non incorporée des polices réduites
+        self.pbPupDTHS=pbPupDTHS
+        # PB non incorporée des polices actives
+        self.pbSortDTHS=pbSortDTHS
         
         
         return
@@ -331,11 +341,11 @@ class EP(Portfolio):
         addSumAssuree[mask32 & mask_65]=2500       
         
         
-        deathBenefit = self.pbAcquPP + self.epargnAcquPP + addSumAssuree
+        deathBenefit = self.pbAcquPP + self.epargnAcquPP + addSumAssuree + self.pbSortDTHS
         
         deathBenefit[mask33]=np.maximum(deathBenefit[mask33]-addSumAssuree[mask33],addSumAssuree[mask33])
         
-        deathBenefitReduced=np.nan_to_num(self.epAcquAVPUP + self.pbAcquAVPUP)
+        deathBenefitReduced=np.nan_to_num(self.epAcquAVPUP + self.pbAcquAVPUP + self.pbPupDTHS)
         
         deathClaim = deathBenefit * self.nbrDeath + deathBenefitReduced * self.nbrPupDeath
 
@@ -452,7 +462,7 @@ class EP(Portfolio):
         
         moisRestant = self.p['residualTermM'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
         
-        increment = np.cumsum(self.one(), axis = 1) -1
+        increment = np.cumsum(self.one(), axis = 1)
 
         mask = moisRestant >= increment
         
@@ -475,14 +485,14 @@ pol = EP()
 
 
 #pol=EP(run=[4,5])
-pol.ids([2187001])
+# pol.ids([513202])
 # pol.ids([1748802])
 # pol.ids([493202, 524401])
 # pol.ids([515503,1736301,1900401,2168101,2396001,2500001,2500101,2466301])
 
 
 
-# pol.mod([33])
+pol.mod([36])
 #pol.modHead([9],2)
 aa = pol.p
 #a=pol.nbrPolIf
@@ -541,7 +551,6 @@ deathClaim = deathBenefit * pol.nbrDeath + deathBenefitReduced * pol.nbrPupDeath
 print("Class EP--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 monCas=pol.claimPrincipal()
-
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
