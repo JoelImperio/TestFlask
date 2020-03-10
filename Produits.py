@@ -430,13 +430,13 @@ class PR(Portfolio):
 def tester(self):
     return self
 
-# pol = HO()
+pol = HO()
 # pol=FU()
 # pol=AX()
 # pol=PR()
 #pol=FU(run=[4,5])
 # nomat = pol.nbrMaturities
-# pol.ids([2142501])
+pol.ids([1144901])
 #pol.mod([9])
 #pol.modHead([9],2)
 # aa = pol.p
@@ -451,7 +451,7 @@ def tester(self):
 #i=pol.fraisVisiteClaim()
 #j=pol.timeBeforeNextPay()
 #k=pol.risqueEnCour()
-# l=pol.adjustedReserve()
+l=pol.adjustedReserve()
 #m=pol.reserveExpense()
 #n=pol.unitExpense()
 #o=pol.totalPremium()
