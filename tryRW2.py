@@ -462,7 +462,7 @@ class EP(Portfolio):
         
         moisRestant = self.p['residualTermM'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
         
-        increment = np.cumsum(self.one(), axis = 1)
+        increment = np.cumsum(self.one(), axis = 1)-1
 
         mask = moisRestant >= increment
         
