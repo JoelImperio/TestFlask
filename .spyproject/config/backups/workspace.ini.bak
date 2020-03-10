@@ -6,5 +6,5 @@ save_non_project_files = False
 
 [main]
 version = 0.2.0
-recent_files = ['Parametres.py', 'Portefeuille.py', 'tryRW.py', 'tryJO.py', 'Produits.py', 'AnvilFirstTry.py']
+recent_files = ['Parametres.py', 'Portefeuille.py', 'tryRW.py', 'tryJO2.py', 'tryRW2.py', 'Produits.py']
 

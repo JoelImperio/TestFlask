@@ -111,8 +111,6 @@ class AX(Portfolio):
              myPortfolioNew=PortfolioNew, mySinistralityNew=SinistralityNew,myLapseNew=LapseNew,myCostNew=CostNew,myRateNew=RateNew)
         self.p=self.mod(self.mods)
 
-#L'age limite est erroné, il faudra supprimer cette condition  
-        self.agelimite=(self.age()<=65)
 
 #Permet de relancer l'update() en intégrant des methodes de la sous-classe
     def update(self,subPortfolio):
@@ -134,10 +132,12 @@ class AX(Portfolio):
 #Retourne la réserve mathémathique ajustée
     def adjustedReserve(self):
 
+        #L'age limite est erroné, il faudra supprimer cette condition  
+        agelimite=(self.age()<=65)
         
         #Calcul du risque en cours
-        riderIncPP=self.purePremium()*self.isPremPay()*self.agelimite
-        riderIncPP2=self.purePremium()*self.agelimite
+        riderIncPP=self.purePremium()*self.isPremPay()*agelimite
+        riderIncPP2=self.purePremium()*agelimite
         precPP=self.zero()
         frek=self.frac()
  
@@ -166,7 +166,7 @@ class AX(Portfolio):
         
            
         #Sortie pour les claim principaux
-        riderCostOutgo=self.premiumPrincipal()*self.dcAccident()*self.isPremPay()*self.agelimite
+        riderCostOutgo=self.premiumPrincipal()*self.dcAccident()*self.isPremPay()*agelimite
         
 
         reserve=mathResIfcorr+pPureEnc-riderCostOutgo
@@ -184,6 +184,9 @@ class AX(Portfolio):
 
 #Retourne les sinistre complémentaire frais de visite    
     def accidentalDeathClaim(self):
+
+        #L'age limite est erroné, il faudra supprimer cette condition  
+        agelimite=(self.age()<=65)
         
         claimRate=self.dcAccident()
 
@@ -191,7 +194,7 @@ class AX(Portfolio):
         premiumPrincipal=self.premiumPrincipal()
         
 
-        premiumPrincipal=premiumPrincipal*self.agelimite
+        premiumPrincipal=premiumPrincipal*agelimite
         
         claim=claimRate*premiumPrincipal*self.isPremPay()
         
@@ -224,8 +227,6 @@ class HO(Portfolio):
              myPortfolioNew=PortfolioNew, mySinistralityNew=SinistralityNew,myLapseNew=LapseNew,myCostNew=CostNew,myRateNew=RateNew)
         self.p=self.mod(self.mods)
         
-#L'age limite est erroné, il faudra supprimer cette condition  
-        self.agelimite=(self.age()<=76)
 
 #Permet de relancer l'update() en intégrant des methodes de la sous-classe
     def update(self,subPortfolio):
@@ -236,7 +237,9 @@ class HO(Portfolio):
 #Retourne la réserve mathémathique ajustée
     def adjustedReserve(self):
 
-        agelimite=self.agelimite
+#L'age limite est erroné, il faudra supprimer cette condition  
+        agelimite=(self.age()<=76)
+        
            
         annualPrem = (self.p['POLPRVIEHT'] + self.p['POLPRCPL2']).to_numpy()[:,np.newaxis,np.newaxis]
         annualPrem = annualPrem / self.frac()   
@@ -315,7 +318,7 @@ print("Class HO--- %s sec" %'%.2f'%  (time.time() - start_time))
 class PR(Portfolio):
     mods=[25,26]
     ageLimite = 65
-    # complPremium=pol.p['POLPRCPL2']
+
 
     
     def __init__(self,run=allRuns,\
@@ -346,16 +349,15 @@ class PR(Portfolio):
     def adjustedReserve(self):
 
   # Age limite pour hospitalis
-        self.agelimite=((self.age()-1)<=self.ageLimite)
+        agelimite=((self.age()-1)<=self.ageLimite)*self.one()
            
         annualPrem = (self.p['POLPRVIEHT']).to_numpy()[:,np.newaxis,np.newaxis]
         annualPrem = annualPrem / self.frac()   
         riderC =  annualPrem * self.isPremPay() *self.dcAccident() * self.nbrPolIfSM
-        self.agelimite = self.agelimite * self.one()
         
         #Calcul du risque en cours
-        riderIncPP=annualPrem*self.agelimite*self.isPremPay()
-        riderIncPP2=annualPrem*self.agelimite
+        riderIncPP=annualPrem*agelimite*self.isPremPay()
+        riderIncPP2=annualPrem*agelimite
         
 # Ne prend pas en compte les risque en cours du modelpoint ??? à modifier (Commence toujours par 0, au lieu des risques en cours actuel)
         # precPP=(self.p['PMBREC'] + self.p['PMBRECCPL']).to_numpy()[:,np.newaxis,np.newaxis] * self.one()
@@ -397,10 +399,10 @@ class PR(Portfolio):
 #Retourne les sinistre complémentaire frais de visite       
     def accidentalDeathClaim(self):
      # A MODIFIER 
-        self.agelimite=((self.age()-1)<=self.ageLimite)
+        agelimite=((self.age()-1)<=self.ageLimite)
         claimRate=self.dcAccident()
         premiumPrincipal=self.premiumPrincipal()
-        premiumPrincipal=premiumPrincipal*self.agelimite
+        premiumPrincipal=premiumPrincipal*agelimite
         claim=claimRate*premiumPrincipal*self.isPremPay()
         
         return claim
@@ -430,13 +432,13 @@ class PR(Portfolio):
 def tester(self):
     return self
 
-pol = HO()
+# pol = HO()
 # pol=FU()
 # pol=AX()
 # pol=PR()
 #pol=FU(run=[4,5])
 # nomat = pol.nbrMaturities
-pol.ids([1144901])
+# pol.ids([1806102])
 #pol.mod([9])
 #pol.modHead([9],2)
 # aa = pol.p
