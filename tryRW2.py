@@ -492,7 +492,7 @@ pol = EP()
 
 
 
-pol.mod([36])
+# pol.mod([36])
 #pol.modHead([9],2)
 aa = pol.p
 #a=pol.nbrPolIf
@@ -520,32 +520,6 @@ q=pol.totalClaim()
 
 
         
-addSumAssuree = pol.p['POLCAPAUT'].to_numpy()[:,np.newaxis,np.newaxis] * pol.one()
-
-mask32 = (pol.p['PMBMOD'].to_numpy()[:,np.newaxis,np.newaxis] * pol.one()  == 32)
-mask33 = (pol.p['PMBMOD'].to_numpy()[:,np.newaxis,np.newaxis] * pol.one()  == 33)
-
-mask_55 = (pol.age() <= 55)
-mask_55_65 = (pol.age() > 55) & (pol.age() <= 65)       
-mask_65 = (pol.age() > 65)
-
-
-addSumAssuree[mask32 & mask_55]=30000
-addSumAssuree[mask32 & mask_55_65]=7500        
-addSumAssuree[mask32 & mask_65]=2500       
-
-
-deathBenefit = pol.pbAcquPP + pol.epargnAcquPP + addSumAssuree
-
-deathBenefit[mask33]=np.maximum(deathBenefit[mask33]-addSumAssuree[mask33],addSumAssuree[mask33])
-
-deathBenefitReduced=np.nan_to_num(pol.epAcquAVPUP + pol.pbAcquAVPUP)
-
-deathClaim = deathBenefit * pol.nbrDeath + deathBenefitReduced * pol.nbrPupDeath
-
-
-# l'erreur mod 36 vient de epargnAcquPP et in fine des premiums à vérifier
-#il faut crée un mask mod sur la base de l'exemple en death claim pour mettre à jour les primes comple
 
 
 print("Class EP--- %s sec" %'%.2f'%  (time.time() - start_time))
