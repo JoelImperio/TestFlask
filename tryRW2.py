@@ -251,7 +251,17 @@ class EP(Portfolio):
 #Retourne les primes complémentaires commerciales annuelles
     def premiumCompl(self):     
         
-        riderPremium=self.p['POLPRCPL9'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()     
+        riderPremium=self.p['POLPRCPL9'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
+        
+        mask36 = self.p['PMBMOD'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()  == 36
+        
+        rider36=self.p['POLPRCPL3'].to_numpy()[:,np.newaxis,np.newaxis] * self.one() \
+            +self.p['POLPRCPL4'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()\
+                # +self.p['POLPRCPLA'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
+        
+        riderPremium[mask36]=riderPremium[mask36]+rider36[mask36]
+            
+        
         
         return riderPremium
 
@@ -306,16 +316,16 @@ class EP(Portfolio):
 
         addSumAssuree = self.p['POLCAPAUT'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
         
-        mask32 = self.p['PMBMOD'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()  == 32
+        mask32 = (self.p['PMBMOD'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()  == 32)
         
-        mask_55 =mask32 & (self.age() <= 55)
-        mask_55_65 =mask32 & (self.age() > 55) & (self.age() <= 65)       
-        mask_65 =mask32 & (self.age() > 65)
+        mask_55 = (self.age() <= 55)
+        mask_55_65 = (self.age() > 55) & (self.age() <= 65)       
+        mask_65 = (self.age() > 65)
 
         
-        addSumAssuree[mask_55]=30000
-        addSumAssuree[mask_55_65]=7500        
-        addSumAssuree[mask_65]=2500       
+        addSumAssuree[mask32 & mask_55]=30000
+        addSumAssuree[mask32 & mask_55_65]=7500        
+        addSumAssuree[mask32 & mask_65]=2500       
         
         
         deathBenefit = self.pbAcquPP + self.epargnAcquPP + addSumAssuree
@@ -408,7 +418,7 @@ class EP(Portfolio):
         pbRate = self.pbRate()
         txInt = (self.txInt()**12) - 1
         txPbPC = pbRate - txInt
-        return np.maximum(txPbPC, 0)*100
+        return np.round(np.maximum(txPbPC, 0)*100,4)
     
     
     
@@ -485,7 +495,7 @@ aa = pol.p
 #m=pol.reserveExpense()
 #n=pol.unitExpense()
 # o=pol.totalPremium()
-# q=pol.totalClaim()
+q=pol.totalClaim()
 # r=pol.totalCommissions()
 # s=pol.totalExpense()
 # t=pol.BEL()
@@ -521,7 +531,7 @@ deathClaim = deathBenefit * pol.nbrDeath + deathBenefitReduced * pol.nbrPupDeath
 
 print("Class EP--- %s sec" %'%.2f'%  (time.time() - start_time))
 
-monCas=pol.premiumInvested()
+monCas=deathBenefit
 
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
