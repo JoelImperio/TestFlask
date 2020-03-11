@@ -154,14 +154,15 @@ class EP(Portfolio):
             
 #Définition des variables de PB pour actives et réduites
 
-        
-            pbIncorPP[:,i,:] = np.nan_to_num(pbCalcPP[:,i-1,:] * allocMonths[:,i-1,:])
+    ### PB        
+            pbIncorPP[:,i,:] = np.nan_to_num(pbCalcPP[:,i-1,:] * allocMonths[:,i-1,:]* isActive[:,i-1,:])
             
-            pbIncorPUP[:,i,:] = np.nan_to_num(pbCalcPUP[:,i-1,:] * allocMonths[:,i-1,:])
+            pbIncorPUP[:,i,:] = np.nan_to_num(pbCalcPUP[:,i-1,:] * allocMonths[:,i-1,:]* isActive[:,i-1,:])
 
-            pbSortDTHS[:,i,:] = np.nan_to_num(pbCalcPP[:,i-1,:] * (1-allocMonths[:,i-1,:]))
+            pbSortDTHS[:,i,:] = np.nan_to_num(pbCalcPP[:,i-1,:] * (1-allocMonths[:,i-1,:])* isActive[:,i-1,:])
             
-            pbPupDTHS[:,i,:] = np.nan_to_num(pbCalcPUP[:,i-1,:] *(1- allocMonths[:,i-1,:]))
+            pbPupDTHS[:,i,:] = np.nan_to_num(pbCalcPUP[:,i-1,:] *(1- allocMonths[:,i-1,:])* isActive[:,i-1,:]) 
+
          
             pbAcquAVPUP[:,i,:] = (pbAcquAPPUP[:,i-1,:] + pbIncorPUP[:,i,:]) * txInteret[:,i,:]
 
@@ -175,11 +176,11 @@ class EP(Portfolio):
             
             epgTxPbPUP[:,i,:] =  np.divide(epgTxTEMP, nbrPupsIf[:,i,:], out=np.zeros_like(epgTxTEMP), where=nbrPupsIf[:,i,:]!=0)
                
-            pbCalcPP[:,i,:] = np.maximum((epgTxPB_PP[:,i,:] - epargnAcquPP[:,i,:] - pbAcquPP[:,i,:]),0) * isActive[:,i,:]
+            pbCalcPP[:,i,:] = np.maximum((epgTxPB_PP[:,i,:] - epargnAcquPP[:,i,:] - pbAcquPP[:,i,:]),0) 
             
-            pbCalcPUP[:,i,:] = np.maximum((epgTxPbPUP[:,i,:] - eppAcquAPPUP[:,i,:] - pbAcquAPPUP[:,i,:]),0) * isActive[:,i,:]
+            pbCalcPUP[:,i,:] = np.maximum((epgTxPbPUP[:,i,:] - eppAcquAPPUP[:,i,:] - pbAcquAPPUP[:,i,:]),0)
 
-  
+
  
 
 #Sauvegarde des variables des actifs
@@ -492,7 +493,7 @@ pol = EP()
 
 
 
-# pol.mod([36])
+pol.mod([36])
 #pol.modHead([9],2)
 aa = pol.p
 #a=pol.nbrPolIf
@@ -510,7 +511,7 @@ aa = pol.p
 #m=pol.reserveExpense()
 #n=pol.unitExpense()
 # o=pol.totalPremium()
-q=pol.totalClaim()
+# q=pol.totalClaim()
 # r=pol.totalCommissions()
 # s=pol.totalExpense()
 # t=pol.BEL()
@@ -524,7 +525,7 @@ q=pol.totalClaim()
 
 print("Class EP--- %s sec" %'%.2f'%  (time.time() - start_time))
 
-monCas=pol.claimPrincipal()
+monCas=pol.surrender()
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
