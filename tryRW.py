@@ -288,10 +288,10 @@ pol = EP()
 #pol=EP(run=[4,5])
 # pol.ids([363001])
 # pol.ids([1900401])
-pol.ids([1945101])
+# pol.ids([1945101])
 # pol.ids([515503,1736301,1900401,2168101,2396001,2500001,2500101,2466301])
 
-# pol.mod([31])
+pol.mod([28])
 #pol.modHead([9],2)
 aa = pol.p
 #a=pol.nbrPolIf
@@ -320,40 +320,11 @@ aa = pol.p
 gg=pol.claimPrincipal()
 
 
-# def premiumPure(self):
-
-annPrem = pol.premiumAnnual()      
-premRider = pol.premiumCompl()
-  
-#Determine les frais d'acquisition en fonction de l'année du contrat (A CHANGER CAR ON AURA SUREMENT DES CHGT SUR 1 2 ou 3 ANS pour d'autres polices)
-# acquisitionLoading = (pol.durationIf()<=12) * pol.p['aquisitionLoading'].to_numpy()[:,np.newaxis,np.newaxis] * pol.one()
-acquisitionLoading=pol.one()
-acquisitionLoading =acquisitionLoading* (pol.durationIf()<=12) * pol.p['aquisitionLoading'].to_numpy()[:,np.newaxis,np.newaxis]
-acquisitionLoading =acquisitionLoading* (pol.durationIf()<=24) * pol.p['aquisitionLoadingYear2'].to_numpy()[:,np.newaxis,np.newaxis]
-acquisitionLoading =acquisitionLoading* (pol.durationIf()<=36) * pol.p['aquisitionLoadingYear3'].to_numpy()[:,np.newaxis,np.newaxis]
-    
-gestionLoading = pol.p['gestionLoading'].to_numpy()[:,np.newaxis,np.newaxis] * pol.one()
-
-purePremium=(annPrem -  premRider)*(1-gestionLoading -acquisitionLoading )
-
-a=(pol.durationIf()<=24)
-
-### Dans pbAcquAVPUP il manque la variable PB_INCOR_PUP (mod31)
-# def deathClaim(self):
-
-addSumAssuree = pol.p['POLCAPAUT'].to_numpy()[:,np.newaxis,np.newaxis] * pol.one()
-
-deathBenefit = pol.pbAcquPP + pol.epargnAcquPP + addSumAssuree
-
-deathBenefitReduced=pol.epAcquAVPUP + pol.pbAcquAVPUP
-
-deathClaim = deathBenefit * pol.nbrDeath + deathBenefitReduced * pol.nbrPupDeath
-
 
 
 print("Class EP--- %s sec" %'%.2f'%  (time.time() - start_time))
 
-monCas=pol.pbAcquAVPUP
+monCas=pol.surrender()
 
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
