@@ -17,7 +17,7 @@ start_time = time.time()
 
 class EP(Portfolio):
     mods=[28,29,30,31,32,33,36]
-    ageLimite = 75    
+    ageLimite = 75   
 
     
     def __init__(self,run=allRuns,\
@@ -308,6 +308,7 @@ class EP(Portfolio):
 
         #Age limite pour Epargne
         agelimite=((self.age()-1)<=self.ageLimite)* self.one()
+        
 
         frek=self.frac()
           
@@ -366,7 +367,7 @@ class EP(Portfolio):
     def surrender(self):
         
         #Rachats des polices active
-        surrIf = self.mathresBA() * self.nbrSurrender
+        surrIf = (self.mathresBA()+self.pbSortDTHS) * self.nbrSurrender
         
         #Rachat des polices réduites
         surrRed = (self.pbAcquAPPUP + self.eppAcquAPPUP) * self.nbrPupSurrender        
@@ -487,13 +488,13 @@ pol = EP()
 
 #pol=EP(run=[4,5])
 # pol.ids([513202])
-# pol.ids([1748802])
+pol.ids([1730002])
 # pol.ids([493202, 524401])
 # pol.ids([515503,1736301,1900401,2168101,2396001,2500001,2500101,2466301])
 
 
 
-pol.mod([36])
+# pol.mod([33])
 #pol.modHead([9],2)
 aa = pol.p
 #a=pol.nbrPolIf
