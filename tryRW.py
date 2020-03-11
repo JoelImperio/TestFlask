@@ -94,6 +94,15 @@ class MI(Portfolio):
         
         return
 
+#Retourne les primes totales perçues
+    def totalPremium(self):
+        premInc=(self.p['POLPRTOT'])[:,np.newaxis,np.newaxis]/self.frac()
+           
+        prem=premInc*self.nbrPolIfSM*self.isPremPay()*self.indexation()
+        
+        return prem
+
+
 #Retourne les claims de la garantie principale (DEATH_OUTGO)
     def claimPrincipal(self):
         return self.zero()
@@ -128,11 +137,11 @@ pol = MI()
 # pol.ids([363001])
 
 
-pol.mod([6,7])
+pol.mod([10])
 #pol.modHead([9],2)
 aa = pol.p
 # a=pol.nbrPolIf
-#b=pol.nbrPolIfSM
+b=pol.nbrPolIfSM
 #c=pol.nbrMaturities
 #d=pol.nbrDeath
 #e=pol.nbrSurrender
@@ -158,7 +167,7 @@ o=pol.totalPremium()
 
 print("Class MI--- %s sec" %'%.2f'%  (time.time() - start_time))
 
-monCas=o
+monCas=b
 
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
