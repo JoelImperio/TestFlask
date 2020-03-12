@@ -2,89 +2,118 @@ import numpy as np
 import pandas as pd
 import unittest as ut
 import coverage
+import time
 import os, os.path
 path = os.path.dirname(os.path.abspath(__file__))
-from MyPyliferisk import MortalityTable,qx
-from MyPyliferisk.mortalitytables import EKM05i
-
-from Portefeuille import Portfolio
-from Parametres import Hypo, portfolioPreProcessing
 from Produits import FU
 
+start_time = time.time()
 
-#Importation des données pour les tests
+    ### Importation Data tests
 
 #L'ensemble des variables Prophet par produit
 DataProphet=pd.read_excel(path+'\Resultats_Prophet.xls',sheet_name=None,skiprows=7)
-DataProphet=pd.concat(DataProphet,axis=1)
-
 
 #Les resultats de la PGG selon la répartition en vigueur
 ResultatPGG=pd.read_excel(path+'\Resultats_PGG.xls',sheet_name='Synthese',skiprows=3)
 
-#Les variables de contrôle
-variablesTest=pd.read_excel(path+'\Resultats_PGG.xls',sheet_name='AllVariablesTest',skiprows=7)
 
-#Portefeuille servant de test qui correspond on portefeuille au 31.12.2018
-pTest=pd.read_csv(path+'\Portfolio_Test.csv')
-pTest=portfolioPreProcessing(pTest)
-
-#Hypothèses servant de test qui correspond à celles en vigueur au 31.12.2018
-hTest=pd.ExcelFile(path  + '/TablesProphet 2018-12_Test.xls').parse("Hypotheses")
+    ### Test Couverture Start
+# cov=coverage.Coverage()
+# cov.start()
 
 
-#Instenciation Des Class pour les tests
+#Test spécifique produit pour le Best Estimate
+class Test_FU(ut.TestCase):
 
-pt=Portfolio(po=pTest)
-ht=Hypo(hy=hTest,MyShape=pt.shape)
-
-cov=coverage.Coverage()
-cov.start()
-
-#Test général sur la structure et la cohérence du modèle
-class TestCoherenceGlobale(ut.TestCase):
+    RTOL=0.1
+    ATOL=1
     
-    
-#Ce test permet de vérifier que le nombre de polices chargées est correct par rapport à la clôture
+    spProphet = DataProphet['FU'].replace('-',0)
+    sp=FU()
+
     def test_nombrePolices(self):
-        NombreTotalDePolices=9248
-        self.assertEqual(len(Portfolio().p),NombreTotalDePolices)
-        
-    def test_Exemple(self):
-        
-        RTOL=0.1
-        ATOL=1
-        
-        resultatAttendu=variablesTest['M_DISC_B']
-        
-        resultatScript=ht.rate()[0,:,0]
-        
-        np.testing.assert_allclose(resultatScript, resultatAttendu, rtol = RTOL, atol = ATOL, err_msg='Message Erreur')
-        
-    
+        nbrPolices=3392
+        self.assertEqual(len(self.sp.p),nbrPolices)
 
-
-#Test spécifique au produit X
-class TestResultatsFUe(ut.TestCase):
-
-    DataProphetMOD8_9 = DataProphet.filter(regex='MOD8_9')
     
     def test_Premium(self):
-        premiumAttendus=DataProphetMOD8_9['PREM_INC']
+        
+        prophet=np.array(self.spProphet.loc[:408,'PREM_INC'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.totalPremium()[:,:409,0],axis=0)
+
+        
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='FU totalPremium ERROR')
+            
+
+    def test_Claim(self):
+        
+        prophet=np.array(self.spProphet.loc[:408,'TOT_PREST'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.totalClaim()[:,:409,0],axis=0)
+
+        
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='FU totalClaim ERROR')
+            
+
+
+    def test_Commissions(self):
+        
+        prophet=np.array(self.spProphet.loc[:408,'TOT_COMM'].to_numpy(),dtype=float)
+        
+        python=np.array(np.sum(self.sp.totalCommissions()[:,:409,0],axis=0),dtype=float)
+
+        
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='FU totalCommissions ERROR')
+
+
+            
+    def test_Expense(self):
+        
+        prophet=np.array(self.spProphet.loc[:408,'TOT_EXP'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.totalExpense()[:,:409,0],axis=0)
+
+        
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='FU totalExpense ERROR')
+            
+
+
+    def test_BEL(self):
+        
+        prophet=np.array(self.spProphet.loc[:408,'BEL_B'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.BEL()[:,:409,0],axis=0)
+
+        
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='FU BEL ERROR')
+            
+
+    def test_PGG(self):
+        
+        prophet=ResultatPGG.loc[ResultatPGG['Prophet'].isin(['Fun']),'PGG'].values[0]
+        
+        python=self.sp.PGG().values[0,0]
+        
+        decimals=2
+        
+        self.assertEqual(round(prophet,decimals),round(python,decimals))       
 
 
 
 #Print les tests et la couverture
 
-loader = ut.TestLoader()
-suite = loader.discover('.')
-runner = ut.TextTestRunner()
-runner.run(suite)
+# cov.stop
+# cov.save
+# cov.report()
+ut.main()
 
-#ut.main()
-cov.stop
-cov.save
-cov.report()
+print("Tests--- %s sec" %'%.2f'%  (time.time() - start_time))
 
+#Permet de lancer l'ensemble des test du workspace
 
-
+# loader = ut.TestLoader()
+# suite = loader.discover('.')
+# runner = ut.TextTestRunner()
+# runner.run(suite)
