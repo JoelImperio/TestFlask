@@ -441,9 +441,9 @@ pol=FU()
 # pol.ids([1806102])
 #pol.mod([9])
 #pol.modHead([9],2)
-# aa = pol.p
+aa = pol.p
 #a=pol.nbrPolIf
-#b=pol.nbrPolIfSM
+# b=pol.nbrPolIfSM
 #c=pol.nbrMaturities
 #d=pol.nbrDeath
 #e=pol.nbrSurrender
@@ -456,23 +456,23 @@ pol=FU()
 # l=pol.adjustedReserve()
 #m=pol.reserveExpense()
 #n=pol.unitExpense()
-#o=pol.totalPremium()
+o=pol.totalPremium()
 # q=pol.totalClaim()
 #r=pol.totalCommissions()
 #s=pol.totalExpense()
-# t=pol.BEL()
+t=pol.BEL()
 
 # bel=np.sum(pol.BEL(), axis=0)
-pgg=pol.PGG()
+# pgg=pol.PGG()
 
 
-# monCas=t
+monCas=t
 
-# zz=np.sum(monCas, axis=0)
-# zzz=np.sum(zz[:,0])
-# z=pd.DataFrame(monCas[:,:,0])
-# z=z.sum()
-# z.to_csv(r'check.csv',header=False)
+zz=np.sum(monCas, axis=0)
+zzz=np.sum(zz[:,0])
+z=pd.DataFrame(monCas[:,:,0])
+z=z.sum()
+z.to_csv(r'check.csv',header=False)
 
 
 
