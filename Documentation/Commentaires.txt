@@ -44,9 +44,6 @@ Il faudra supprimer dans adjusted reserve la variable agelimite.
 - AX dans le calcul de l'adjusted reserve, le calcul du risque en cours est erroné, car il ne prend pas le risque en cours initiale
 et il ne prend pas la prime totale
 
-<<<<<<< HEAD
--AX la methode premiumPrincipale prend en compte la fin de la garantie principale à 65 ans ce qui est erroné, il faudra enlever la condition sur l'âge limite
-=======
 -AX la methode premiumPrincipale prend en compte la fin de la garantie principale à 65 ans ce qui est erroné, il faudra enlever la condition sur l'âge limite
 
 
@@ -107,4 +104,3 @@ CHANGEMENT DANS QRY
 CHANGEMENT A EFFECTUER:
 
 - Il faudrait ajouté encore un T temporel pour les polices avec maturité, car la maturité arrive en t+1 et les projections se terminent en t
->>>>>>> RobinCopyJo

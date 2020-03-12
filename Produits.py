@@ -41,20 +41,6 @@ class FU(Portfolio):
 #Retourne les primes pures de la garantie principale 
     def purePremium(self):
         return self.p['POLPRDECES'].to_numpy()[:,np.newaxis,np.newaxis]/self.frac()
-<<<<<<< HEAD
-
-#Retourne les risque en cours, soit les primes émises non aquises
-    def risqueEnCour(self):
-        
-        elapseTime=self.timeBeforeNextPay()
-        
-        purePremium=self.purePremium()
-        
-        reserve=purePremium*elapseTime*self.nbrPolIf 
-                      
-        return reserve
-  
-=======
 
 #Retourne les risque en cours, soit les primes émises non aquises
     def risqueEnCour(self):
@@ -143,19 +129,12 @@ class AX(Portfolio):
         return self.purePremium()*self.nbrPolIfSM
 
 
->>>>>>> RobinCopyJo
 #Retourne la réserve mathémathique ajustée
     def adjustedReserve(self):
 
         #L'age limite est erroné, il faudra supprimer cette condition  
         agelimite=(self.age()<=65)
         
-<<<<<<< HEAD
-        prPurePP=((self.p['POLPRTOT']- self.complPremium)*(1-self.p['aquisitionLoading'])).to_numpy()[:,np.newaxis,np.newaxis]
-        pPureEncPP= (prPurePP/self.frac())*self.nbrPolIfSM*self.isPremPay()
-
-        riderCost=self.claimCompl()
-=======
         #Calcul du risque en cours
         riderIncPP=self.purePremium()*self.isPremPay()*agelimite
         riderIncPP2=self.purePremium()*agelimite
@@ -164,7 +143,6 @@ class AX(Portfolio):
  
 
         for i in range(1,self.shape[1]):
->>>>>>> RobinCopyJo
         
             precPP[:,i,:]=precPP[:,i-1,:]+riderIncPP[:,i,:] - ((frek[:,i,:]/12)*riderIncPP2[:,i,:])
                    
@@ -176,24 +154,6 @@ class AX(Portfolio):
         mathResIfcorr=self.zero()       
         mathResIfcorr[:,1:,:]=mathresIF[:,:-1,:]        
         
-<<<<<<< HEAD
-        return reserve
-
-#Retourne les sinistres décès 
-    def deathClaim(self):
-        nbDeath=self.nbrDeath
-        capital=self.p['PMBCAPIT'].to_numpy()[:,np.newaxis,np.newaxis]
-        return nbDeath*capital
-    
-#Retourne les sinistre complémentaire frais de visite    
-    def fraisVisiteClaim(self):
-        
-        claimRate=self.fraisVisite()
-        
-        premiumCompl=self.premiumCompl()
-        
-        claim=claimRate*premiumCompl*self.isPremPay()
-=======
         #Primes pure encaissées
         annPremPP=self.p['POLPRVIEHT'].to_numpy()[:,np.newaxis,np.newaxis]
         CaFracPC=self.p['fraisFract'].to_numpy()[:,np.newaxis,np.newaxis]
@@ -237,24 +197,11 @@ class AX(Portfolio):
         premiumPrincipal=premiumPrincipal*agelimite
         
         claim=claimRate*premiumPrincipal*self.isPremPay()
->>>>>>> RobinCopyJo
         
         return claim
 
 #Retourne le total des claim pour la garantie principale    
     def claimPrincipal(self):
-<<<<<<< HEAD
-        return self.deathClaim()
-
-#Retourne le total des claim pour les garanties complémentaires
-    def claimCompl(self):
-        return self.fraisVisiteClaim()
-    
-print("Class FU--- %s sec" %'%.2f'%  (time.time() - start_time))
-
-##############################################################################################################################
-#Création de la class Axiprotect
-=======
         return self.accidentalDeathClaim()
 
 #Retourne le total des claim pour les garanties complémentaires
@@ -269,109 +216,16 @@ print("Class AX--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 ##############################################################################################################################
 #Création de la class Hospitalis
->>>>>>> RobinCopyJo
 ##############################################################################################################################
-class AX(Portfolio):
-    mods=[70]
-    complPremium=0
-    capitalCompl=8000
 
-<<<<<<< HEAD
-=======
 class HO(Portfolio):
     mods=[58]
->>>>>>> RobinCopyJo
     
     def __init__(self,run=allRuns,\
                  PortfolioNew=True, SinistralityNew=True,LapseNew=True,CostNew=True,RateNew=True ):
         super().__init__(runs=run,\
              myPortfolioNew=PortfolioNew, mySinistralityNew=SinistralityNew,myLapseNew=LapseNew,myCostNew=CostNew,myRateNew=RateNew)
         self.p=self.mod(self.mods)
-<<<<<<< HEAD
-
-#L'age limite est erroné, il faudra supprimer cette condition  
-        self.agelimite=(self.age()<=65)
-
-#Permet de relancer l'update() en intégrant des methodes de la sous-classe
-    def update(self,subPortfolio):
-        super().update(subPortfolio)
-        self.loopNoSaving()
-
-
-#Retourne les primes pures   
-    def purePremium(self):
-        prem=self.p['POLPRVIEHT']-self.p['POLPRCPLA']
-        return prem.to_numpy()[:,np.newaxis,np.newaxis]/self.frac()
-    
-#Retourne les primes des garanties complémentaires    
-    def premiumPrincipal(self):
-        
-        return self.purePremium()*self.nbrPolIfSM
-
-
-#Retourne la réserve mathémathique ajustée
-    def adjustedReserve(self):
-
-        
-        #Calcul du risque en cours
-        riderIncPP=self.purePremium()*self.isPremPay()*self.agelimite
-        riderIncPP2=self.purePremium()*self.agelimite
-        precPP=self.zero()
-        frek=self.frac()
- 
-
-        for i in range(1,self.shape[1]):
-        
-            precPP[:,i,:]=precPP[:,i-1,:]+riderIncPP[:,i,:] - ((frek[:,i,:]/12)*riderIncPP2[:,i,:])
-                   
-        mathResBA=np.maximum(precPP,0)
-        mathResPP=mathResBA 
-        provMathIf=mathResPP*self.nbrPolIf
-        mathresIF=provMathIf
-        
-        mathResIfcorr=self.zero()       
-        mathResIfcorr[:,1:,:]=mathresIF[:,:-1,:]        
-        
-        #Primes pure encaissées
-        annPremPP=self.p['POLPRVIEHT'].to_numpy()[:,np.newaxis,np.newaxis]
-        CaFracPC=self.p['fraisFract'].to_numpy()[:,np.newaxis,np.newaxis]
-        CaPremPC=self.p['aquisitionLoading'].to_numpy()[:,np.newaxis,np.newaxis]
-        
-        prInventPP=(annPremPP*(1-CaPremPC))/CaFracPC
-        prPurePP=prInventPP
-        ppEncPP=(prPurePP/self.frac())*self.isPremPay()
-        pPureEnc=ppEncPP*self.nbrPolIfSM
-        
-           
-        #Sortie pour les claim principaux
-        riderCostOutgo=self.premiumPrincipal()*self.dcAccident()*self.isPremPay()*self.agelimite
-        
-
-        reserve=mathResIfcorr+pPureEnc-riderCostOutgo
-        reserve=np.maximum(reserve,0)
-        
-        return reserve
-
-
-#Retourne les sinistres décès 
-    def deathClaim(self):
-        nbDeath=self.nbrDeath
-        capitalDC=(self.p['POLPRCPLA']!=0)*self.capitalCompl
-        capital=capitalDC.to_numpy()[:,np.newaxis,np.newaxis]
-        return nbDeath*capital
-
-#Retourne les sinistre complémentaire frais de visite    
-    def accidentalDeathClaim(self):
-        
-        claimRate=self.dcAccident()
-
-        
-        premiumPrincipal=self.premiumPrincipal()
-        
-
-        premiumPrincipal=premiumPrincipal*self.agelimite
-        
-=======
         
 
 #Permet de relancer l'update() en intégrant des methodes de la sous-classe
@@ -549,22 +403,10 @@ class PR(Portfolio):
         claimRate=self.dcAccident()
         premiumPrincipal=self.premiumPrincipal()
         premiumPrincipal=premiumPrincipal*agelimite
->>>>>>> RobinCopyJo
         claim=claimRate*premiumPrincipal*self.isPremPay()
         
         return claim
 
-<<<<<<< HEAD
-#Retourne le total des claim pour la garantie principale    
-    def claimPrincipal(self):
-        return self.accidentalDeathClaim()
-
-#Retourne le total des claim pour les garanties complémentaires
-    def claimCompl(self):
-        return self.deathClaim() 
-
-print("Class AX--- %s sec" %'%.2f'%  (time.time() - start_time))
-=======
 
 #Retourne le total des claim pour la garantie principale    
     def claimPrincipal(self):
@@ -574,18 +416,10 @@ print("Class AX--- %s sec" %'%.2f'%  (time.time() - start_time))
     def claimCompl(self):
         return self.accidentalDeathClaim() 
 
->>>>>>> RobinCopyJo
 
 ##############################################################################################################################
 ###################################DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES#############################################
 ##############################################################################################################################
-<<<<<<< HEAD
-def tester(self):
-    return self
-
-#pol=FU()
-#pol=AX()
-=======
 
 
 
@@ -602,7 +436,6 @@ def tester(self):
 # pol=FU()
 # pol=AX()
 # pol=PR()
->>>>>>> RobinCopyJo
 #pol=FU(run=[4,5])
 # nomat = pol.nbrMaturities
 # pol.ids([1806102])
@@ -629,14 +462,8 @@ l=pol.adjustedReserve()
 #s=pol.totalExpense()
 # t=pol.BEL()
 
-<<<<<<< HEAD
-#bel=np.sum(pol.BEL(), axis=0)
-#pgg=pol.PGG()
-
-=======
 # bel=np.sum(pol.BEL(), axis=0)
 # pgg=pol.PGG()
->>>>>>> RobinCopyJo
 
 
 # monCas=t

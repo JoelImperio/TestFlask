@@ -78,15 +78,9 @@ def allocationDesClassPGG(p):
 
     
 ##############################################################################################################################
-<<<<<<< HEAD
-#Permet d'ajouter une colonne contenant le taux chargement sur prime
-############################################################################################################################## 
-def premiumLoading(p):
-=======
 #Permet d'ajouter une colonne contenant le taux chargement d'ACQUISITION sur prime
 ############################################################################################################################## 
 def premiumAquisitionLoading(p):
->>>>>>> RobinCopyJo
     
     #FU
     mask=(p['PMBMOD']==8)|(p['PMBMOD']==9)
@@ -100,8 +94,6 @@ def premiumAquisitionLoading(p):
     p.loc[mask,'aquisitionLoading']=0.25   
 #    p.loc[mask,'aquisitionLoading']=0.32       
 
-<<<<<<< HEAD
-=======
     #HO
     mask=(p['PMBMOD']==58)
 
@@ -173,7 +165,6 @@ def premiumGestionLoading(p):
     p.loc[(p['Age1AtEntry'] >= 70) & (mask), 'gestionLoading'] = 0.021
    
 
->>>>>>> RobinCopyJo
 ##############################################################################################################################
 #Permet d'ajouter une colonne contenant les frais de fractionnement
 ##############################################################################################################################
@@ -190,8 +181,6 @@ def fraisFractionnement(p):
     p.loc[mask6 & maskAX,'fraisFract']=1.06
     p.loc[mask4 & maskAX,'fraisFract']=1.05
     p.loc[mask2 & maskAX,'fraisFract']=1.04
-<<<<<<< HEAD
-=======
     
     
     maskPRECI=(p['PMBMOD']==25)|(p['PMBMOD']==26)
@@ -215,10 +204,7 @@ def adjustedFracAndPremium(p):
     p.loc[mask, 'PMBFRACT'] = 1
     mask= mask | (p['POLSIT']==4) 
     p.loc[mask,'POLPRTOT']=0
->>>>>>> RobinCopyJo
     
-    p.loc[:,'fraisFract']=p.loc[:,'fraisFract'].fillna(1)
-
     
 ##############################################################################################################################
 #Calcul de l'âge initial (l'âge du deuxième assuré qui n'existe pas est fixé à 999)
@@ -475,15 +461,6 @@ def portfolioPreProcessing(p):
     p['PMbasePGG']=p['PMBPRVMAT']+p['PMBPBEN']+p['PMBREC']+p['PMBRECCPL']
     
     #Traitement des ages et policy terme selon Prophet pour mod70 (nous pensons que cela est erroné)
-<<<<<<< HEAD
-    adjustAgesAndTermForAX(p)
-    
-    # Ajout de la colonne contenant les chargements d'acquisition
-    premiumLoading(p)
-    
-    #Ajout d'une colonne contenant les frais de fractionnement
-    fraisFractionnement(p)
-=======
     adjustAgesAndTerm(p)
         
     # Ajout de la colonne contenant les chargements d'acquisition
@@ -499,7 +476,6 @@ def portfolioPreProcessing(p):
     adjustedFracAndPremium(p)
     
     
->>>>>>> RobinCopyJo
 
     return p
 

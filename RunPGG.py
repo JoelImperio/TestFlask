@@ -1,11 +1,6 @@
 from Portefeuille import Portfolio
 from Parametres import allRuns
-<<<<<<< HEAD
-from Produits import FU,AX
-import numpy as np
-=======
 from Produits import FU,AX,HO,PR
->>>>>>> RobinCopyJo
 import pandas as pd
 import time
 import os, os.path
@@ -28,15 +23,6 @@ class RUNPGG():
               LapseNew=isLapseNew,CostNew=isCostNew,RateNew=isRateNew)    
         fu=fu.PGG()
  
-<<<<<<< HEAD
-#Celui-ci est faux mais sert à verifier que l'adition des sous-portefeuille se passe bien      
-        ax=AX(run=runNumber,PortfolioNew=isPortfolioNew, SinistralityNew=isSinistralityNew,\
-              LapseNew=isLapseNew,CostNew=isCostNew,RateNew=isRateNew)    
-        ax=ax.PGG()
-        
-        pggTotal=pd.DataFrame(fu)
-        pggTotal=pggTotal.append([ax])
-=======
 #Ajout d'axiprotect      
         ax=AX(run=runNumber,PortfolioNew=isPortfolioNew, SinistralityNew=isSinistralityNew,\
               LapseNew=isLapseNew,CostNew=isCostNew,RateNew=isRateNew)    
@@ -55,7 +41,6 @@ class RUNPGG():
 #Agrégation des sous-portefeuille dans une DF       
         pggTotal=pd.DataFrame(fu)
         pggTotal=pggTotal.append([ax,ho,pr])
->>>>>>> RobinCopyJo
         
         
         return pggTotal
