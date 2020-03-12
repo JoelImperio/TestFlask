@@ -453,7 +453,7 @@ def tester(self):
 #i=pol.fraisVisiteClaim()
 #j=pol.timeBeforeNextPay()
 #k=pol.risqueEnCour()
-l=pol.adjustedReserve()
+# l=pol.adjustedReserve()
 #m=pol.reserveExpense()
 #n=pol.unitExpense()
 #o=pol.totalPremium()
