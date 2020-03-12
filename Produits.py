@@ -433,7 +433,7 @@ def tester(self):
     return self
 
 # pol = HO()
-# pol=FU()
+pol=FU()
 # pol=AX()
 # pol=PR()
 #pol=FU(run=[4,5])
@@ -463,7 +463,7 @@ def tester(self):
 # t=pol.BEL()
 
 # bel=np.sum(pol.BEL(), axis=0)
-# pgg=pol.PGG()
+pgg=pol.PGG()
 
 
 # monCas=t

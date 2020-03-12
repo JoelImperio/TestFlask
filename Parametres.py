@@ -32,7 +32,7 @@ def portfolioExtractionToCSV():
 #Execution de l'extraction du portefeuille de polices requête SQL en CSV
 ##############################################################################################################################    
 
-# portfolioExtractionToCSV()
+portfolioExtractionToCSV()
 
 
 
@@ -489,11 +489,11 @@ def portfolioPreProcessing(p):
 #- les runs possible
 #- La table de mortalité d'expérience
 ##############################################################################################################################
-def chargementINPUTS(PortefeuilleEtHypothèses):
-    return PortefeuilleEtHypothèses
+def chargementINPUTS():
+    return 
 
-hypN=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypothèses")
-hypN_1=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypothèses")
+hypN=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypotheses")
+hypN_1=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypotheses")
 
 porN=pd.read_csv(path+'/Portefeuille\Portfolio.csv')
 porN=portfolioPreProcessing(porN)
