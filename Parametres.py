@@ -156,7 +156,14 @@ def premiumGestionLoading(p):
     
     # Mod36
     mask=(p['PMBMOD'].isin([36]))
-    p.loc[mask,'gestionLoading']=0.12   
+    p.loc[mask,'gestionLoading']=0.12
+    
+    # Mod11
+    mask=(p['PMBMOD'].isin([11]))   
+    p.loc[(p['Age1AtEntry'] < 53) & (mask), 'gestionLoading'] = 0.006
+    p.loc[(p['Age1AtEntry'] >=53) & (p['Age1AtEntry'] < 70) & (mask), 'gestionLoading'] = 0.01
+    p.loc[(p['Age1AtEntry'] >= 70) & (mask), 'gestionLoading'] = 0.021
+   
 
 ##############################################################################################################################
 #Permet d'ajouter une colonne contenant les frais de fractionnement
