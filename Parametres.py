@@ -32,7 +32,7 @@ def portfolioExtractionToCSV():
 #Execution de l'extraction du portefeuille de polices requête SQL en CSV
 ##############################################################################################################################    
 
-portfolioExtractionToCSV()
+# portfolioExtractionToCSV()
 
 
 
