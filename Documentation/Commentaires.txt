@@ -44,4 +44,67 @@ Il faudra supprimer dans adjusted reserve la variable agelimite.
 - AX dans le calcul de l'adjusted reserve, le calcul du risque en cours est erroné, car il ne prend pas le risque en cours initiale
 et il ne prend pas la prime totale
 
+<<<<<<< HEAD
 -AX la methode premiumPrincipale prend en compte la fin de la garantie principale à 65 ans ce qui est erroné, il faudra enlever la condition sur l'âge limite
+=======
+-AX la methode premiumPrincipale prend en compte la fin de la garantie principale à 65 ans ce qui est erroné, il faudra enlever la condition sur l'âge limite
+
+
+
+- HO dans l'adjusted Reserve la prime pure est forcée à 0 dans prophet et les frais d'aquisition ne sont donc pas pris en compte.
+Nous avons maintenu la fonction tel que dans AX en introduisant dans Paramètre un PremiumLoading à 100%, il faudra le corriger à 25%
+
+-HO l'adjusted Reserve, l'age limite est corrigé d'un an nous pensons qu'il faut éliminer ce décalage fin à 75 ans
+
+
+- Les polices épargnes ne prennent pas en compte de rachats partiels (partialSurrender)PARTSV_OUTGO
+
+- Les aquisitions loading semble erroné pour les épargnes à contrôler 
+
+CHANGEMENT APPORTé DANS PARAMÈTRE
+
+- Ajout modalité 28 dans premiumLoading() pour PRECISO et Mod28
+
+- ajout d'une fonction permettant de calculé les chargements de GESTION qui concerne la mod28
+
+- Ajout des frais de fractionnement dans la fonction pour PRECISO
+
+- Ajout d'une fonction qui permet d'ajusté les fractionnements 0 pour PRECISO
+
+- Ajout de AdjustedAge pour ajuster les âges pour certaines modalités
+
+- Ajout de adjustedAgeTEMP pour ajuster les âges d'une autre façon pour certaines modalité
+
+- Traitement des âges dans projectionLengh qui doit se faire avant le calcul de 'residualTermM'
+
+- Reduction rate corrigé, ajout du calcul en fonction du fractionnement ainsi qu'ajout de isLapse dans le return
+
+
+
+- Ajout de la loop permettant de calculer les polices réduite inforce
+
+
+
+
+CHANGEMENT APPORTER DANS PRODUITS
+
+- J'ai rajouter les produits HOSPITALIS (HO) et Preciso (PREC) en copiant collant certaines formule, il faut déterminé quelles sont les formule à remonté
+
+
+
+
+
+
+
+CHANGEMENT DANS QRY
+
+- Ajout de POLSIT et POLCPLA et POLCPL9 dans Qry.txt (nécessaire pour les produits avec réduction possible)
+
+
+
+
+
+CHANGEMENT A EFFECTUER:
+
+- Il faudrait ajouté encore un T temporel pour les polices avec maturité, car la maturité arrive en t+1 et les projections se terminent en t
+>>>>>>> RobinCopyJo
