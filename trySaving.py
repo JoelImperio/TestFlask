@@ -264,17 +264,13 @@ class EP(Portfolio):
         
         riderPremium=self.p['POLPRCPL9'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
         
-        mask33_36 = (self.p['PMBMOD'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()  == 36) |\
-            (self.p['PMBMOD'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()  == 33) 
-            
         
         rider33_36=self.p['POLPRCPL3'].to_numpy()[:,np.newaxis,np.newaxis] * self.one() \
             +self.p['POLPRCPL4'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()\
                 # +self.p['POLPRCPLA'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
         
-        riderPremium[mask33_36]=riderPremium[mask33_36]+rider33_36[mask33_36]
-            
-        
+        riderPremium[self.mask([33,36])]=riderPremium[self.mask([33,36])]+rider33_36[self.mask([33,36])]
+                 
         
         return riderPremium
 
@@ -330,22 +326,18 @@ class EP(Portfolio):
 
         addSumAssuree = self.p['POLCAPAUT'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
         
-        mask32 = (self.p['PMBMOD'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()  == 32)
-        mask33 = (self.p['PMBMOD'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()  == 33)
-        
         mask_55 = (self.age() <= 55)
         mask_55_65 = (self.age() > 55) & (self.age() <= 65)       
         mask_65 = (self.age() > 65)
-
-        
-        addSumAssuree[mask32 & mask_55]=30000
-        addSumAssuree[mask32 & mask_55_65]=7500        
-        addSumAssuree[mask32 & mask_65]=2500       
+      
+        addSumAssuree[(self.mask([32])) & mask_55]=30000
+        addSumAssuree[(self.mask([32])) & mask_55_65]=7500        
+        addSumAssuree[(self.mask([32])) & mask_65]=2500       
         
         
         deathBenefit = self.pbAcquPP + self.epargnAcquPP + addSumAssuree + self.pbSortDTHS
         
-        deathBenefit[mask33]=np.maximum(deathBenefit[mask33]-addSumAssuree[mask33],addSumAssuree[mask33])
+        deathBenefit[(self.mask([33]))]=np.maximum(deathBenefit[(self.mask([33]))]-addSumAssuree[(self.mask([33]))],addSumAssuree[(self.mask([33]))])
         
         deathBenefitReduced=np.nan_to_num(self.epAcquAVPUP + self.pbAcquAVPUP + self.pbPupDTHS)
         
@@ -385,7 +377,7 @@ class EP(Portfolio):
 
 
 # =============================================================================
-# --- AJOUT JO 
+    # --- AJOUT JO 
 # =============================================================================
 
 

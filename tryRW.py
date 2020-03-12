@@ -137,7 +137,7 @@ pol = MI()
 # pol.ids([363001])
 
 
-pol.mod([10])
+# pol.mod([10])
 #pol.modHead([9],2)
 aa = pol.p
 # a=pol.nbrPolIf

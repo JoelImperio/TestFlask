@@ -540,6 +540,12 @@ class Hypo:
        sp=self.tout.loc[self.tout['PMBMOD'].isin(mods)]
        self.update(sp)
        return sp
+   
+#Permet de retourner un mask pour une liste de modalité
+    def mask(self,mods):
+       myMask=(self.p['PMBMOD'].isin(mods)).to_numpy()[:,np.newaxis,np.newaxis]*self.one()
+       return myMask.astype(bool)
+   
 #Permet de retourner un sous-portefeuille sélectionné de la liste de mods=[] et le nombre de tête
     def modHead(self,mods,nbrhead):
        sp=self.tout.loc[(self.tout['PMBMOD'].isin(mods)) & (self.tout['POLNBTETE'].isin([nbrhead])) ]
