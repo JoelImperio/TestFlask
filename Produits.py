@@ -432,8 +432,8 @@ class PR(Portfolio):
 def tester(self):
     return self
 
-# pol = HO()
-pol=FU()
+pol = HO()
+# pol=FU()
 # pol=AX()
 # pol=PR()
 #pol=FU(run=[4,5])
@@ -458,15 +458,15 @@ aa = pol.p
 #n=pol.unitExpense()
 o=pol.totalPremium()
 # q=pol.totalClaim()
-#r=pol.totalCommissions()
-#s=pol.totalExpense()
-t=pol.BEL()
+# r=pol.totalCommissions()
+# s=pol.totalExpense()
+# t=pol.BEL()
 
 # bel=np.sum(pol.BEL(), axis=0)
 # pgg=pol.PGG()
 
 
-monCas=t
+monCas=o
 
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
