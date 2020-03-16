@@ -425,6 +425,9 @@ def portfolioPreProcessing(p):
     #Une police mod 70 est par construction déjà échue le premier mois elle ne rentre pas dans prophet
     p=p.drop(p.loc[p['PMBPOL'].isin([1054602])].index)
     
+    #Une police Hospitalis a un taux d'indexation sur la prime à 3%
+    p.loc[p['PMBPOL'].isin([1637202]), 'POLINDEX'] = 0
+    
 
     agesInitial(p)
     

@@ -238,7 +238,7 @@ class HO(Portfolio):
     def adjustedReserve(self):
 
 #L'age limite est erroné, il faudra supprimer cette condition  
-        agelimite=(self.age()<=76)
+        agelimite=(self.age()-1<=75)
         
            
         annualPrem = (self.p['POLPRVIEHT'] + self.p['POLPRCPL2']).to_numpy()[:,np.newaxis,np.newaxis]
