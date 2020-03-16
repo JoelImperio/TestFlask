@@ -13,7 +13,7 @@ start_time = time.time()
 
 
 # =============================================================================
-# Création de la classe Sérénité
+#   Création de la classe Sérénité
 # =============================================================================
 tableFemmes = 'EKF05i'
 tableHommes = 'EKM05i'
@@ -209,11 +209,26 @@ class VE(Portfolio):
         return ValNetpPp
         
     def fraisGestion(self):
-        fraisGestion = self.p['gestionLoading'].to_numpy()[:,np.newaxis,np.newaxis]
+        fraisGestion = self.p['gestionLoading'].to_numpy()[:,np.newaxis,np.newaxis]*100
         return fraisGestion
     
+    # def CG_SA_POL_PC(self):
+    #     conditions = [(self.p['Age1AtEntry'] < 53), (self.p['Age1AtEntry'] < 70)]
+    #     result =[(0.25), (0.45)]
+    #     sinon = (0.9)
+    #     cgSaPolPc = np.select(conditions,result,sinon)
+    #     return cgSaPolPc
+    
+    # def CG_SA_PRI_PC(self):
+    #     conditions = [(self.p['Age1AtEntry'] < 53), (self.p['Age1AtEntry'] < 70)]
+    #     result =[(0.35), (0.55)]
+    #     sinon = (1.2)
+    #     cgSaPriPc = np.select(conditions,result,sinon)
+    #     return cgSaPriPc
+    
     def PR_INVENT_PP(self):
-        PrInventPp = (self.purePremium() + (self.fraisGestion() * self.insuredSum()) + self.fraisGestion() * self.insuredSum())/100 
+        # PrInventPp = self.purePremium() + (self.CG_SA_POL_PC()/100 * self.insuredSum()) + (self.CG_SA_PRI_PC()/100 * self.insuredSum()) 
+        PrInventPp = self.purePremium() + (self.fraisGestion()/100 * self.insuredSum()) 
         return PrInventPp
           
     def VAL_NETP_FAC(self):
@@ -229,6 +244,7 @@ class VE(Portfolio):
         mathResBa = np.maximum(self.insuredSum() + self.VAL_ACCRB_PP() + self.PROV_GEST_PP() + self.VAL_PREC_PP() - self.VAL_NETP_PP() - self.valZill(), self.minResPp)
         return mathResBa
 
+    # NO_SURRS
     def numberSurrenders(self):
         noSurrs = self.nbrPolIfSM * self.lapse() * (1-self.lapseTiming*self.qxExpMens())
         return noSurrs
@@ -255,7 +271,7 @@ class VE(Portfolio):
         deathBenPPinitial = np.select(conditions,result,sinon)
         deathBenPP1 = self.zero()
         deathBenPP2 = self.zero()
-        deathBenPP = self.zero()
+       deathBenPP = self.zero()
         durationif12plus = self.zero()
         durationif13less = self.zero()
         deathBenPP1[:,0,:] = deathBenPPinitial[:,0,:]
@@ -356,6 +372,7 @@ class VE(Portfolio):
 
 #Retourne le total des prestations payés 
     def totalPrest(self):
+        
         return self.deathOutgo() + self.ridercOutgo() + self.surrOutgo()
 
 #Retourne le total des commissions payées
@@ -389,26 +406,31 @@ class VE(Portfolio):
     
 pol = VE()
 
-pol.ids([1713905])
+# pol.ids([66102])
+# pol.ids([110705])
 
-portefeuille = pol.p
-adue = pol.ADUE_VAL()
-lapse = pol.lapse()
-ptf = pol.p
-inforce = pol.nbrPolIf
-inforceM = pol.nbrPolIfSM
-maturites = pol.nbrMaturities
-deaths = pol.nbrDeath
-surrender = pol.nbrSurrender
+# portefeuille = pol.p
+# adue = pol.ADUE_VAL()
+# lapse = pol.lapse()
+# ptf = pol.p
+# inforce = pol.nbrPolIf
+# inforceM = pol.nbrPolIfSM
+# maturites = pol.nbrMaturities
+# deaths = pol.nbrDeath
+# surrender = pol.nbrSurrender
 
-test = pol.PPURE_ENC()
+test = pol.totalPremium()
 
+aaa = pol.numberSurrenders()
+aab = pol.PROV_GEST_PP()
+aac = pol.VAL_NETP_FAC()
+aad = pol.VAL_NETP_PP()
+aae = pol.valZill()
+aaf = pol.insuredSum()
 
-
-a = pol.PR_INVENT_PP()
-b = pol.VAL_NETP_PP()
-c = pol.VAL_NETP_FAC()
-d = pol.PROV_GEST_PP()
-
-valZillPc = pol.valZillPc * pol.one() 
-ValZillPp = np.minimum(valZillPc * pol.PR_INVENT_PP() * pol.VAL_NETP_FAC(), pol.insuredSum() - pol.VAL_NETP_PP() + pol.PROV_GEST_PP())
+monCas=pol.totalPremium()
+zz=np.sum(monCas, axis=0)
+zzz=np.sum(zz[:,0])
+z=pd.DataFrame(monCas[:,:,0])
+z=z.sum()
+z.to_csv(r'check.csv',header=False)

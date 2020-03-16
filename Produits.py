@@ -432,7 +432,7 @@ class PR(Portfolio):
 def tester(self):
     return self
 
-pol = HO()
+# pol = HO()
 # pol=FU()
 # pol=AX()
 # pol=PR()
@@ -441,7 +441,7 @@ pol = HO()
 # pol.ids([1806102])
 #pol.mod([9])
 #pol.modHead([9],2)
-aa = pol.p
+# aa = pol.p
 #a=pol.nbrPolIf
 # b=pol.nbrPolIfSM
 #c=pol.nbrMaturities
@@ -456,7 +456,7 @@ aa = pol.p
 # l=pol.adjustedReserve()
 #m=pol.reserveExpense()
 #n=pol.unitExpense()
-o=pol.totalPremium()
+# o=pol.totalPremium()
 # q=pol.totalClaim()
 # r=pol.totalCommissions()
 # s=pol.totalExpense()
@@ -466,13 +466,13 @@ o=pol.totalPremium()
 # pgg=pol.PGG()
 
 
-monCas=o
+# monCas=o
 
-zz=np.sum(monCas, axis=0)
-zzz=np.sum(zz[:,0])
-z=pd.DataFrame(monCas[:,:,0])
-z=z.sum()
-z.to_csv(r'check.csv',header=False)
+# zz=np.sum(monCas, axis=0)
+# zzz=np.sum(zz[:,0])
+# z=pd.DataFrame(monCas[:,:,0])
+# z=z.sum()
+# z.to_csv(r'check.csv',header=False)
 
 
 
