@@ -480,30 +480,30 @@ pol = EP()
 
 #pol=EP(run=[4,5])
 # pol.ids([513202])
-pol.ids([1730002])
+# pol.ids([1730002])
 # pol.ids([493202, 524401])
 # pol.ids([515503,1736301,1900401,2168101,2396001,2500001,2500101,2466301])
 
 
 
-# pol.mod([33])
+pol.mod([29])
 #pol.modHead([9],2)
 aa = pol.p
-#a=pol.nbrPolIf
+a=pol.nbrPolIf
 #b=pol.nbrPolIfSM
 #c=pol.nbrMaturities
 #d=pol.nbrDeath
 #e=pol.nbrSurrender
 #f=pol.premiumCompl()
 #g=pol.premiumPure()
-#h=pol.deathClaim()
+h=pol.deathClaim()
 #i=pol.fraisVisiteClaim()
 #j=pol.timeBeforeNextPay()
 #k=pol.risqueEnCour()
 # l=pol.adjustedReserve()
 #m=pol.reserveExpense()
 #n=pol.unitExpense()
-# o=pol.totalPremium()
+o=pol.totalPremium()
 # q=pol.totalClaim()
 # r=pol.totalCommissions()
 # s=pol.totalExpense()
@@ -512,13 +512,13 @@ aa = pol.p
 # bel=np.sum(pol.BEL(), axis=0)
 # pgg=pol.PGG()
 
-
+pol.p.to_excel('check portefeuille.xlsx')
         
 
 
 print("Class EP--- %s sec" %'%.2f'%  (time.time() - start_time))
 
-monCas=pol.surrender()
+monCas=o
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
