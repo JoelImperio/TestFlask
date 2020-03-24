@@ -473,7 +473,7 @@ class EP(Portfolio):
 def tester(self):
     return self
 
-pol = EP()
+# pol = EP()
 
 # a = pol.epgTxPB_PP()
 

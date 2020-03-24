@@ -22,7 +22,6 @@ DataProphet=pd.read_excel(path+'\Resultats_Prophet.xls',sheet_name=None,skiprows
 ResultatPGG=pd.read_excel(path+'\Resultats_PGG.xls',sheet_name='Synthese',skiprows=3)
 
 
-
 #Test spécifique produit pour le Best Estimate et la PGG
 class Test_MI(ut.TestCase):
 
@@ -36,7 +35,7 @@ class Test_MI(ut.TestCase):
     
     ### Sous portefeuille à tester
     sp=MI()
-    # sp=MI().mod([10])
+    #sp.mod([10])
     
     def test_Premium(self):
         
@@ -93,13 +92,13 @@ class Test_MI(ut.TestCase):
         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='BEL ERROR')
             
 
-    def test_PGG(self):
+    # def test_PGG(self):
         
-        prophet=ResultatPGG.loc[ResultatPGG['Prophet'].isin(['Fun']),'PGG'].values[0]
+    #     prophet=ResultatPGG.loc[ResultatPGG['Prophet'].isin(['Fun']),'PGG'].values[0]
         
-        python=self.sp.PGG().values[0,0]
+    #     python=self.sp.PGG().values[0,0]
         
-        self.assertEqual(round(prophet,self.decimalPrecision),round(python,self.decimalPrecision))       
+    #     self.assertEqual(round(prophet,self.decimalPrecision),round(python,self.decimalPrecision))       
 
 
 #Test spécifique pour une police pour le Best Estimate et la PGG
@@ -114,9 +113,10 @@ class Test_MI_POLICE(ut.TestCase):
     spProphet = DataProphet[ongletResultat].replace('-',0)
     
     ### Police à tester
-    polnum=[363001]
+    polnum=[301]
     
-    sp=MI().ids(polnum)
+    sp=MI()
+    sp.ids(polnum)
 
     
     def test_Premium(self):
@@ -132,12 +132,12 @@ class Test_MI_POLICE(ut.TestCase):
             
 
 
-    ### Lancer Mes tests
+### Lancer mes tests
 ut.main()
 
 
 
-    ### Lancer tous les tests
+### Lancer tous les tests
 
 # loader = ut.TestLoader()
 # suite = loader.discover('.')
