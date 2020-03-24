@@ -473,7 +473,7 @@ class EP(Portfolio):
 def tester(self):
     return self
 
-# pol = EP()
+pol = EP()
 
 # a = pol.epgTxPB_PP()
 
@@ -486,7 +486,7 @@ def tester(self):
 
 
 
-pol.mod([29])
+pol.mod([33])
 #pol.modHead([9],2)
 aa = pol.p
 a=pol.nbrPolIf
@@ -518,7 +518,7 @@ pol.p.to_excel('check portefeuille.xlsx')
 
 print("Class EP--- %s sec" %'%.2f'%  (time.time() - start_time))
 
-monCas=o
+monCas=a
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
