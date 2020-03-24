@@ -6,7 +6,7 @@ import os, os.path
 path = os.path.dirname(os.path.abspath(__file__))
 
     ### Importer script
-from tryMixtes import MI
+from tryEpargnes import EP
 
 start_time = time.time()
 
@@ -14,7 +14,7 @@ start_time = time.time()
 
     ### Fichier résultat
 #L'ensemble des variables Prophet par produit
-DataProphet=pd.read_excel(path+'\Resultats_Prophet.xls',sheet_name=None,skiprows=7)
+DataProphet=pd.read_excel(path+'\Resultats_Prophet_JO.xls',sheet_name=None,skiprows=7)
 
 
 #Celui-ci est générique ne pas modifier
@@ -23,18 +23,18 @@ ResultatPGG=pd.read_excel(path+'\Resultats_PGG.xls',sheet_name='Synthese',skipro
 
 
 #Test spécifique produit pour le Best Estimate et la PGG
-class Test_MI(ut.TestCase):
+class Test_EP(ut.TestCase):
 
     RTOL=0.1
     ATOL=1
     decimalPrecision=2
     
     ### Onglet fichier résultat 
-    ongletResultat='MI'
+    ongletResultat='EP'
     spProphet = DataProphet[ongletResultat].replace('-',0)
     
     ### Sous portefeuille à tester
-    sp=MI()
+    sp=EP()
     #sp.mod([10])
     
     def test_Premium(self):
@@ -102,34 +102,41 @@ class Test_MI(ut.TestCase):
 
 
 #Test spécifique pour une police pour le Best Estimate et la PGG
-class Test_MI_POLICE(ut.TestCase):
+class Test_EP_28(ut.TestCase):
 
     RTOL=0.1
-    ATOL=1
+    ATOL=5
     decimalPrecision=2
     
     ### Onglet fichier résultat 
-    ongletResultat='MI_POLICE'
+    ongletResultat='EP_28'
     spProphet = DataProphet[ongletResultat].replace('-',0)
     
     ### Police à tester
-    polnum=[301]
+    polmod=[28]
     
-    sp=MI()
-    sp.ids(polnum)
-
+    sp=EP()
+    sp.mod(polmod)
+    nb = len(sp.p)
     
     def test_Premium(self):
         
     ### La variable à tester 'PREM_INC'
-        prophet=np.array(self.spProphet.loc[:408,'PREM_INC'].to_numpy(),dtype=float)
+        prophet=np.array(self.spProphet.loc[:266,'PREM_INC'].to_numpy(),dtype=float)
+        
+        prophet=np.array(spProphet.loc[:408,'PREM_INC'].to_numpy(),dtype=float)
         
     ### La méthode à tester 'totalPremium()'
-        python=np.sum(self.sp.totalPremium()[:,:409,0],axis=0)
+        dim = np.zeros([nb,409,6])
+        python=np.sum((self.sp.totalPremium() + dim)[:,:409,0],axis=0)
 
+  
+
+        
         
         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
             
+         # np.testing.assert_allclose(prophet, python, rtol =RTOL, atol = ATOL, err_msg='totalPremium ERROR ')
 
 
 ### Lancer mes tests

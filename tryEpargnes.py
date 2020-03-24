@@ -486,7 +486,7 @@ pol = EP()
 
 
 
-pol.mod([33])
+pol.mod([28])
 #pol.modHead([9],2)
 aa = pol.p
 a=pol.nbrPolIf
@@ -518,7 +518,7 @@ pol.p.to_excel('check portefeuille.xlsx')
 
 print("Class EP--- %s sec" %'%.2f'%  (time.time() - start_time))
 
-monCas=a
+monCas=o
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
