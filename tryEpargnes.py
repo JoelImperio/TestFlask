@@ -473,14 +473,14 @@ class EP(Portfolio):
 def tester(self):
     return self
 
-pol = EP()
+# pol = EP()
 
 # a = pol.epgTxPB_PP()
 
 
 #pol=EP(run=[4,5])
 # pol.ids([513202])
-pol.ids([1730002])
+# pol.ids([1730002])
 # pol.ids([493202, 524401])
 # pol.ids([515503,1736301,1900401,2168101,2396001,2500001,2500101,2466301])
 
@@ -488,7 +488,7 @@ pol.ids([1730002])
 
 # pol.mod([33])
 #pol.modHead([9],2)
-aa = pol.p
+# aa = pol.p
 #a=pol.nbrPolIf
 #b=pol.nbrPolIfSM
 #c=pol.nbrMaturities
@@ -518,12 +518,12 @@ aa = pol.p
 
 print("Class EP--- %s sec" %'%.2f'%  (time.time() - start_time))
 
-monCas=pol.surrender()
-zz=np.sum(monCas, axis=0)
-zzz=np.sum(zz[:,0])
-z=pd.DataFrame(monCas[:,:,0])
-z=z.sum()
-z.to_csv(r'check.csv',header=False)
+# monCas=o
+# zz=np.sum(monCas, axis=0)
+# zzz=np.sum(zz[:,0])
+# z=pd.DataFrame(monCas[:,:,0])
+# z=z.sum()
+# z.to_csv(r'check.csv',header=False)
 
 
 # aaa=aa[['PMBPOL', 'PMBFRACT','POLSIT','PMBMOD','PMBTXINT']]

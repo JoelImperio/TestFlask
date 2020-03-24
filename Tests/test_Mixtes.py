@@ -22,7 +22,6 @@ DataProphet=pd.read_excel(path+'\Resultats_Prophet.xls',sheet_name=None,skiprows
 ResultatPGG=pd.read_excel(path+'\Resultats_PGG.xls',sheet_name='Synthese',skiprows=3)
 
 
-
 #Test spécifique produit pour le Best Estimate et la PGG
 class Test_MI(ut.TestCase):
 
@@ -114,7 +113,7 @@ class Test_MI_POLICE(ut.TestCase):
     spProphet = DataProphet[ongletResultat].replace('-',0)
     
     ### Police à tester
-    polnum=[363001]
+    polnum=[301]
     
     sp=MI().ids(polnum)
 
@@ -132,12 +131,12 @@ class Test_MI_POLICE(ut.TestCase):
             
 
 
-    ### Lancer Mes tests
+### Lancer mes tests
 ut.main()
 
 
 
-    ### Lancer tous les tests
+### Lancer tous les tests
 
 # loader = ut.TestLoader()
 # suite = loader.discover('.')
