@@ -200,7 +200,9 @@ def fraisFractionnement(p):
     
 def adjustedFracAndPremium(p):
     
-    mask = (p['PMBMOD'].isin([28,29,30,31,32,33,36,2,10,6,7]))   
+    mask = (p['PMBMOD'].isin([28,29,30,31,32,33,36,2,10,6,7]))  
+    
+#### --- AJOUT JO
     mask4_5_9_0 = (p['POLSIT']==4) | (p['POLSIT']==9) | (p['PMBFRACT']==0) | (p['PMBFRACT']==5)
     
     p.loc[mask &  mask4_5_9_0 ,'POLPRTOT']=0

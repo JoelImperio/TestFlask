@@ -23,59 +23,59 @@ ResultatPGG=pd.read_excel(path+'\Resultats_PGG.xls',sheet_name='Synthese',skipro
 
 
 #Test spécifique produit pour le Best Estimate et la PGG
-# class Test_EP(ut.TestCase):
+class Test_EP(ut.TestCase):
 
-#     RTOL=0.1
-#     ATOL=1
-#     decimalPrecision=2
+    RTOL=0.0001
+    ATOL=0.001
+    decimalPrecision=2
     
-#     ### Onglet fichier résultat 
-#     ongletResultat='EP'
-#     spProphet = DataProphet[ongletResultat].replace('-',0)
+    ### Onglet fichier résultat 
+    ongletResultat='EP'
+    spProphet = DataProphet[ongletResultat].replace('-',0)
     
-#     ### Sous portefeuille à tester
-#     sp=EP()
-#     #sp.mod([10])
-#     length = len(sp.totalPremium()[0,:,0]) - 1
-#     def test_Premium(self):
+    ### Sous portefeuille à tester
+    sp=EP()
+    #sp.mod([10])
+    length = len(sp.totalPremium()[0,:,0]) - 1
+    def test_Premium(self):
         
-#     ### La variable à tester 'PREM_INC'
-#         prophet=np.array(self.spProphet.loc[:self.length,'PREM_INC'].to_numpy(),dtype=float)
-        
-        
-#         # prophet=np.array(spProphet.loc[:length,'PREM_INC'].to_numpy(),dtype=float)
+    ### La variable à tester 'PREM_INC'
+        prophet=np.array(self.spProphet.loc[:self.length,'PREM_INC'].to_numpy(),dtype=float)
         
         
-#     ### La méthode à tester 'totalPremium()'
-#         python=np.sum(self.sp.totalPremium()[:,:409,0],axis=0)
+        # prophet=np.array(spProphet.loc[:length,'PREM_INC'].to_numpy(),dtype=float)
+        
+        
+    ### La méthode à tester 'totalPremium()'
+        python=np.sum(self.sp.totalPremium()[:,:409,0],axis=0)
 
         
-#         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
        
         
        
      
-#     def test_Commissions(self):
+    def test_Commissions(self):
         
-#         prophet=np.array(self.spProphet.loc[:self.length,'TOT_COMM'].to_numpy(),dtype=float)
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_COMM'].to_numpy(),dtype=float)
         
-#         python=np.array(np.sum(self.sp.totalCommissions()[:,:409,0],axis=0),dtype=float)
+        python=np.array(np.sum(self.sp.totalCommissions()[:,:409,0],axis=0),dtype=float)
 
         
-#         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalCommissions ERROR')
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalCommissions ERROR')
 
 
         
-#     def test_DeathClaim(self):
+    def test_DeathClaim(self):
         
-#     ### La variable à tester 'PREM_INC'
-#         prophet=np.array(self.spProphet.loc[:self.length,'DEATH_OUTGO'].to_numpy(),dtype=float)
+    ### La variable à tester 'PREM_INC'
+        prophet=np.array(self.spProphet.loc[:self.length,'DEATH_OUTGO'].to_numpy(),dtype=float)
         
-#     ### La méthode à tester 'totalPremium()'
+    ### La méthode à tester 'totalPremium()'
         
-#         python=np.sum((self.sp.deathClaim())[:,:409,0],axis=0)
+        python=np.sum((self.sp.deathClaim())[:,:409,0],axis=0)
 
-#         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
 
 
 
@@ -478,8 +478,8 @@ class Test_EP_33(ut.TestCase):
 
 class Test_EP_36(ut.TestCase):
 
-    RTOL=0.01
-    ATOL=0.1
+    RTOL=0.0001
+    ATOL=0.001
     decimalPrecision=2
     
     ### Onglet fichier résultat 
