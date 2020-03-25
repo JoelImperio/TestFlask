@@ -478,8 +478,8 @@ class Test_EP_33(ut.TestCase):
 
 class Test_EP_36(ut.TestCase):
 
-    RTOL=0.001
-    ATOL=0.01
+    RTOL=0.01
+    ATOL=0.1
     decimalPrecision=2
     
     ### Onglet fichier résultat 

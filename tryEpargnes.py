@@ -143,9 +143,9 @@ class EP(Portfolio):
 
             epAcquAVPUP[:,i,:] = eppAcquAPPUP[:,i-1,:] * txInteret[:,i,:]
             
-            epTemp=epAcquAVPUP[:,i,:] * (nbrPupsIf[:,i,:] - nbrNewRed[:,i,:]) + epargnAcquPP[:,i,:] * nbrNewRed[:,i,:]
+            epTemp = epAcquAVPUP[:,i,:] * (nbrPupsIf[:,i,:] - nbrNewRed[:,i,:]) + epargnAcquPP[:,i,:] * nbrNewRed[:,i,:]
             
-            eppAcquAPPUP[:,i,:]=np.divide(epTemp,nbrPupsIf[:,i,:],out=np.zeros_like(epTemp), where=nbrPupsIf[:,i,:]!=0)
+            eppAcquAPPUP[:,i,:] = np.divide(epTemp,nbrPupsIf[:,i,:],out=np.zeros_like(epTemp), where=nbrPupsIf[:,i,:]!=0)
 
             
 
@@ -155,9 +155,9 @@ class EP(Portfolio):
 #Définition des variables de PB pour actives et réduites
 
     ### PB        
-            pbIncorPP[:,i,:] = np.nan_to_num(pbCalcPP[:,i-1,:] * allocMonths[:,i-1,:]* isActive[:,i-1,:])
+            pbIncorPP[:,i,:] = np.nan_to_num(pbCalcPP[:,i-1,:] *  isActive[:,i-1,:])
             
-            pbIncorPUP[:,i,:] = np.nan_to_num(pbCalcPUP[:,i-1,:] * allocMonths[:,i-1,:]* isActive[:,i-1,:])
+            pbIncorPUP[:,i,:] = np.nan_to_num(pbCalcPUP[:,i-1,:] * isActive[:,i-1,:])
 
             pbSortDTHS[:,i,:] = np.nan_to_num(pbCalcPP[:,i-1,:] * (1-allocMonths[:,i-1,:])* isActive[:,i-1,:])
             
@@ -176,9 +176,9 @@ class EP(Portfolio):
             
             epgTxPbPUP[:,i,:] =  np.divide(epgTxTEMP, nbrPupsIf[:,i,:], out=np.zeros_like(epgTxTEMP), where=nbrPupsIf[:,i,:]!=0)
                
-            pbCalcPP[:,i,:] = np.maximum((epgTxPB_PP[:,i,:] - epargnAcquPP[:,i,:] - pbAcquPP[:,i,:]),0) 
+            pbCalcPP[:,i,:] = np.maximum((epgTxPB_PP[:,i,:] - epargnAcquPP[:,i,:] - pbAcquPP[:,i,:]),0)  * allocMonths[:,i,:]
             
-            pbCalcPUP[:,i,:] = np.maximum((epgTxPbPUP[:,i,:] - eppAcquAPPUP[:,i,:] - pbAcquAPPUP[:,i,:]),0)
+            pbCalcPUP[:,i,:] = np.maximum((epgTxPbPUP[:,i,:] - eppAcquAPPUP[:,i,:] - pbAcquAPPUP[:,i,:]),0) * allocMonths[:,i,:]
 
 
  
@@ -514,17 +514,18 @@ pol = EP()
 
 
 #pol=EP(run=[4,5])
-pol.ids([1009501])
+pol.ids([2188901])
 # pol.ids([1730002])
 # pol.ids([493202, 524401])
 # pol.ids([515503,1736301,1900401,2168101,2396001,2500001,2500101,2466301])
 
-a = pol.epargnAcquPP
+fff = pol.pbPupDTHS
 
-# pol.mod([31])
+# pol.mod([36])
 #pol.modHead([9],2)
 aa = pol.p
 a=pol.nbrPolIf
+ff = pol.pbCalcPP
 #b=pol.nbrPolIfSM
 #c=pol.nbrMaturities
 #d=pol.nbrDeath
@@ -553,7 +554,7 @@ o=pol.totalPremium()
 
 print("Class EP--- %s sec" %'%.2f'%  (time.time() - start_time))
 
-monCas=h
+monCas=fff
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
