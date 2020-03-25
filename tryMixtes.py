@@ -71,9 +71,12 @@ class MI(Portfolio):
             
             nbrSurrender[:,i,:]=nbrPolIfSM[:,i,:]*lapse[:,i,:]*(1-(qxyD[:,i,:]))
             
-            nbrNewRed[:,i,:] = (nbrPolIf[:,i-1,:] - nbrDeath[:,i,:] - nbrSurrender[:,i,:] - nbrMaturities[:,i,:]) * reduction[:,i,:]
+            # nbrNewRed[:,i,:] = (nbrPolIf[:,i-1,:] - nbrDeath[:,i,:] - nbrSurrender[:,i,:] - nbrMaturities[:,i,:]) * reduction[:,i,:]
             
-            nbrPolIf[:,i,:]=nbrPolIf[:,i-1,:]-nbrDeath[:,i,:]-nbrSurrender[:,i,:]- nbrNewRed[:,i,:] - nbrMaturities[:,i,:]
+            # nbrPolIf[:,i,:]=nbrPolIf[:,i-1,:]-nbrDeath[:,i,:]-nbrSurrender[:,i,:]- nbrNewRed[:,i,:] - nbrMaturities[:,i,:]
+
+          
+            nbrPolIf[:,i,:]=nbrPolIf[:,i-1,:]-nbrDeath[:,i,:]-nbrSurrender[:,i,:] - nbrMaturities[:,i,:]
 
 
 #Sauvegarde des variables des actifs
@@ -134,17 +137,17 @@ def tester(self):
 
 pol = MI()
 #pol=MI(run=[4,5])
-# pol.ids([363001])
+pol.ids([301])
 
 
 # pol.mod([10])
 #pol.modHead([9],2)
 aa = pol.p
-# a=pol.nbrPolIf
+a=pol.nbrPolIf
 b=pol.nbrPolIfSM
-#c=pol.nbrMaturities
-#d=pol.nbrDeath
-#e=pol.nbrSurrender
+c=pol.nbrNewMat
+d=pol.nbrDeath
+e=pol.nbrSurrender
 #f=pol.premiumCompl()
 #g=pol.premiumPure()
 #h=pol.deathClaim()
@@ -167,8 +170,7 @@ o=pol.totalPremium()
 
 print("Class MI--- %s sec" %'%.2f'%  (time.time() - start_time))
 
-monCas=b
-
+monCas=d
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])

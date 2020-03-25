@@ -269,6 +269,12 @@ def projectionLengh(p):
  # # Traitement du mod 29
  #    mask=(p['PMBMOD']==29)
  #    p.loc[mask,'residualTermM']=((ageMaxEP-p.loc[mask,'Age1AtEntry'])*12)-p.loc[mask,'DurationIfInitial']    
+
+ # Traitement des Mixtes
+    mask=(p['PMBMOD'].isin([2,6,7,10]))
+    p.loc[mask,'residualTermM']=(p.loc[mask,'POLDURC']*12)-p.loc[mask,'DurationIfInitial']
+
+
     
     #Replacer 999 pour les deuxièmes assurés des polices à une tête
     p.loc[p['POLNBTETE']==1,'Age2AtEntry']=999
