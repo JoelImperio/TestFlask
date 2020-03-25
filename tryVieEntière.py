@@ -37,7 +37,7 @@ class VE(Portfolio):
         
     def update(self,subPortfolio):
         super().update(subPortfolio)
-        self.loopNoSaving()
+        self.loopVE()
         self.lapse()
          
     def isLapse(self):
@@ -103,7 +103,7 @@ class VE(Portfolio):
         
         return mylapse
      
-    def loopNoSaving(self):
+    def loopVE(self):
         
         lapseTiming = 0.5
         
@@ -154,29 +154,35 @@ class VE(Portfolio):
 # ---Calcul de surrOutgo
 # =============================================================================
 
+    # VAL_SA_PP
     def insuredSum(self):
         sumAssdPp = self.p['PMBCAPIT'].to_numpy()[:,np.newaxis,np.newaxis]*self.one()
         return sumAssdPp
-                   
+    
+    # VAL_ACCRB_PP               
     def VAL_ACCRB_PP(self):
         valAccrbPp = self.p['PMBPBEN'].to_numpy()[:,np.newaxis,np.newaxis]*self.one()
         return valAccrbPp
     
+    # ADUE_VAL
     def ADUE_VAL(self):
         polTerm = self.p['POLDURC'].to_numpy()[:,np.newaxis,np.newaxis]
         adueVal = polTerm - ((self.durationIf()+1)/12)
         adueVal = np.floor(adueVal)
         return adueVal
 
+    # PMG_SA_PC
     def PMG_SA_PC(self):
-        pmgSaPc = self.fraisGestion() * self.VAL_NETP_FAC()
+        pmgSaPc = self.fraisGestion() * self.valNetpFac()
         return pmgSaPc
        
+    # PROV_GEST_PP
     def PROV_GEST_PP(self):
         provGestPp = self.PMG_SA_PC()/100 * (self.insuredSum() + self.VAL_ACCRB_PP()) \
-        - self.VAL_NETP_FAC() * (self.PR_INVENT_PP() - self.purePremium())
+        - self.valNetpFac() * (self.prInventPP() - self.purePremium())
         return provGestPp
     
+    # VAL_PREC_PP
     def VAL_PREC_PP(self):
         agelimite=(self.age()<=85)
         # Calcul du risque en cours
@@ -204,8 +210,9 @@ class VE(Portfolio):
         primeTotaleMensuelle = self.p['POLPRTOT'].to_numpy()[:,np.newaxis,np.newaxis] *self.one() / frac
         return primeTotaleMensuelle 
 
-    def VAL_NETP_PP(self):
-        ValNetpPp = self.purePremium() * self.VAL_NETP_FAC()
+    # VAL_NETP_PP
+    def valNetpPP(self):
+        ValNetpPp = self.purePremium() * self.valNetpFac()
         return ValNetpPp
         
     def fraisGestion(self):
@@ -226,22 +233,26 @@ class VE(Portfolio):
     #     cgSaPriPc = np.select(conditions,result,sinon)
     #     return cgSaPriPc
     
-    def PR_INVENT_PP(self):
+    # PR_INVENT_PP
+    def prInventPP(self):
         # PrInventPp = self.purePremium() + (self.CG_SA_POL_PC()/100 * self.insuredSum()) + (self.CG_SA_PRI_PC()/100 * self.insuredSum()) 
         PrInventPp = self.purePremium() + (self.fraisGestion()/100 * self.insuredSum()) 
         return PrInventPp
-          
-    def VAL_NETP_FAC(self):
+      
+    # VAL_NETP_FAC
+    def valNetpFac(self):
         valNetpFac = 99 - (self.durationIf()/12)
         return valNetpFac
-        
+    
+    # VAL_ZILL_PP    
     def valZill(self):
         valZillPc = self.valZillPc * self.one()
-        ValZillPp = np.minimum(valZillPc * self.PR_INVENT_PP() * self.VAL_NETP_FAC(), self.insuredSum() - self.VAL_NETP_PP() + self.PROV_GEST_PP())
+        ValZillPp = np.minimum(valZillPc * self.prInventPP() * self.valNetpFac(), self.insuredSum() - self.valNetpPP() + self.PROV_GEST_PP())
         return ValZillPp
-
-    def MATH_RES_BA(self):
-        mathResBa = np.maximum(self.insuredSum() + self.VAL_ACCRB_PP() + self.PROV_GEST_PP() + self.VAL_PREC_PP() - self.VAL_NETP_PP() - self.valZill(), self.minResPp)
+    
+    # MATH_RES_BA
+    def mathResBa(self):
+        mathResBa = np.maximum(self.insuredSum() + self.VAL_ACCRB_PP() + self.PROV_GEST_PP() + self.VAL_PREC_PP() - self.valNetpPP() - self.valZill(), self.minResPp)
         return mathResBa
 
     # NO_SURRS
@@ -271,7 +282,7 @@ class VE(Portfolio):
         deathBenPPinitial = np.select(conditions,result,sinon)
         deathBenPP1 = self.zero()
         deathBenPP2 = self.zero()
-       deathBenPP = self.zero()
+        deathBenPP = self.zero()
         durationif12plus = self.zero()
         durationif13less = self.zero()
         deathBenPP1[:,0,:] = deathBenPPinitial[:,0,:]
@@ -318,7 +329,7 @@ class VE(Portfolio):
         return adjustedMathReserve
     
     def F_MATH_RES_IF(self):
-        fMathResIf = self.MATH_RES_BA() * self.nbrPolIf
+        fMathResIf = self.mathResBa() * self.nbrPolIf
         return fMathResIf
     
     def RFIN_ANN_NC(self):
@@ -336,10 +347,15 @@ class VE(Portfolio):
         return ppureEnc
         
 # =============================================================================
-# --- Composants de totalPrest    
+# --- Composants de totalClaim    
 # =============================================================================
     def surrOutgo(self):
-        surrOutgo = self.MATH_RES_BA() * self.numberSurrenders()
+        conditions = [(self.durationIf()>36)]
+        result =[(self.mathResBa() * self.numberSurrenders())]
+        sinon = 0
+        surrOutgo = np.select(conditions,result,sinon)
+        
+        # surrOutgo = self.mathResBa() * self.numberSurrenders()
         return surrOutgo
     
     def deathOutgo(self):
@@ -371,8 +387,7 @@ class VE(Portfolio):
         return prem
 
 #Retourne le total des prestations payés 
-    def totalPrest(self):
-        
+    def totalClaim(self):
         return self.deathOutgo() + self.ridercOutgo() + self.surrOutgo()
 
 #Retourne le total des commissions payées
@@ -392,7 +407,7 @@ class VE(Portfolio):
         
         interestRates=1+self.rate()       
         premium=self.totalPremium()
-        claim=self.totalPrest()
+        claim=self.totalClaim()
         expense=self.totalExpense()
         commission=self.totalCommissions()
         
@@ -408,6 +423,14 @@ pol = VE()
 
 # pol.ids([66102])
 # pol.ids([110705])
+# pol.ids([284003])
+# pol.ids([284003])
+# pol.ids([2308801])
+# pol.ids([2570304])
+# pol.ids([244803])
+# pol.ids([1713903])  <---- math res ba erronnée
+# pol.ids([579603]) <- en ordre
+# pol.ids([1713903])
 
 # portefeuille = pol.p
 # adue = pol.ADUE_VAL()
@@ -419,16 +442,21 @@ pol = VE()
 # deaths = pol.nbrDeath
 # surrender = pol.nbrSurrender
 
-test = pol.totalPremium()
+test1 = pol.mathResBa()
+test2 = pol.VAL_ACCRB_PP()
+test3 = pol.PROV_GEST_PP()
+test4 = pol.VAL_PREC_PP()
+test5 = pol.valNetpPP()
+test6 = pol.valZill()
 
-aaa = pol.numberSurrenders()
-aab = pol.PROV_GEST_PP()
-aac = pol.VAL_NETP_FAC()
-aad = pol.VAL_NETP_PP()
-aae = pol.valZill()
-aaf = pol.insuredSum()
+# aaa = pol.numberSurrenders()
+# aab = pol.PROV_GEST_PP()
+# aac = pol.valNetpFac()
+# aad = pol.valNetpPP()
+# aae = pol.valZill()
+# aaf = pol.insuredSum()
 
-monCas=pol.totalPremium()
+monCas=pol.mathResBa()
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
