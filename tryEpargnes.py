@@ -381,6 +381,41 @@ class EP(Portfolio):
 # =============================================================================
 
 
+ # ici on détermine le capital pour Protection d'avenir en fonction de l'âge
+    def capPA(self):
+        
+        capPA = self.zero()
+        capPA[self.age() <= 55]= 25000
+        capPA[(self.age() > 55)]= 5000
+        capPA[self.age() > 65]= 0
+        capPA[self.p['POLPRCPL9'] == 0]=0
+        return capPA
+    
+    
+    
+    
+# prime complémentaire encourue
+    
+    def riderCostPP(self):
+        
+    # Age limite pour mod28
+        self.agelimite=((self.age()-1)<=self.ageLimite)
+           
+        annualPrem =  (self.p['POLPRCPL9']).to_numpy()[:,np.newaxis,np.newaxis]
+        annualPrem = annualPrem / self.frac()   
+        riderC =  annualPrem * self.isPremPay() * self.dcAccident() 
+
+        return riderC
+    
+
+# benefice en cas de sinistre complémentaire (RIDERC_OUTGO)
+    def riderCOutgo(self):
+        
+        riderCoutgo = self.riderCostPP() * self.nbrPolIfSM + self.nbrDeath * self.capPA()
+        
+        return riderCoutgo
+
+        
 
     
 # Calcul des sorties dûes aux maturité des polices (MAT_OUTGO)
@@ -479,14 +514,14 @@ pol = EP()
 
 
 #pol=EP(run=[4,5])
-# pol.ids([513202])
+pol.ids([1009501])
 # pol.ids([1730002])
 # pol.ids([493202, 524401])
 # pol.ids([515503,1736301,1900401,2168101,2396001,2500001,2500101,2466301])
 
+a = pol.epargnAcquPP
 
-
-pol.mod([28])
+# pol.mod([31])
 #pol.modHead([9],2)
 aa = pol.p
 a=pol.nbrPolIf
@@ -512,13 +547,13 @@ o=pol.totalPremium()
 # bel=np.sum(pol.BEL(), axis=0)
 # pgg=pol.PGG()
 
-pol.p.to_excel('check portefeuille.xlsx')
+# pol.p.to_excel('check portefeuille.xlsx')
         
 
 
 print("Class EP--- %s sec" %'%.2f'%  (time.time() - start_time))
 
-monCas=o
+monCas=h
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
