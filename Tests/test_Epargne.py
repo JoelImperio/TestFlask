@@ -138,8 +138,8 @@ ResultatPGG=pd.read_excel(path+'\Resultats_PGG.xls',sheet_name='Synthese',skipro
 #Test spécifique pour une police pour le Best Estimate et la PGG
 class Test_EP_28(ut.TestCase):
 
-    RTOL=0.001
-    ATOL=0.01
+    RTOL=0.0001
+    ATOL=0.001
     decimalPrecision=2
     
     ### Onglet fichier résultat 
@@ -196,8 +196,8 @@ class Test_EP_28(ut.TestCase):
 
 class Test_EP_29(ut.TestCase):
 
-    RTOL=0.001
-    ATOL=0.01
+    RTOL=0.0001
+    ATOL=0.001
     decimalPrecision=2
     
     ### Onglet fichier résultat 
@@ -253,8 +253,8 @@ class Test_EP_29(ut.TestCase):
 
 class Test_EP_30(ut.TestCase):
 
-    RTOL=0.001
-    ATOL=0.01
+    RTOL=0.0001
+    ATOL=0.001
     decimalPrecision=2
     
     ### Onglet fichier résultat 
@@ -309,8 +309,8 @@ class Test_EP_30(ut.TestCase):
 
 class Test_EP_31(ut.TestCase):
 
-    RTOL=0.001
-    ATOL=0.01
+    RTOL=0.0001
+    ATOL=0.001
     decimalPrecision=2
     
     ### Onglet fichier résultat 
@@ -365,8 +365,8 @@ class Test_EP_31(ut.TestCase):
 
 class Test_EP_32(ut.TestCase):
 
-    RTOL=0.001
-    ATOL=0.01
+    RTOL=0.0001
+    ATOL=0.001
     decimalPrecision=2
     
     ### Onglet fichier résultat 
@@ -421,8 +421,8 @@ class Test_EP_32(ut.TestCase):
 
 class Test_EP_33(ut.TestCase):
 
-    RTOL=0.001
-    ATOL=0.01
+    RTOL=0.0001
+    ATOL=0.001
     decimalPrecision=2
     
     ### Onglet fichier résultat 

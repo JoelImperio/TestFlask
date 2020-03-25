@@ -92,7 +92,8 @@ class EP(Portfolio):
         isActive = self.isActive()
         
         
-        
+        pbCalcPPdths = self.zero()
+        pbCalcPUPdths = self.zero()
         
         
         
@@ -103,12 +104,15 @@ class EP(Portfolio):
         polTermM=self.polTermM()       
         lapseD=lapseTiming * self.lapse()
         lapse = self.lapse()        
-        reduction = self.reduction()       
+        reduction = self.reduction()    
+        
+ 
+        
         qxy=self.qxyExpMens()
         qxyD =lapseTiming * self.qxyExpMens()
         txInteret = self.txInt()
         prEncInv = self.premiumInvested()
-        
+
         #Définition du vecteur des maturités (bool)        
         matRate[polTermM+1 ==self.durationIf()]=1 
             
@@ -157,11 +161,11 @@ class EP(Portfolio):
     ### PB        
             pbIncorPP[:,i,:] = np.nan_to_num(pbCalcPP[:,i-1,:] *  isActive[:,i-1,:])
             
-            pbIncorPUP[:,i,:] = np.nan_to_num(pbCalcPUP[:,i-1,:] * isActive[:,i-1,:])
+            pbIncorPUP[:,i,:] = np.nan_to_num(pbCalcPUP[:,i-1,:]  * isActive[:,i-1,:]) 
 
-            pbSortDTHS[:,i,:] = np.nan_to_num(pbCalcPP[:,i-1,:] * (1-allocMonths[:,i-1,:])* isActive[:,i-1,:])
+            pbSortDTHS[:,i,:] = np.nan_to_num(pbCalcPPdths[:,i,:] * isActive[:,i,:]) 
             
-            pbPupDTHS[:,i,:] = np.nan_to_num(pbCalcPUP[:,i-1,:] *(1- allocMonths[:,i-1,:])* isActive[:,i-1,:]) 
+            pbPupDTHS[:,i,:] = np.nan_to_num(pbCalcPUPdths[:,i,:] * isActive[:,i,:]) 
 
          
             pbAcquAVPUP[:,i,:] = (pbAcquAPPUP[:,i-1,:] + pbIncorPUP[:,i,:]) * txInteret[:,i,:]
@@ -179,8 +183,17 @@ class EP(Portfolio):
             pbCalcPP[:,i,:] = np.maximum((epgTxPB_PP[:,i,:] - epargnAcquPP[:,i,:] - pbAcquPP[:,i,:]),0)  * allocMonths[:,i,:]
             
             pbCalcPUP[:,i,:] = np.maximum((epgTxPbPUP[:,i,:] - eppAcquAPPUP[:,i,:] - pbAcquAPPUP[:,i,:]),0) * allocMonths[:,i,:]
+            
+            
+            pbCalcPPdths[:,i,:] = np.maximum((epgTxPB_PP[:,i,:] - epargnAcquPP[:,i,:] - pbAcquPP[:,i,:]),0) * (1 - allocMonths[:,i,:])
+            
+            pbCalcPUPdths[:,i,:] = np.maximum((epgTxPbPUP[:,i,:] - eppAcquAPPUP[:,i,:] - pbAcquAPPUP[:,i,:]),0) * (1 - allocMonths[:,i,:])
+            
+            
 
-
+            pbCalcPPdths[:,i,:] = np.maximum((epgTxPB_PP[:,i,:] - epargnAcquPP[:,i,:] - pbAcquPP[:,i,:]),0)  * (1-allocMonths[:,i,:]) 
+            
+            pbCalcPUPdths[:,i,:] = np.maximum((epgTxPbPUP[:,i,:] - eppAcquAPPUP[:,i,:] - pbAcquAPPUP[:,i,:]),0) * (1-allocMonths[:,i,:]) 
  
 
 #Sauvegarde des variables des actifs
@@ -271,6 +284,9 @@ class EP(Portfolio):
         
         riderPremium[self.mask([33,36])]=riderPremium[self.mask([33,36])]+rider33_36[self.mask([33,36])]
                  
+        mask0 = self.p['POLPRTOT'] == 0)
+        
+        
         
         return riderPremium
 
@@ -333,6 +349,9 @@ class EP(Portfolio):
         addSumAssuree[(self.mask([32])) & mask_55]=30000
         addSumAssuree[(self.mask([32])) & mask_55_65]=7500        
         addSumAssuree[(self.mask([32])) & mask_65]=2500       
+        
+        # Il y a des mod 33 avec POLCAPAUT à 0
+        addSumAssuree[self.mask([33])]=30000
         
         
         deathBenefit = self.pbAcquPP + self.epargnAcquPP + addSumAssuree + self.pbSortDTHS
@@ -514,21 +533,21 @@ pol = EP()
 
 
 #pol=EP(run=[4,5])
-pol.ids([2188901])
+# pol.ids([553501])
 # pol.ids([1730002])
 # pol.ids([493202, 524401])
 # pol.ids([515503,1736301,1900401,2168101,2396001,2500001,2500101,2466301])
 
-fff = pol.pbPupDTHS
+fff = pol.nbrPupDeath
 
-# pol.mod([36])
+pol.mod([36])
 #pol.modHead([9],2)
 aa = pol.p
 a=pol.nbrPolIf
 ff = pol.pbCalcPP
 #b=pol.nbrPolIfSM
 #c=pol.nbrMaturities
-#d=pol.nbrDeath
+d=pol.nbrDeath
 #e=pol.nbrSurrender
 #f=pol.premiumCompl()
 #g=pol.premiumPure()
@@ -548,13 +567,13 @@ o=pol.totalPremium()
 # bel=np.sum(pol.BEL(), axis=0)
 # pgg=pol.PGG()
 
-# pol.p.to_excel('check portefeuille.xlsx')
+pol.p.to_excel('check portefeuille.xlsx')
         
 
 
 print("Class EP--- %s sec" %'%.2f'%  (time.time() - start_time))
 
-monCas=fff
+monCas=h
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
