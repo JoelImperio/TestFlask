@@ -282,9 +282,11 @@ class EP(Portfolio):
             +self.p['POLPRCPL4'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()\
                 # +self.p['POLPRCPLA'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
         
+
+        
         riderPremium[self.mask([33,36])]=riderPremium[self.mask([33,36])]+rider33_36[self.mask([33,36])]
                  
-        mask0 = self.p['POLPRTOT'] == 0)
+       
         
         
         
@@ -540,7 +542,7 @@ pol = EP()
 
 fff = pol.nbrPupDeath
 
-pol.mod([36])
+# pol.mod([36])
 #pol.modHead([9],2)
 aa = pol.p
 a=pol.nbrPolIf
