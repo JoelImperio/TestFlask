@@ -173,7 +173,9 @@ class VE(Portfolio):
 
     # PMG_SA_PC
     def pmgSaPc(self):
-        pmgSaPc = self.fraisGestion() * self.valNetpFac()
+        # pmgSaPc = self.fraisGestion() * self.valNetpFac()
+        # pmgSaPc = self.CG_SA_POL_PC() * self.valNetpFac() + self.CG_SA_PRI_PC() * self.valPolFac()
+        pmgSaPc = self.CG_SA_PRI_PC() * self.valNetpFac() + self.CG_SA_POL_PC() * self.valPolFac()
         return pmgSaPc
        
     # PROV_GEST_PP
@@ -213,34 +215,45 @@ class VE(Portfolio):
         ValNetpPp = self.purePremium() * self.valNetpFac()
         return ValNetpPp
         
-    def fraisGestion(self):
-        fraisGestion = self.p['gestionLoading'].to_numpy()[:,np.newaxis,np.newaxis]*100
-        return fraisGestion
+    # def fraisGestion(self):
+    #     fraisGestion = self.p['gestionLoading'].to_numpy()[:,np.newaxis,np.newaxis]*100
+    #     return fraisGestion
     
-    # def CG_SA_POL_PC(self):
-    #     conditions = [(self.p['Age1AtEntry'] < 53), (self.p['Age1AtEntry'] < 70)]
-    #     result =[(0.25), (0.45)]
-    #     sinon = (0.9)
-    #     cgSaPolPc = np.select(conditions,result,sinon)
-    #     return cgSaPolPc
+    def CG_SA_POL_PC(self):
+        conditions = [(self.p['Age1AtEntry'] < 53), (self.p['Age1AtEntry'] < 70)]
+        result =[(0.25), (0.45)]
+        sinon = (0.9)
+        cgSaPolPc = np.select(conditions,result,sinon)
+        return cgSaPolPc
     
-    # def CG_SA_PRI_PC(self):
-    #     conditions = [(self.p['Age1AtEntry'] < 53), (self.p['Age1AtEntry'] < 70)]
-    #     result =[(0.35), (0.55)]
-    #     sinon = (1.2)
-    #     cgSaPriPc = np.select(conditions,result,sinon)
-    #     return cgSaPriPc
+    def CG_SA_PRI_PC(self):
+        conditions = [(self.p['Age1AtEntry'] < 53), (self.p['Age1AtEntry'] < 70)]
+        result =[(0.35), (0.55)]
+        sinon = (1.2)
+        cgSaPriPc = np.select(conditions,result,sinon)
+        return cgSaPriPc
     
     # PR_INVENT_PP
     def prInventPP(self):
-        # PrInventPp = self.purePremium() + (self.CG_SA_POL_PC()/100 * self.insuredSum()) + (self.CG_SA_PRI_PC()/100 * self.insuredSum()) 
-        PrInventPp = self.purePremium() + (self.fraisGestion()/100 * self.insuredSum()) 
+        situation = self.p['POLSIT'][:,np.newaxis,np.newaxis]
+        conditions = [(situation != 4) & (situation != 8) & (situation != 9)]
+        result =[(self.purePremium() + (self.fraisGestion()/100 * self.insuredSum()))]
+        sinon = 0
+        PrInventPp = np.select(conditions,result,sinon)
         return PrInventPp
       
     # VAL_NETP_FAC
     def valNetpFac(self):
-        valNetpFac = 99 - (self.durationIf()/12)
+        situation = self.p['POLSIT'][:,np.newaxis,np.newaxis]
+        conditions = [(situation != 4) & (situation != 8) & (situation != 9)]
+        result =[(99 - (self.durationIf()/12))]
+        sinon = 0
+        valNetpFac = np.select(conditions,result,sinon)
         return valNetpFac
+    
+    def valPolFac(self):
+        valPolFac = 99 - (self.durationIf()/12)
+        return valPolFac
     
     # VAL_ZILL_PP    
     def valZill(self):
@@ -442,13 +455,21 @@ pol.ids([552202])
 # deaths = pol.nbrDeath
 # surrender = pol.nbrSurrender
 
-test1 = pol.mathResBa()
-test2 = pol.valAccrbPP()
-test3 = pol.provGestPP()
-test4 = pol.valPrecPP()
-test5 = pol.valNetpPP()
-test6 = pol.valZill()
-test7 = pol.surrOutgo()
+# test1 = pol.mathResBa()
+# test2 = pol.valAccrbPP()
+# test3 = pol.provGestPP()
+# test4 = pol.valPrecPP()
+# test5 = pol.valNetpPP()
+# test6 = pol.valZill()
+# test7 = pol.surrOutgo()
+
+test1 = pol.provGestPP()
+test2 = pol.valNetpFac()
+test3 = pol.prInventPP()
+test4 = pol.pmgSaPc()
+test5 = pol.valAccrbPP()
+test6 = pol.valNetpPP()
+
 
 # aaa = pol.numberSurrenders()
 # aab = pol.provGestPP()
@@ -461,7 +482,7 @@ x = pol.p
 
 x.to_excel('ptf.xlsx')
 
-monCas=pol.provGestPP()
+monCas=pol.pmgSaPc()
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
