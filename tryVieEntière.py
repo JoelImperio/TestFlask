@@ -145,26 +145,14 @@ class VE(Portfolio):
         self.nbrDeath=nbrDeath
         #Nombre d'annulation de contrat
         self.nbrSurrender=nbrSurrender
-        
-    def isPremPayBis(self):
     
-        payement = self.zero()
-        check1 = (self.frac() * (self.durationIf() + 11) /12)
-        check2 = np.floor((self.frac() * (self.durationIf() + 11) /12))
-    
-        condlist = [check1 - check2 == 0, check1 - check2 != 0]
-        choicelist = [payement[:,:,:]==0, payement[:,:,:] ==1 ]
-        
-        myPayement=np.select(condlist, choicelist)
-        
-        return myPayement
 
 # =============================================================================
-# --- Début des variables du produit
+    # --- Début des variables du produit
 # =============================================================================
 
 # =============================================================================
-# ---Calcul de surrOutgo
+    # ---Calcul de surrOutgo
 # =============================================================================
 
     # VAL_SA_PP
@@ -298,7 +286,7 @@ class VE(Portfolio):
         return noSurrs
 
 # =============================================================================
-# ---Calcul de DEATH OUTGO
+    # ---Calcul de DEATH OUTGO
 # =============================================================================    
     
     # NO_DEATHS
@@ -314,54 +302,34 @@ class VE(Portfolio):
         pbAcq = self.p['PMBPBEN'].to_numpy()[:,np.newaxis,np.newaxis]
         situation = self.p['POLSIT'][:,np.newaxis,np.newaxis]
         durationif = self.durationIf()
+    
+        isPremPay = self.isPremPay()
+        isPremPay[:,0,:] = 1
+    
+        premiumsPaid = isPremPay * pol.p['POLPRTOT'][:,np.newaxis,np.newaxis]/pol.frac()
+             
+        cumulatedPremiums = pol.zero()
+ 
+        cumulatedPremiums = np.cumsum(premiumsPaid, axis=1)
+            
+        # vecteur condition durationif > 12
+        conditions = [(durationif>12)]
+        result =[(0)]
+        sinon = 1
+        deathBenPP1 = np.select(conditions,result,sinon) * cumulatedPremiums
+            
+        conditions = [(durationif>12)]
+        result =[(1)]
+        sinon = 0
+        durationif12plus = np.select(conditions,result,sinon)
+        deathBenPP2 = (capital + pbAcq) * durationif12plus  
         
-        premiumsPaid = pol.isPremPayBis() * pol.p['POLPRTOT'][:,np.newaxis,np.newaxis]/pol.frac()
-        
-        cumulatedPremiums = np.cumsum(premiumsPaid)
-        
-        # conditions = [(situation != 4) & (situation != 8) & (situation != 9)]
-        # result =[(primetot/frac)]
-        # sinon = 0
-        # deathBenPPinitial = np.select(conditions,result,sinon)
-        
-        
-        # deathBenPP1 = self.zero()
-        # deathBenPP2 = self.zero()
-        # deathBenPP = self.zero()
-        # durationif12plus = self.zero()
-        # durationif13less = self.zero()
-        # deathBenPP1[:,0,:] = deathBenPPinitial[:,0,:]
-        
-        # conditions = [(durationif>12)]
-        # result =[(1)]
-        # sinon = 0
-        # durationif12plus = np.select(conditions,result,sinon)
-        
-        # conditions = [(durationif<13)]
-        # result =[(1)]
-        # sinon = 0
-        # durationif13less = np.select(conditions,result,sinon) 
-        
-        # # for i in range(0,self.shape[1]):                                                                                 
-
-        # #     # deathBenPP1[:,i,:] = (deathBenPP1[:,i-1,:] + deathBenPPinitial[:,0,:]) * durationif13less[:,i,:]
-        # #     deathBenPP1[:,i,:] = (durationif[:,i,:] * deathBenPPinitial[:,0,:]) * durationif13less[:,i,:]
-        # #     deathBenPP2[:,i,:] = (capital[:,0,:] + pbAcq[:,0,:]) * durationif12plus[:,i,:]
-        # # deathBenPP = deathBenPP1 + deathBenPP2
-        
-        # deathBenPP1[:,:,:] = (durationif[:,:,:] * deathBenPPinitial[:,:,:]) * durationif13less[:,:,:]
-        # deathBenPP2[:,:,:] = (capital[:,:,:] + pbAcq[:,:,:]) * durationif12plus[:,:,:]
-        # deathBenPP = deathBenPP1 + deathBenPP2
-        
-        
-        
-        
-        
-        
+        deathBenPP = deathBenPP1 + deathBenPP2
+   
         return deathBenPP
 
 # =============================================================================
-# --- Composants de totalExpense
+    # --- Composants de totalExpense
 # =============================================================================
     def initialExpenses(self):
         initialExpenses = self.zero()
@@ -400,7 +368,7 @@ class VE(Portfolio):
         return ppureEnc
         
 # =============================================================================
-# --- Composants de totalClaim    
+    # --- Composants de totalClaim    
 # =============================================================================
     def surrOutgo(self):
         conditions = [(self.durationIf()>36)]
@@ -426,7 +394,7 @@ class VE(Portfolio):
         return ridercOutgo
     
 # =============================================================================
-# --- Calcul des composants du BEL 
+    # --- Calcul des composants du BEL 
 # =============================================================================
 #Retourne les primes totales perçues
     def totalPremium(self):
@@ -452,7 +420,7 @@ class VE(Portfolio):
         return self.initialExpenses() + self.renewableExpenses()
 
 # =============================================================================
-# --- Calcul du BEL   
+    # --- Calcul du BEL   
 # =============================================================================
     def BEL(self):
         
@@ -482,37 +450,53 @@ pol = VE()
 # pol.ids([1713903])  <---- math res ba erronnée
 # pol.ids([579603]) 
 # pol.ids([2570304])
-# pol.ids([552202]) 
+pol.ids([236402]) 
 # pol.ids([2314102])
 
 
-# portefeuille = pol.p
-# adue = pol.adueVal()
-# lapse = pol.lapse()
-# ptf = pol.p
-# inforce = pol.nbrPolIf
-# inforceM = pol.nbrPolIfSM
-# maturites = pol.nbrMaturities
-# deaths = pol.nbrDeath
-# surrender = pol.nbrSurrender
 
-# premiumsPaid = pol.isPremPayBis() * pol.p['POLPRTOT'][:,np.newaxis,np.newaxis]/pol.frac()
-# cumulatedPremiums = np.add.accumulate(premiumsPaid[:,:,:])
 
-# test = pol.isPremPayBis()
+# capital = pol.p['PMBCAPIT'].to_numpy()[:,np.newaxis,np.newaxis]
+# primetot = pol.p['POLPRTOT'].to_numpy()[:,np.newaxis,np.newaxis]     
+# frac = pol.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
+# pbAcq = pol.p['PMBPBEN'].to_numpy()[:,np.newaxis,np.newaxis]
+# situation = pol.p['POLSIT'][:,np.newaxis,np.newaxis]
+# durationif = pol.durationIf()
 
-# test2 = test[:,0,0]
+# isPremPay = pol.isPremPay()
+# isPremPay[:,0,:] = 1
 
-# premiumsPaid = test2 * pol.p['POLPRTOT'].to_numpy()
-# cumulatedPremiums = np.add.accumulate(premiumsPaid)
+# premiumsPaid = isPremPay * pol.p['POLPRTOT'][:,np.newaxis,np.newaxis]/pol.frac()
+
+
+# cumulatedPremiums = pol.zero()
 
 
 
+# cumulatedPremiums = np.cumsum(premiumsPaid, axis=1)
+    
+# # vecteur condition durationif > 12
+# conditions = [(durationif>12)]
+# result =[(0)]
+# sinon = 1
+# deathBenPP1 = np.select(conditions,result,sinon) * cumulatedPremiums
+    
+# conditions = [(durationif>12)]
+# result =[(1)]
+# sinon = 0
+# durationif12plus = np.select(conditions,result,sinon)
+# deathBenPP2 = (capital + pbAcq) * durationif12plus  
+
+# deathBenPP = deathBenPP1 + deathBenPP2
+   
+
+  
+    
 x = pol.p
 
 x.to_excel('ptf.xlsx')
 
-monCas=pol.isPremPay()
+monCas=pol.deathOutgo()
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
