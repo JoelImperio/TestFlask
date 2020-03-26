@@ -713,61 +713,47 @@ class EP(Portfolio):
     
     
 # Coût de la PB sur sortie
-
+#OK
     def pbSortie(self):
-        polTermM = self.polTermM()
-        
-        # condition qui met des 1 à polterm+1 (fin du contrat)
-        # cond = self.zero()
-        # cond[polTermM+1 ==self.durationIf()]=1 
-        
-        # 2 calcul à effectué, quand la police est inforce et à la maturité
-        # police inforce
-        
-        pbCalcPPdths = self.pbCalcPPdths
-        pbCalcPUPdths = self.pbCalcPUPdths
-        
-        nbrDeath = self.nbrDeath
-        nbrSurrender = self.nbrSurrender
-        pbPupDTHS = self.pbPupDTHS
-        nbrPupDeath = self.nbrPupDeath
-        nbrPupSurrender = self.nbrPupSurrender
-        pbIncorPP = self.pbIncorPP
+
         nbrNewMat = self.nbrNewMat
-        nbrPupMat = self.nbrPupMat
-        pbIncorPP = self.pbIncorPP
-        pbIncorPUP = self.pbIncorPUP
-        
         pbInforce = self.zero()
-        pbNotInforce = self.zero()
         pbSortMatsPP = self.pbSortMatsPP
         pbSortMatsPUP = self.pbSortMatsPUP
-        # for i in range(1,self.shape[1]):
-        #     pbInforce[:,i,:] = pbCalcPPdths[:,i,:] * (nbrDeath[:,i,:] + nbrSurrender[:,i,:]) \
-        #         + pbCalcPUPdths[:,i,:] * (nbrPupDeath[:,i,:] +  nbrPupSurrender[:,i,:]) \
-        #             + pbCalcPPdths[:,i-1,:] * nbrNewMat[:,i,:] + pbCalcPUPdths[:,i-1,:] * nbrPupMat[:,i,:]
-                    
-        # # Police à maturité
-    
-        # for i in range(1,self.shape[1]):
-        #     pbNotInforce[:,i,:] = pbCalcPPdths[:,i,:] * (nbrDeath[:,i,:]) \
-        #         + pbCalcPUPdths[:,i,:] * (nbrPupDeath[:,i,:]) \
-        #             + pbCalcPPdths[:,i-1,:] * nbrNewMat[:,i,:] + pbCalcPUPdths[:,i-1,:] * nbrPupMat[:,i,:]
-        
-        
-        
-        
-        
-                
+
         for i in range(1,self.shape[1]):
             pbInforce[:,i,:] =  pbSortMatsPP[:,i-1,:] * nbrNewMat[:,i,:] 
-            # pbInforce[:,i,:] =  pbSortMatsPP[:,i-1,:] * nbrNewMat[:,i,:] + pbSortMatsPUP[:,i-1,:] * nbrPupMat[:,i,:]        
-
-        
-    
-    
-      
         return pbInforce
+    
+    
+    
+# Reprise pour incorporation de la PB
+    def reprisePB(self):
+        
+        dotationPB = self.dotationPB()
+        fondPB = self.zero()
+        reprisePB = self.zero()
+ 
+        for i in range(1,self.shape[1]):
+            
+            reprisePB[:,i,:] = fondPB[:,i-1,:]
+            
+            fondPB[:,i,:] =  fondPB[:,i-1,:] + dotationPB[:,i,:] - reprisePB[:,i,:]
+  
+        return reprisePB
+    
+    
+    
+    
+    
+
+    
+    
+# Resultat financier du mois
+    def resFinMois(self):
+        
+        pass
+    
     
     
     
@@ -775,7 +761,13 @@ class EP(Portfolio):
     def reserveForExp(self):
         
         provMathIf = self.provMathIf()
-        riderCoutgo = self.riderCOutgo()
+        riderCoutgo = self.premiumCompl()
+        pbIncorpIF = self.pbInc
+        
+        
+        
+        
+        
         adjMathRes2 = self.zero()
         rfinAnn = self.zero()
         resFinMois = self.zero()
@@ -810,13 +802,24 @@ class EP(Portfolio):
             
             resReldMat[:,i,:] = np.nan_to_num((mathresPP[:,i-1,:] * noMat[:,i,:] + pupMathRes[:,i-1,:] * nbrPupMat[:,i,:] + rfinAnn[:,i-1,:]) / (noPolif[:,i-1,:] + noPupsIf[:,i-1,:])*(noMat[:,i,:] + nbrPupMat[:,i,:]))
             
-            provMathAj[:,i,:] = provMathIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInc[:,i,:] - riderCoutgo[:,i,:] - totExp[:,i,:] - resReldMat[:,i,:]
-        
+
             oTaxblInc[:,i,:] = provMathAj[:,i,:] * rate[:,i,:]
             
             resFinMois[:,i,:] = oTaxblInc[:,i,:] - totIntCred[:,i,:]
             
             rfinAnn[:,i,:] = (rfinAnn[:,i-1,:] + resFinMois[:,i,:]) * rfinMonth[:,i,:]
+            
+            
+            
+            
+            
+            
+            provMathAj[:,i,:] = provMathIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInc[:,i,:] - riderCoutgo[:,i,:] - totExp[:,i,:] - resReldMat[:,i,:]
+        
+            
+            
+            
+            
             
    #Définition des variables récursives
         # Résultat financier en fin de mois non constaté
@@ -860,7 +863,7 @@ pol = EP()
 # 
 # pol.mod([36])
 
-fff = pol.pbSortie()
+fff = pol.oTaxblInc()
 riderPP = pol.riderCostPP()
 
 #pol.modHead([9],2)
