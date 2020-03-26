@@ -78,18 +78,22 @@ class Test_EP(ut.TestCase):
         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
 
 
+    def test_surrender(self):
 
-    # def test_riderCoutgo(self):
+        prophet=np.array(self.spProphet.loc[:self.length,'SURR_OUTGO'].to_numpy(),dtype=float)
         
-    # ### La variable à tester 'PREM_INC'
-    #     prophet=np.array(self.spProphet.loc[:self.length,'RIDERC_OUTGO'].to_numpy(),dtype=float)
-        
-    # ### La méthode à tester 'totalPremium()'
-        
-    #     python=np.sum((self.sp.deathClaim())[:,:409,0],axis=0)
+        python=np.sum((self.sp.surrender())[:,:409,0],axis=0)
 
-    #     np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
 
+
+    def test_maturity(self):
+
+        prophet=np.array(self.spProphet.loc[:self.length,'MAT_OUTGO'].to_numpy(),dtype=float)
+        
+        python=np.sum((self.sp.maturity())[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
 
 
 
@@ -169,26 +173,33 @@ class Test_EP_28(ut.TestCase):
 
     def test_DeathClaim(self):
         
-    ### La variable à tester 'PREM_INC'
         prophet=np.array(self.spProphet.loc[:self.length,'DEATH_OUTGO'].to_numpy(),dtype=float)
-        
-    ### La méthode à tester 'totalPremium()'
         
         python=np.sum((self.sp.deathClaim())[:,:409,0],axis=0)
 
         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
 
 
-    # def test_riderCoutgo(self):
-        
-    # ### La variable à tester 'PREM_INC'
-    #     prophet=np.array(self.spProphet.loc[:self.length,'RIDERC_OUTGO'].to_numpy(),dtype=float)
-        
-    # ### La méthode à tester 'totalPremium()'
-        
-    #     python=np.sum((self.sp.deathClaim())[:,:409,0],axis=0)
 
-    #     np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+
+    def test_surrender(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'SURR_OUTGO'].to_numpy(),dtype=float)
+        
+        python=np.sum((self.sp.surrender())[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+
+
+    
+    def test_maturity(self):
+
+        prophet=np.array(self.spProphet.loc[:self.length,'MAT_OUTGO'].to_numpy(),dtype=float)
+        
+        python=np.sum((self.sp.maturity())[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+
 
 
 
@@ -214,10 +225,7 @@ class Test_EP_29(ut.TestCase):
     
     def test_Premium(self):
         
-    ### La variable à tester 'PREM_INC'
         prophet=np.array(self.spProphet.loc[:self.length,'PREM_INC'].to_numpy(),dtype=float)
-        
-    ### La méthode à tester 'totalPremium()'
         
         python=np.sum((self.sp.totalPremium())[:,:409,0],axis=0)
 
@@ -226,27 +234,33 @@ class Test_EP_29(ut.TestCase):
         
     def test_DeathClaim(self):
         
-    ### La variable à tester 'PREM_INC'
         prophet=np.array(self.spProphet.loc[:self.length,'DEATH_OUTGO'].to_numpy(),dtype=float)
-        
-    ### La méthode à tester 'totalPremium()'
         
         python=np.sum((self.sp.deathClaim())[:,:409,0],axis=0)
 
         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
 
 
-    # def test_riderCoutgo(self):
-        
-    # ### La variable à tester 'PREM_INC'
-    #     prophet=np.array(self.spProphet.loc[:self.length,'RIDERC_OUTGO'].to_numpy(),dtype=float)
-        
-    # ### La méthode à tester 'totalPremium()'
-        
-    #     python=np.sum((self.sp.deathClaim())[:,:409,0],axis=0)
 
-    #     np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
 
+    def test_surrender(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'SURR_OUTGO'].to_numpy(),dtype=float)
+        
+        python=np.sum((self.sp.surrender())[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+
+
+
+
+    def test_maturity(self):
+
+        prophet=np.array(self.spProphet.loc[:self.length,'MAT_OUTGO'].to_numpy(),dtype=float)
+        
+        python=np.sum((self.sp.maturity())[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
 
 
 
@@ -283,26 +297,33 @@ class Test_EP_30(ut.TestCase):
         
     def test_DeathClaim(self):
         
-    ### La variable à tester 'PREM_INC'
         prophet=np.array(self.spProphet.loc[:self.length,'DEATH_OUTGO'].to_numpy(),dtype=float)
-        
-    ### La méthode à tester 'totalPremium()'
         
         python=np.sum((self.sp.deathClaim())[:,:409,0],axis=0)
 
         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
 
 
-    # def test_riderCoutgo(self):
-        
-    # ### La variable à tester 'PREM_INC'
-    #     prophet=np.array(self.spProphet.loc[:self.length,'RIDERC_OUTGO'].to_numpy(),dtype=float)
-        
-    # ### La méthode à tester 'totalPremium()'
-        
-    #     python=np.sum((self.sp.deathClaim())[:,:409,0],axis=0)
 
-    #     np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+
+    def test_surrender(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'SURR_OUTGO'].to_numpy(),dtype=float)
+        
+        python=np.sum((self.sp.surrender())[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+
+
+
+    def test_maturity(self):
+
+        prophet=np.array(self.spProphet.loc[:self.length,'MAT_OUTGO'].to_numpy(),dtype=float)
+        
+        python=np.sum((self.sp.maturity())[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+
 
 
 
@@ -349,16 +370,26 @@ class Test_EP_31(ut.TestCase):
         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
 
 
-    # def test_riderCoutgo(self):
-        
-    # ### La variable à tester 'PREM_INC'
-    #     prophet=np.array(self.spProphet.loc[:self.length,'RIDERC_OUTGO'].to_numpy(),dtype=float)
-        
-    # ### La méthode à tester 'totalPremium()'
-        
-    #     python=np.sum((self.sp.deathClaim())[:,:409,0],axis=0)
 
-    #     np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+    def test_surrender(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'SURR_OUTGO'].to_numpy(),dtype=float)
+        
+        python=np.sum((self.sp.surrender())[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+
+
+
+    def test_maturity(self):
+
+        prophet=np.array(self.spProphet.loc[:self.length,'MAT_OUTGO'].to_numpy(),dtype=float)
+        
+        python=np.sum((self.sp.maturity())[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+
+
 
 
 
@@ -395,26 +426,34 @@ class Test_EP_32(ut.TestCase):
         
     def test_DeathClaim(self):
         
-    ### La variable à tester 'PREM_INC'
         prophet=np.array(self.spProphet.loc[:self.length,'DEATH_OUTGO'].to_numpy(),dtype=float)
-        
-    ### La méthode à tester 'totalPremium()'
         
         python=np.sum((self.sp.deathClaim())[:,:409,0],axis=0)
 
         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
 
 
-    # def test_riderCoutgo(self):
-        
-    # ### La variable à tester 'PREM_INC'
-    #     prophet=np.array(self.spProphet.loc[:self.length,'RIDERC_OUTGO'].to_numpy(),dtype=float)
-        
-    # ### La méthode à tester 'totalPremium()'
-        
-    #     python=np.sum((self.sp.deathClaim())[:,:409,0],axis=0)
 
-    #     np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+    def test_surrender(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'SURR_OUTGO'].to_numpy(),dtype=float)
+        
+        python=np.sum((self.sp.surrender())[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+
+
+
+    def test_maturity(self):
+
+        prophet=np.array(self.spProphet.loc[:self.length,'MAT_OUTGO'].to_numpy(),dtype=float)
+        
+        python=np.sum((self.sp.maturity())[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+
+
+
 
 
 
@@ -451,26 +490,34 @@ class Test_EP_33(ut.TestCase):
         
     def test_DeathClaim(self):
         
-    ### La variable à tester 'PREM_INC'
         prophet=np.array(self.spProphet.loc[:self.length,'DEATH_OUTGO'].to_numpy(),dtype=float)
-        
-    ### La méthode à tester 'totalPremium()'
-        
+
         python=np.sum((self.sp.deathClaim())[:,:409,0],axis=0)
 
         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
 
 
-    # def test_riderCoutgo(self):
-        
-    # ### La variable à tester 'PREM_INC'
-    #     prophet=np.array(self.spProphet.loc[:self.length,'RIDERC_OUTGO'].to_numpy(),dtype=float)
-        
-    # ### La méthode à tester 'totalPremium()'
-        
-    #     python=np.sum((self.sp.deathClaim())[:,:409,0],axis=0)
 
-    #     np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+    def test_surrender(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'SURR_OUTGO'].to_numpy(),dtype=float)
+        
+        python=np.sum((self.sp.surrender())[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+
+
+
+
+    def test_maturity(self):
+
+        prophet=np.array(self.spProphet.loc[:self.length,'MAT_OUTGO'].to_numpy(),dtype=float)
+        
+        python=np.sum((self.sp.maturity())[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+
+
 
 
 
@@ -507,11 +554,8 @@ class Test_EP_36(ut.TestCase):
         
         
     def test_DeathClaim(self):
-        
-    ### La variable à tester 'PREM_INC'
+
         prophet=np.array(self.spProphet.loc[:self.length,'DEATH_OUTGO'].to_numpy(),dtype=float)
-        
-    ### La méthode à tester 'totalPremium()'
         
         python=np.sum((self.sp.deathClaim())[:,:409,0],axis=0)
 
@@ -519,16 +563,25 @@ class Test_EP_36(ut.TestCase):
 
 
 
-    # def test_riderCoutgo(self):
-        
-    # ### La variable à tester 'PREM_INC'
-    #     prophet=np.array(self.spProphet.loc[:self.length,'RIDERC_OUTGO'].to_numpy(),dtype=float)
-        
-    # ### La méthode à tester 'totalPremium()'
-        
-    #     python=np.sum((self.sp.deathClaim())[:,:409,0],axis=0)
 
-    #     np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+    def test_surrender(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'SURR_OUTGO'].to_numpy(),dtype=float)
+        
+        python=np.sum((self.sp.surrender())[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+
+
+
+    def test_maturity(self):
+
+        prophet=np.array(self.spProphet.loc[:self.length,'MAT_OUTGO'].to_numpy(),dtype=float)
+        
+        python=np.sum((self.sp.maturity())[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+
 
 
 
