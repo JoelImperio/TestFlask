@@ -31,6 +31,7 @@ class EP(Portfolio):
     def update(self,subPortfolio):
         super().update(subPortfolio)
         self.loopSaving()
+        self.reserveForExp()
 
 #Cette Loop renvoie l'ensemble des variables récusrives pour les produits épargnes
     def loopSaving(self):
@@ -663,17 +664,32 @@ class EP(Portfolio):
         
         provTechPP = self.provTechPP()
         provTechPUP = self.provTechPUP()
-        
         noMat = self.nbrNewMat
         noPupMat = self.nbrPupMat
-        
-
         tresRldMat = self.zero()
         
         for i in range(1,self.shape[1]):
             tresRldMat[:,i,:] = provTechPP[:,i-1,:] * noMat[:,i,:] + provTechPUP[:,i-1,:] * noPupMat[:,i,:]
             
         return tresRldMat
+    
+
+
+
+# reserve par police réduite
+    def pupMathRes(self):
+        
+        mathRes = self.eppAcquAPPUP + self.pbAcquAPPUP
+        return mathRes
+
+
+
+    
+    def pbIncorpIF(self):
+        
+        pb = self.pbIncorPP * self.nbrPolIfSM + self.pbIncorPUP * self.nbrPupIfSM
+    
+        return pb
     
     
     
@@ -689,7 +705,7 @@ class EP(Portfolio):
         tresRldMat = self.tresRldMat()
         
         
-        pbIncorpIf = self.pbIncorPP * self.nbrPolIfSM + self.pbIncorPUP * self.nbrPupIfSM
+        pbIncorpIf = self.pbIncorpIF()
         
         for i in range(1,self.shape[1]):
         
@@ -742,11 +758,46 @@ class EP(Portfolio):
   
         return reprisePB
     
-    
+# meme Méthode car j'ai besoin de fondPB (à changer) 
+    def fondPB(self):
+        
+        dotationPB = self.dotationPB()
+        fondPB = self.zero()
+        reprisePB = self.zero()
+ 
+        for i in range(1,self.shape[1]):
+            
+            reprisePB[:,i,:] = fondPB[:,i-1,:]
+            
+            fondPB[:,i,:] =  fondPB[:,i-1,:] + dotationPB[:,i,:] - reprisePB[:,i,:]
+  
+        return fondPB
     
     
     
 
+# Reprise sur fond de PB suite à une maturité
+    def repPbMats(self):
+        
+        nbrPupMat= self.nbrPupMat
+        nbrNewMat = self.nbrNewMat
+        pb = self.zero()
+        pbSortMatsPP = self.pbSortMatsPP
+        pbSortMatsPUP = self.pbSortMatsPUP
+        matRate = self.zero()
+
+        for i in range(1,self.shape[1]):
+            pb[:,i,:] =  pbSortMatsPP[:,i-1,:] * nbrNewMat[:,i,:] + pbSortMatsPUP[:,i-1,:] * nbrPupMat[:,i,:]
+            
+        # Met un 1 lors de la maturité de la police, autrement 0
+        matRate[self.polTermM()+1 ==self.durationIf()]=1 
+        pb = matRate * pb
+        
+        return pb
+    
+    
+    
+    
     
     
 # Resultat financier du mois
@@ -760,66 +811,68 @@ class EP(Portfolio):
 #  Calcul des réserve mathématiques adjustées
     def reserveForExp(self):
         
-        provMathIf = self.provMathIf()
-        riderCoutgo = self.premiumCompl()
-        pbIncorpIF = self.pbInc
+        # déclaration des nouvelles variables
+        resReldMat = pol.zero()
+        totExp = pol.zero()
+        rfinAnn = pol.zero()
+        oTaxblInc = pol.zero()
+        adjMathRes2 = pol.zero()
+        resFinMois = pol.zero()
+        provMathAj = pol.zero()
         
+        # Nombre polices
+        nbrPolIf = pol.nbrPolIf
+        nbrPupsIf = pol.nbrPupsIf
+        noMat = pol.nbrNewMat
+        nbrPupMat = pol.nbrPupMat
         
+        # fonction existantes
+        provMathIf = pol.provMathIf()
+        riderCoutgo = pol.premiumCompl()
+        pbIncorpIF = pol.pbIncorpIF()
+        premInc = pol.totalPremium()
+        mathResPP = pol.mathresBA()
+        pupMathRes = pol.pupMathRes()
+        fondPB = pol.fondPB()
+        mUfii = pol.rate()
+        repPbMats = pol.repPbMats()
+        premInvest = pol.premiumInvested() * pol.nbrPolIfSM
+        unitExp = pol.unitExpenseRed()
+        reprisePB = pol.reprisePB()
+        dotationPB = pol.dotationPB()
+        pbSortie = pol.pbSortie()
+        totIntCred = pol.intCredT()
+        provTechAj = pol.provTechAj()   
+        txReserve = pol.fraisGestionPlacement()
+        mathresPP = pol.mathresBA()    
+    
+    
+        # calcul des exceptions
+        provMathAj[:,0,:] = premInc[:,0,:] - totExp[:,0,:] - riderCoutgo[:,0,:]
+    
+    
         
-        
-        
-        adjMathRes2 = self.zero()
-        rfinAnn = self.zero()
-        resFinMois = self.zero()
-        totIntCred = self.zero()
-        oTaxblInc = self.zero()
-        txInt = self.txInt()
-        provTechAj = self.provTechAj()
-        rfinMonth = self.rfinMonth()
-        totIntCred =  self.intCred()
-        rate = self.rate()
-        premInvest = self.primeInvest()
-        premInc = self.totalPremium()
-        
-        unitExp = self.unitExpenseRed()
-        txReserve = self.fraisGestionPlacement()
-        totExp = self.zero()
-        provMathAj = self.zero()
-        resReldMat = self.zero()
-        mathresPP = self.mathresBA()
-        noMat = self.nbrNewMat
-        pupMathRes = self.eppAcquAPPUP + self.pbAcquAPPUP
-        nbrPupMat = self.nbrPupMat
-        noPolif = self.nbrPolIf
-        noPupsIf = self.nbrPupsIf
-        
-        for i in range(1,self.shape[1]):
-            
- 
-            adjMathRes2[:,i,:] = provMathIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInvest[:,i,:] - riderCoutgo[:,i,:]
-        
-            totExp[:,i,:] = unitExp[:,i,:] + adjMathRes2[:,i,:] * txReserve[:,i,:]  
-            
-            resReldMat[:,i,:] = np.nan_to_num((mathresPP[:,i-1,:] * noMat[:,i,:] + pupMathRes[:,i-1,:] * nbrPupMat[:,i,:] + rfinAnn[:,i-1,:]) / (noPolif[:,i-1,:] + noPupsIf[:,i-1,:])*(noMat[:,i,:] + nbrPupMat[:,i,:]))
-            
-
-            oTaxblInc[:,i,:] = provMathAj[:,i,:] * rate[:,i,:]
-            
-            resFinMois[:,i,:] = oTaxblInc[:,i,:] - totIntCred[:,i,:]
-            
-            rfinAnn[:,i,:] = (rfinAnn[:,i-1,:] + resFinMois[:,i,:]) * rfinMonth[:,i,:]
+        for i in range(1,pol.shape[1]):
             
             
             
-            
-            
+            resReldMat[:,i,:] = mathresPP[:,i-1,:] * noMat[:,i,:] + pupMathRes[:,i-1,:] * nbrPupMat[:,i,:] + (fondPB[:,i-1,:] + rfinAnn[:,i-1,:]) / (nbrPolIf[:,i-1,:] + nbrPupsIf[:,i-1,:])*(noMat[:,i,:] + nbrPupMat[:,i,:])
             
             provMathAj[:,i,:] = provMathIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInc[:,i,:] - riderCoutgo[:,i,:] - totExp[:,i,:] - resReldMat[:,i,:]
         
+            oTaxblInc[:,i,:] = provMathAj[:,i,:] * mUfii[:,i,:]
+        
+            adjMathRes2[:,i,:] = provMathIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInvest[:,i,:] - riderCoutgo[:,i,:] - resReldMat[:,i,:] - repPbMats[:,i,:]
+        
+            totExp[:,i,:] = unitExp[:,i,:] + adjMathRes2[:,i,:] * txReserve[:,i,:]  
+            
+            resFinMois[:,i,:] = oTaxblInc[:,i,:] + reprisePB[:,i,:] - totIntCred[:,i,:] - pbIncorpIF[:,i,:] - dotationPB[:,i,:] - pbSortie[:,i,:]
+            
+            rfinAnn[:,i,:] = rfinAnn[:,i-1,:] + resFinMois[:,i,:]
             
             
             
-            
+    
             
    #Définition des variables récursives
         # Résultat financier en fin de mois non constaté
@@ -835,8 +888,8 @@ class EP(Portfolio):
 
         self.resReldMat = resReldMat
         
-        return self
-    
+
+        return
 
 
 
@@ -863,13 +916,13 @@ pol = EP()
 # 
 # pol.mod([36])
 
-fff = pol.oTaxblInc()
+fff = oTaxblInc
 riderPP = pol.riderCostPP()
 
 #pol.modHead([9],2)
 # aa = pol.p
 a=pol.nbrPolIf
-ff = pol.pbCalcPP
+fff = pol.reprisePB()
 #b=pol.nbrPolIfSM
 #c=pol.nbrMaturities
 d=pol.nbrDeath
