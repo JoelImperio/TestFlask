@@ -213,7 +213,12 @@ class Portfolio(Hypo):
 
 #Retourne le taux d'intêret technique mensualisé (1+i)**(1/12)
     def txInt(self):
-        txInteret = ((1+self.p['POLINTERG']/100)**(1/12)).to_numpy()[:,np.newaxis,np.newaxis] * self.one()
+        
+# --- AJOUT JO
+# Modification des taux d'intêret afin d'avoir le même arrondi que prophet pour les taux d'intêret spéciaux
+        tx = round(self.p['POLINTERG'],2)
+        txInteret = ((1+tx/100)**(1/12)).to_numpy()[:,np.newaxis,np.newaxis] * self.one()
+        
         return txInteret
 
 #Retourne les claims de la garantie principale (DEATH_OUTGO)

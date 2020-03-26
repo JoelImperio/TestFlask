@@ -559,15 +559,15 @@ pol = EP()
 
 
 #pol=EP(run=[4,5])
-pol.ids([514407])
+# pol.ids([514407])
 # pol.ids([1730002])
 # pol.ids([493202, 524401])
 # pol.ids([515503,1736301,1900401,2168101,2396001,2500001,2500101,2466301])
 
+# 
+# pol.mod([36])
 
-# pol.mod([30])
-
-fff = pol.txInt()
+fff = pol.surrender()
 riderPP = pol.riderCostPP()
 
 #pol.modHead([9],2)
