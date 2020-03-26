@@ -1,0 +1,34 @@
+#MOD 2_1
+F1XT_1	SUISSE Mixte 1 tete mod 2 A	Product	Total V
+F1XT_2	SUISSE Mixte 1 tete mod 2 B	Product	Total V
+F1XT_3	SUISSE Mixte 1 tete mod 2 C	Product	Total V
+F1XT_4	SUISSE Mixte 1 tete mod 2 D	Product	Total V
+F1XT_5	SUISSE Mixte 1 tete mod 2 E	Product	Total V
+F1XT_6	SUISSE Mixte 1 tete mod 2 F	Product	Total V
+F1XT_7	SUISSE Mixte 1 tete mod 2 G	Product	Total V
+F1XT_8	SUISSE Mixte 1 tete mod 2 H	Product	Total V
+F1XT_9	SUISSE Mixte 1 tete mod 2 I	Product	Total V
+F1XT10	SUISSE Mixte 1 tete mod 2 J	Product	Total V
+F1XT18	SUISSE Mixte 1 tete mod 2 K	Product	Total V
+F1XT21	SUISSE Mixte 1 tete mod 2 L	Product	Total V
+
+#MOD 2_2
+F2XT_1	SUISSE Mixte 2 tetes mod 2 A	Product	Total V
+F2XT_2	SUISSE Mixte 2 tetes mod 2 B	Product	Total V
+F2XT_3	SUISSE Mixte 2 tetes mod 2 C	Product	Total V
+F2XT10	SUISSE Mixte 2 tetes mod 2 J	Product	Total V
+
+#MOD 10
+F1XT14	SUISSE Mixte 1 tete mod 10 A	Product	Total V
+F1XT15	SUISSE Mixte 1 tete mod 10 C	Product	Total V
+F1XT20	SUISSE Mixte 1 tete mod 10 D	Product	Total V
+
+#MOD 6-7
+F1XT11	SUISSE Mixte 1 tete mod 6 A	Product	Total V
+F1XT12	SUISSE Mixte 1 tete mod 6 J3	Product	Total V
+F1XT13	SUISSE Mixte 1 tete mod 7 A	Product	Total V
+F1XT16	SUISSE Mixte 1 tete mod 6 L1	Product	Total V
+F1XT17	SUISSE Mixte 1 tete mod 6 L2	Product	Total V
+F1XT19	SUISSE Mixte 1 tete mod 6 M1	Product	Total V
+F1XT22	SUISSE Mixte 1 tete mod 6 M2	Product	Total V
+F1XT23	SUISSE Mixte 1 tete mod 6 M3	Product	Total V
