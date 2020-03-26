@@ -310,7 +310,10 @@ class EP(Portfolio):
 
 #Retourne les primes investis
     def premiumInvested(self):
-        return self.isPremPay() * self.premiumPure()/self.frac()
+        
+        premInvest = self.isPremPay() * self.premiumPure()/self.frac()
+      
+        return premInvest
 
 #Retourn la réserve mathémathique incluant la PB
     def mathresBA(self):
@@ -403,6 +406,9 @@ class EP(Portfolio):
 # =============================================================================
 
 
+        # --- Calcul RIDERC_OUTGO
+
+
  # ici on détermine le capital pour Protection d'avenir en fonction de l'âge
     def capPA(self):
         
@@ -414,7 +420,7 @@ class EP(Portfolio):
         return capPA
     
     
-    
+#  calcul de riderINC_PP afin de pouvoir calculé riderCostPP
     def riderIncPP3(self):
         
         riderPP = self.premiumCompl() / self.frac()
@@ -429,11 +435,11 @@ class EP(Portfolio):
         tx2 = self.p['POLPRCPL4'].to_numpy()[:,np.newaxis,np.newaxis] * self.exo()
         tx3 = self.p['POLPRCPL9'].to_numpy()[:,np.newaxis,np.newaxis] * self.dcAccident()
 
-        taux = (tx1 + tx2 + tx3) / self.premiumCompl()
+        taux = (tx1 + tx2 + tx3) 
         
-        return taux
+        result = np.divide(taux, self.premiumCompl(), out=np.zeros_like(taux), where=self.premiumCompl()!=0)
         
-        
+        return result
         
         
 # prime complémentaire encourue
@@ -442,7 +448,6 @@ class EP(Portfolio):
         
     # Age limite pour les complémentaires
         self.agelimite=((self.age()-1)<=self.ageLimite)
- 
         riderC =  self.riderIncPP3() * self.isPremPay() * self.dcAccidentAdjusted() 
 
         return riderC
@@ -554,15 +559,15 @@ pol = EP()
 
 
 #pol=EP(run=[4,5])
-# pol.ids([1841601])
+pol.ids([514407])
 # pol.ids([1730002])
 # pol.ids([493202, 524401])
 # pol.ids([515503,1736301,1900401,2168101,2396001,2500001,2500101,2466301])
 
 
-# pol.mod([36])
+# pol.mod([30])
 
-fff = pol.riderCOutgo()
+fff = pol.txInt()
 riderPP = pol.riderCostPP()
 
 #pol.modHead([9],2)
