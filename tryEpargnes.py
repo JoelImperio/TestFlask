@@ -623,7 +623,7 @@ class EP(Portfolio):
     # OK
     def provTechIf(self):
         
-        provTechPP = self.mathresBA() - self.riskEnCours()
+        provTechPP = self.provTechPP()
         
         pupMathRes = self.eppAcquAPPUP + self.pbAcquAPPUP
         
@@ -633,36 +633,100 @@ class EP(Portfolio):
     
     
     
+    def provTechPP(self):
+        
+        prov = self.mathresBA() - self.riskEnCours()
+    
+        return prov
+    
+    
+    
+    def provTechPUP(self):
+        
+        prov = self.eppAcquAPPUP + self.pbAcquAPPUP
+    
+        return prov
+    
+    
+# diminution de la provision non zilmérisée à la maturité du contrat 
+# OK
+    def tresRldMat(self):
+        
+        provTechPP = self.provTechPP()
+        provTechPUP = self.provTechPUP()
+        
+        noMat = self.nbrNewMat
+        noPupMat = self.nbrPupMat
+        
+
+        tresRldMat = self.zero()
+        
+        for i in range(1,self.shape[1]):
+            tresRldMat[:,i,:] = provTechPP[:,i-1,:] * noMat[:,i,:] + provTechPUP[:,i-1,:] * noPupMat[:,i,:]
+            
+        return tresRldMat
+    
+    
+    
     #  calcul des provisions techniques ajustée (PROV_TECH_AJ)
+    # OK
     def provTechAj(self):
         
         provTechAj = self.zero()
         provTechIf = self.provTechIf()
         primeInvest = self.premiumInvested() * self.nbrPolIfSM
         riderCoutgo = self.claimCompl()
+
+        tresRldMat = self.tresRldMat()
+        
         
         pbIncorpIf = self.pbIncorPP * self.nbrPolIfSM + self.pbIncorPUP * self.nbrPupIfSM
         
         for i in range(1,self.shape[1]):
         
-            provTechAj[:,i,:] = provTechIf[:,i-1,:] + pbIncorpIf[:,i,:] - tresRldMat[:,i,:] + primeInvest[:,i,:] - riderCoutgo[:,i,:]
+            provTechAj[:,i,:] = provTechIf[:,i-1,:] + pbIncorpIf[:,i,:]+ primeInvest[:,i,:] - riderCoutgo[:,i,:] - tresRldMat[:,i,:]
         
-        return pbIncorpIf
+        return provTechAj
     
     
-    # calcul des intêret techniques crédités (INT_CRED_T)
-    def intCred(self):
+# calcul des intêret techniques crédités (INT_CRED_T)
+# OK
+    def intCredT(self):
         
         return (self.txInt()-1) * self.provTechAj()
     
+# Dotation PB
+# OK
+    def dotationPB(self):
+        
+        pb = self.pbCalcPP * self.nbrPolIf + self.pbCalcPUP * self.nbrPupsIf
+        return pb
     
-    #  calcul des primes investies (PRIME_INVEST)
-    def primeInvest(self):
-        return self.prEncInvPP() * self.nbrPolIfSM
     
-    
-    
-    
+# Coût de la PB sur sortie
+
+    def pbSortie(self):
+        polTermM = self.polTermM()
+        
+        # condition qui met des 1 à polterm+1 (fin du contrat)
+        cond = self.zero()
+        cond[polTermM+1 ==self.durationIf()]=1 
+        
+        # 2 calcul à effectué, quand la police est inforce et à la maturité
+        # police inforce
+        
+        pbSortDTHS = self.pbSortDTHS
+        nbrDeath = self.nbrDeath
+        nbrSurrender = self.nbrSurrender
+        pbPupDTHS = self.pbPupDTHS
+        nbrPupDeath = self.nbrPupDeath
+        nbrPupSurrender = self.nbrPupSurrender
+        pbIncorPP = self.pbIncorPP
+        
+        for i in range(1,self.shape[1]):
+            pbInforce[:,i,:] = pbSortDTHS[:,i,:] * (nbrDeath[:,i,:] + nbrSurrender[:,i,:]) \
+                + pbPupDTHS[:,i,:] * (nbrPupDeath[:,i,:] +  nbrPupSurrender[:,i,:]) \
+                    + pbIncorPP[:,i,:]
     
 #  Calcul des réserve mathématiques adjustées
     def reserveForExp(self):
@@ -753,9 +817,9 @@ pol = EP()
 # 
 # pol.mod([36])
 
-fff = pol.provTechAj
+fff = pol.dotationPB()
 riderPP = pol.riderCostPP()
-h
+
 #pol.modHead([9],2)
 # aa = pol.p
 a=pol.nbrPolIf
