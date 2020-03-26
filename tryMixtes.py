@@ -43,9 +43,7 @@ class MI(Portfolio):
         nbrMaturities=self.zero()
         nbrNewRed = self.zero()
         matRate=self.zero()
-        
-
-      
+             
         
 #Variables biométriques et génériques
         lapseTiming=0.5
