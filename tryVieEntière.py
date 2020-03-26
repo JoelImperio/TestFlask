@@ -24,7 +24,7 @@ class VE(Portfolio):
     lapseTiming = 0.5
     minResPp = 0
     aidsDefRes = 0
-    valZillPc = (5/100)
+    # valZillPc = (5/100)
             
     tableFemmes = 'EKF05i'
     tableHommes = 'EKM05i'
@@ -186,16 +186,24 @@ class VE(Portfolio):
     
     # VAL_PREC_PP
     def valPrecPP(self):
+        situation = self.p['POLSIT'][:,np.newaxis,np.newaxis]
         agelimite=(self.age()<=85)
         # Calcul du risque en cours
         riderIncPP=self.primeTotaleMensuelle()*self.isPremPay()*agelimite
         riderIncPP2=self.primeTotaleMensuelle()*agelimite
-        precPP=self.zero()
+        precPPbis=self.zero()
         frek=self.frac()
         for i in range(1,self.shape[1]):
-            precPP[:,i,:]=precPP[:,i-1,:]+riderIncPP[:,i,:] - ((frek[:,i,:]/12)*riderIncPP2[:,i,:])
+            precPPbis[:,i,:]=precPPbis[:,i-1,:]+riderIncPP[:,i,:] - ((frek[:,i,:]/12)*riderIncPP2[:,i,:])
+        conditions = [(situation != 4) & (situation != 8) & (situation != 9)]
+        result =[(precPPbis)]
+        sinon = 0
+        precPP = np.select(conditions,result,sinon)
+        
+        
         return precPP
     
+    # PR_PURE_PP
     def purePremium(self):
         purePremium =  self.insuredSum() / 99
         return purePremium
@@ -223,21 +231,26 @@ class VE(Portfolio):
         conditions = [(self.p['Age1AtEntry'] < 53), (self.p['Age1AtEntry'] < 70)]
         result =[(0.25), (0.45)]
         sinon = (0.9)
-        cgSaPolPc = np.select(conditions,result,sinon)
+        cgSaPolPc = np.select(conditions,result,sinon)[:,np.newaxis,np.newaxis]
+        
+        # cgSaPolPc = cgSaPolPc * self.one()
         return cgSaPolPc
     
     def CG_SA_PRI_PC(self):
         conditions = [(self.p['Age1AtEntry'] < 53), (self.p['Age1AtEntry'] < 70)]
         result =[(0.35), (0.55)]
         sinon = (1.2)
-        cgSaPriPc = np.select(conditions,result,sinon)
+        cgSaPriPc = np.select(conditions,result,sinon)[:,np.newaxis,np.newaxis]
+        
+        # cgSaPriPc = cgSaPriPc * self.one()
         return cgSaPriPc
     
     # PR_INVENT_PP
     def prInventPP(self):
         situation = self.p['POLSIT'][:,np.newaxis,np.newaxis]
         conditions = [(situation != 4) & (situation != 8) & (situation != 9)]
-        result =[(self.purePremium() + (self.fraisGestion()/100 * self.insuredSum()))]
+        # result =[(self.purePremium() + (self.fraisGestion()/100 * self.insuredSum()))]
+        result =[(self.purePremium() + ((self.CG_SA_POL_PC()+self.CG_SA_PRI_PC())/100 * self.insuredSum()))]
         sinon = 0
         PrInventPp = np.select(conditions,result,sinon)
         return PrInventPp
@@ -256,14 +269,14 @@ class VE(Portfolio):
         return valPolFac
     
     # VAL_ZILL_PP    
-    def valZill(self):
-        valZillPc = self.valZillPc * self.one()
-        ValZillPp = np.minimum(valZillPc * self.prInventPP() * self.valNetpFac(), self.insuredSum() - self.valNetpPP() + self.provGestPP())
-        return ValZillPp
+    def valZillPP(self):
+        valZillPC = (5/100) * self.one()
+        ValZillPP = np.minimum(valZillPC * self.prInventPP() * self.valNetpFac(), self.insuredSum() - self.valNetpPP() + self.provGestPP())
+        return ValZillPP
     
     # MATH_RES_BA
     def mathResBa(self):
-        mathResBa = np.maximum(self.insuredSum() + self.valAccrbPP() + self.provGestPP() + self.valPrecPP() - self.valNetpPP() - self.valZill(), self.minResPp)
+        mathResBa = np.maximum(self.insuredSum() + self.valAccrbPP() + self.provGestPP() + self.valPrecPP() - self.valNetpPP() - self.valZillPP(), self.minResPp)
         return mathResBa
 
     # NO_SURRS
@@ -443,7 +456,9 @@ pol = VE()
 # pol.ids([1713903])  <---- math res ba erronnée
 # pol.ids([579603]) 
 # pol.ids([2570304])
-pol.ids([552202])
+# pol.ids([552202]) 
+# pol.ids([2314102])
+
 
 # portefeuille = pol.p
 # adue = pol.adueVal()
@@ -469,20 +484,21 @@ test3 = pol.prInventPP()
 test4 = pol.pmgSaPc()
 test5 = pol.valAccrbPP()
 test6 = pol.valNetpPP()
+test7 = pol.valZillPP()
 
 
 # aaa = pol.numberSurrenders()
 # aab = pol.provGestPP()
 # aac = pol.valNetpFac()
 # aad = pol.valNetpPP()
-# aae = pol.valZill()
+# aae = pol.valZillPP()
 # aaf = pol.insuredSum()
 
 x = pol.p
 
 x.to_excel('ptf.xlsx')
 
-monCas=pol.pmgSaPc()
+monCas=pol.surrOutgo()
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
