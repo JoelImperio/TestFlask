@@ -352,7 +352,8 @@ class EP(Portfolio):
         addSumAssuree[(self.mask([32])) & mask_55_65]=7500        
         addSumAssuree[(self.mask([32])) & mask_65]=2500       
         
-        # Il y a des mod 33 avec POLCAPAUT à 0
+        # --- AJOUT JO
+        # Il y a des mod 33 avec POLCAPAUT à 0, je les mets tous à 30'000
         addSumAssuree[self.mask([33])]=30000
         
         
@@ -414,17 +415,35 @@ class EP(Portfolio):
     
     
     
+    def riderIncPP3(self):
+        
+        riderPP = self.premiumCompl() / self.frac()
     
+        return riderPP
+
+
+# recalcul du taux DC accident pour : (je cite) tenir en compte la sinistralité de la garantie décès de l'epargne en fonction du qx - 26.01.2015
+
+    def dcAccidentAdjusted(self):
+        tx1 = self.p['POLPRCPL3'].to_numpy()[:,np.newaxis,np.newaxis] * self.dcAccident()
+        tx2 = self.p['POLPRCPL4'].to_numpy()[:,np.newaxis,np.newaxis] * self.exo()
+        tx3 = self.p['POLPRCPL9'].to_numpy()[:,np.newaxis,np.newaxis] * self.dcAccident()
+
+        taux = (tx1 + tx2 + tx3) / self.premiumCompl()
+        
+        return taux
+        
+        
+        
+        
 # prime complémentaire encourue
     
     def riderCostPP(self):
         
-    # Age limite pour mod28
+    # Age limite pour les complémentaires
         self.agelimite=((self.age()-1)<=self.ageLimite)
-           
-        annualPrem =  (self.p['POLPRCPL9']).to_numpy()[:,np.newaxis,np.newaxis]
-        annualPrem = annualPrem / self.frac()   
-        riderC =  annualPrem * self.isPremPay() * self.dcAccident() 
+ 
+        riderC =  self.riderIncPP3() * self.isPremPay() * self.dcAccidentAdjusted() 
 
         return riderC
     
@@ -535,16 +554,19 @@ pol = EP()
 
 
 #pol=EP(run=[4,5])
-# pol.ids([553501])
+# pol.ids([1841601])
 # pol.ids([1730002])
 # pol.ids([493202, 524401])
 # pol.ids([515503,1736301,1900401,2168101,2396001,2500001,2500101,2466301])
 
-fff = pol.nbrPupDeath
 
 # pol.mod([36])
+
+fff = pol.riderCOutgo()
+riderPP = pol.riderCostPP()
+
 #pol.modHead([9],2)
-aa = pol.p
+# aa = pol.p
 a=pol.nbrPolIf
 ff = pol.pbCalcPP
 #b=pol.nbrPolIfSM
@@ -575,7 +597,7 @@ pol.p.to_excel('check portefeuille.xlsx')
 
 print("Class EP--- %s sec" %'%.2f'%  (time.time() - start_time))
 
-monCas=h
+monCas=fff
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
