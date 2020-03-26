@@ -286,7 +286,7 @@ class VE(Portfolio):
         return noSurrs
 
 # =============================================================================
-    # ---Calcul de DEATH OUTGO
+    # ---Calcul de deathOutgo
 # =============================================================================    
     
     # NO_DEATHS
@@ -412,8 +412,8 @@ class VE(Portfolio):
         return self.deathOutgo() + self.ridercOutgo() + self.surrOutgo()
 
 #Retourne le total des commissions payées
-    def totalCommissions(self):
-        return self.totalPremium() * self.commissions()
+    # def totalCommissions(self):
+    #     return self.totalPremium() * self.commissions()
 
 #Retourne les dépense totales 
     def totalExpense(self):
