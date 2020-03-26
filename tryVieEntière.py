@@ -160,40 +160,38 @@ class VE(Portfolio):
         return sumAssdPp
     
     # VAL_ACCRB_PP               
-    def VAL_ACCRB_PP(self):
+    def valAccrbPP(self):
         valAccrbPp = self.p['PMBPBEN'].to_numpy()[:,np.newaxis,np.newaxis]*self.one()
         return valAccrbPp
     
     # ADUE_VAL
-    def ADUE_VAL(self):
+    def adueVal(self):
         polTerm = self.p['POLDURC'].to_numpy()[:,np.newaxis,np.newaxis]
         adueVal = polTerm - ((self.durationIf()+1)/12)
         adueVal = np.floor(adueVal)
         return adueVal
 
     # PMG_SA_PC
-    def PMG_SA_PC(self):
+    def pmgSaPc(self):
         pmgSaPc = self.fraisGestion() * self.valNetpFac()
         return pmgSaPc
        
     # PROV_GEST_PP
-    def PROV_GEST_PP(self):
-        provGestPp = self.PMG_SA_PC()/100 * (self.insuredSum() + self.VAL_ACCRB_PP()) \
+    def provGestPP(self):
+        provGestPp = self.pmgSaPc()/100 * (self.insuredSum() + self.valAccrbPP()) \
         - self.valNetpFac() * (self.prInventPP() - self.purePremium())
         return provGestPp
     
     # VAL_PREC_PP
-    def VAL_PREC_PP(self):
+    def valPrecPP(self):
         agelimite=(self.age()<=85)
         # Calcul du risque en cours
         riderIncPP=self.primeTotaleMensuelle()*self.isPremPay()*agelimite
         riderIncPP2=self.primeTotaleMensuelle()*agelimite
         precPP=self.zero()
         frek=self.frac()
-     
         for i in range(1,self.shape[1]):
             precPP[:,i,:]=precPP[:,i-1,:]+riderIncPP[:,i,:] - ((frek[:,i,:]/12)*riderIncPP2[:,i,:])
-   
         return precPP
     
     def purePremium(self):
@@ -247,12 +245,12 @@ class VE(Portfolio):
     # VAL_ZILL_PP    
     def valZill(self):
         valZillPc = self.valZillPc * self.one()
-        ValZillPp = np.minimum(valZillPc * self.prInventPP() * self.valNetpFac(), self.insuredSum() - self.valNetpPP() + self.PROV_GEST_PP())
+        ValZillPp = np.minimum(valZillPc * self.prInventPP() * self.valNetpFac(), self.insuredSum() - self.valNetpPP() + self.provGestPP())
         return ValZillPp
     
     # MATH_RES_BA
     def mathResBa(self):
-        mathResBa = np.maximum(self.insuredSum() + self.VAL_ACCRB_PP() + self.PROV_GEST_PP() + self.VAL_PREC_PP() - self.valNetpPP() - self.valZill(), self.minResPp)
+        mathResBa = np.maximum(self.insuredSum() + self.valAccrbPP() + self.provGestPP() + self.valPrecPP() - self.valNetpPP() - self.valZill(), self.minResPp)
         return mathResBa
 
     # NO_SURRS
@@ -325,19 +323,22 @@ class VE(Portfolio):
         return renewableExpenses
     
     def adjustedMathReserve(self):
-        adjustedMathReserve = np.maximum(0, (self.F_MATH_RES_IF() + self.RFIN_ANN_NC() + self.ridercOutgo() + self.PPURE_ENC()))
+        adjustedMathReserve = np.maximum(0, (self.fMathResIf() + self.rfinAnnNc() + self.ridercOutgo() + self.ppureEnc()))
         return adjustedMathReserve
     
-    def F_MATH_RES_IF(self):
+    # F_MATH_RES_IF
+    def fMathResIf(self):
         fMathResIf = self.mathResBa() * self.nbrPolIf
         return fMathResIf
     
-    def RFIN_ANN_NC(self):
+    # RFIN_ANN_NC
+    def rfinAnnNc(self):
         # c'est le bordel
         rfinAnnNc = self.one()
         return rfinAnnNc
     
-    def PPURE_ENC(self):
+    # PPURE_ENC
+    def ppureEnc(self):
         # Complètement faux, Prophet divise la prime pure mensuelle par le
         # fractionnemenet et multiplie le résultat par les inforce...
         # alors que la prime pure fractionnée est déjà calculée ailleurs
@@ -398,8 +399,6 @@ class VE(Portfolio):
     def totalExpense(self):
         return self.initialExpenses() + self.renewableExpenses()
 
-
-
 # =============================================================================
 # --- Calcul du BEL   
 # =============================================================================
@@ -429,11 +428,12 @@ pol = VE()
 # pol.ids([2570304])
 # pol.ids([244803])
 # pol.ids([1713903])  <---- math res ba erronnée
-# pol.ids([579603]) <- en ordre
-# pol.ids([1713903])
+# pol.ids([579603]) 
+# pol.ids([2570304])
+pol.ids([552202])
 
 # portefeuille = pol.p
-# adue = pol.ADUE_VAL()
+# adue = pol.adueVal()
 # lapse = pol.lapse()
 # ptf = pol.p
 # inforce = pol.nbrPolIf
@@ -443,20 +443,25 @@ pol = VE()
 # surrender = pol.nbrSurrender
 
 test1 = pol.mathResBa()
-test2 = pol.VAL_ACCRB_PP()
-test3 = pol.PROV_GEST_PP()
-test4 = pol.VAL_PREC_PP()
+test2 = pol.valAccrbPP()
+test3 = pol.provGestPP()
+test4 = pol.valPrecPP()
 test5 = pol.valNetpPP()
 test6 = pol.valZill()
+test7 = pol.surrOutgo()
 
 # aaa = pol.numberSurrenders()
-# aab = pol.PROV_GEST_PP()
+# aab = pol.provGestPP()
 # aac = pol.valNetpFac()
 # aad = pol.valNetpPP()
 # aae = pol.valZill()
 # aaf = pol.insuredSum()
 
-monCas=pol.mathResBa()
+x = pol.p
+
+x.to_excel('ptf.xlsx')
+
+monCas=pol.provGestPP()
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
