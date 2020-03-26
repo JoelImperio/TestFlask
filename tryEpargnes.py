@@ -72,8 +72,8 @@ class EP(Portfolio):
         epgTxPbPUP[:,0,:] = 0
         
 # --- AJOUT JO
-        pbSortMats= self.zero()
-
+        pbSortMatsPP= self.zero()
+        pbSortMatsPUP = self.zero()
 
 
         allocMonths = self.allocMonths()
@@ -198,12 +198,15 @@ class EP(Portfolio):
             
             
 
-            pbCalcPPdths[:,i,:] = np.maximum((epgTxPB_PP[:,i,:] - epargnAcquPP[:,i,:] - pbAcquPP[:,i,:]),0)  * (1-allocMonths[:,i,:]) 
+            pbCalcPPdths[:,i,:] = np.maximum((epgTxPB_PP[:,i,:] - epargnAcquPP[:,i,:] - pbAcquPP[:,i,:]),0)  * (1 - allocMonths[:,i,:]) 
             
-            pbCalcPUPdths[:,i,:] = np.maximum((epgTxPbPUP[:,i,:] - eppAcquAPPUP[:,i,:] - pbAcquAPPUP[:,i,:]),0) * (1-allocMonths[:,i,:]) 
+            pbCalcPUPdths[:,i,:] = np.maximum((epgTxPbPUP[:,i,:] - eppAcquAPPUP[:,i,:] - pbAcquAPPUP[:,i,:]),0) * (1 - allocMonths[:,i,:]) 
  
-    
-            pbSortMats[:,i,:] = pbCalcPP[:,i,:] * isActive[:,i,:]
+        
+ 
+            pbSortMatsPP[:,i,:] = pbCalcPP[:,i,:] * isActive[:,i,:]
+            
+            pbSortMatsPUP[:,i,:] = pbCalcPUP[:,i,:] * isActive[:,i,:]
 
 #Sauvegarde des variables des actifs
        
@@ -270,8 +273,14 @@ class EP(Portfolio):
         self.pbSortDTHS=pbSortDTHS
 # --- AJOUT JO
         # Pb donnée par police en cas de maturité
-        self.pbSortMats = pbSortMats
+        self.pbSortMatsPP = pbSortMatsPP
+        # pb donnée par police en cas de maturité d'une police réduite
+        self.pbSortMatsPUP = pbSortMatsPUP
         
+        # pb donnée par police en cas de décès
+        self.pbCalcPPdths = pbCalcPPdths
+        # pb donné par police en cas de décès d'une police réduite
+        self.pbCalcPUPdths = pbCalcPUPdths
         
         return
 
@@ -495,7 +504,7 @@ class EP(Portfolio):
 # Calcul des sorties dûes aux maturité des polices (MAT_OUTGO)
     def maturity(self):
       
-        matBenPP = self.epargnAcquPP + self.pbAcquPP + self.pbSortMats
+        matBenPP = self.epargnAcquPP + self.pbAcquPP + self.pbSortMatsPP
         noMats = self.nbrNewMat
         pupMatbPP =  self.epAcquAVPUP + self.pbAcquAPPUP
         noPupMat = self.nbrPupMat
@@ -709,24 +718,58 @@ class EP(Portfolio):
         polTermM = self.polTermM()
         
         # condition qui met des 1 à polterm+1 (fin du contrat)
-        cond = self.zero()
-        cond[polTermM+1 ==self.durationIf()]=1 
+        # cond = self.zero()
+        # cond[polTermM+1 ==self.durationIf()]=1 
         
         # 2 calcul à effectué, quand la police est inforce et à la maturité
         # police inforce
         
-        pbSortDTHS = self.pbSortDTHS
+        pbCalcPPdths = self.pbCalcPPdths
+        pbCalcPUPdths = self.pbCalcPUPdths
+        
         nbrDeath = self.nbrDeath
         nbrSurrender = self.nbrSurrender
         pbPupDTHS = self.pbPupDTHS
         nbrPupDeath = self.nbrPupDeath
         nbrPupSurrender = self.nbrPupSurrender
         pbIncorPP = self.pbIncorPP
+        nbrNewMat = self.nbrNewMat
+        nbrPupMat = self.nbrPupMat
+        pbIncorPP = self.pbIncorPP
+        pbIncorPUP = self.pbIncorPUP
         
+        pbInforce = self.zero()
+        pbNotInforce = self.zero()
+        pbSortMatsPP = self.pbSortMatsPP
+        pbSortMatsPUP = self.pbSortMatsPUP
+        # for i in range(1,self.shape[1]):
+        #     pbInforce[:,i,:] = pbCalcPPdths[:,i,:] * (nbrDeath[:,i,:] + nbrSurrender[:,i,:]) \
+        #         + pbCalcPUPdths[:,i,:] * (nbrPupDeath[:,i,:] +  nbrPupSurrender[:,i,:]) \
+        #             + pbCalcPPdths[:,i-1,:] * nbrNewMat[:,i,:] + pbCalcPUPdths[:,i-1,:] * nbrPupMat[:,i,:]
+                    
+        # # Police à maturité
+    
+        # for i in range(1,self.shape[1]):
+        #     pbNotInforce[:,i,:] = pbCalcPPdths[:,i,:] * (nbrDeath[:,i,:]) \
+        #         + pbCalcPUPdths[:,i,:] * (nbrPupDeath[:,i,:]) \
+        #             + pbCalcPPdths[:,i-1,:] * nbrNewMat[:,i,:] + pbCalcPUPdths[:,i-1,:] * nbrPupMat[:,i,:]
+        
+        
+        
+        
+        
+                
         for i in range(1,self.shape[1]):
-            pbInforce[:,i,:] = pbSortDTHS[:,i,:] * (nbrDeath[:,i,:] + nbrSurrender[:,i,:]) \
-                + pbPupDTHS[:,i,:] * (nbrPupDeath[:,i,:] +  nbrPupSurrender[:,i,:]) \
-                    + pbIncorPP[:,i,:]
+            pbInforce[:,i,:] =  pbSortMatsPP[:,i-1,:] * nbrNewMat[:,i,:] 
+            # pbInforce[:,i,:] =  pbSortMatsPP[:,i-1,:] * nbrNewMat[:,i,:] + pbSortMatsPUP[:,i-1,:] * nbrPupMat[:,i,:]        
+
+        
+    
+    
+      
+        return pbInforce
+    
+    
     
 #  Calcul des réserve mathématiques adjustées
     def reserveForExp(self):
@@ -810,14 +853,14 @@ pol = EP()
 
 #pol=EP(run=[4,5])
 # pol.ids([1731601, 1732501])
-# pol.ids([1730002])
+# pol.ids([1731601])
 # pol.ids([493202, 524401])
 # pol.ids([515503,1736301,1900401,2168101,2396001,2500001,2500101,2466301])
 
 # 
 # pol.mod([36])
 
-fff = pol.dotationPB()
+fff = pol.pbSortie()
 riderPP = pol.riderCostPP()
 
 #pol.modHead([9],2)
