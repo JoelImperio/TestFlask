@@ -307,7 +307,12 @@ class VE(Portfolio):
         # isPremPay[:,0,:] = 1
         
         # rajout nombre de primes payées en début de période
-        isPremPay[:,0,:] = (durationif[:,0,:]/frac[:,0,:])
+        
+        conditions = [durationif[:,0,:] != 1, durationif[:,0,:] == 1]
+        result =[np.ceil(durationif[:,0,:]/frac[:,0,:]), 1]
+        isPremPay[:,0,:] = np.select(conditions,result)
+        
+        # isPremPay[:,0,:] = (durationif[:,0,:]/frac[:,0,:])
     
         premiumsPaid = isPremPay * pol.p['POLPRTOT'][:,np.newaxis,np.newaxis]/pol.frac()
              
@@ -444,38 +449,8 @@ class VE(Portfolio):
 pol = VE()
 
 # pol.ids([66102])
-# pol.ids([110705])
-# pol.ids([284003])
-# pol.ids([284003])
-# pol.ids([2308801])
-# pol.ids([2570304])
-# pol.ids([244803])
 
-# pol.ids([1713903])
-
-# pol.ids([579603]) 
-# pol.ids([2570304])
-# pol.ids([552202]) 
-# pol.ids([2314102])
-
-
-
-
-# capital = pol.p['PMBCAPIT'].to_numpy()[:,np.newaxis,np.newaxis]
-# # primetot = pol.p['POLPRTOT'].to_numpy()[:,np.newaxis,np.newaxis]     
-# frac = 12/ pol.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
-# # pbAcq = pol.p['PMBPBEN'].to_numpy()[:,np.newaxis,np.newaxis]
-# # situation = pol.p['POLSIT'][:,np.newaxis,np.newaxis]
-# durationif = pol.durationIf()
-
-# isPremPay = pol.isPremPay()
-# # isPremPay[:,0,:] = 1
-
-# isPremPay[:,0,:] = (durationif[:,0,:]/frac[:,0,:])
-   
-
-  
-    
+ 
 x = pol.p
 
 x.to_excel('ptf.xlsx')
