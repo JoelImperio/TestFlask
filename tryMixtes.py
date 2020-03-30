@@ -16,6 +16,7 @@ start_time = time.time()
 
 class MI(Portfolio):
     mods=[2,10,6,7]
+
 #Products: F1XT_1,F2XT_1,F1XT14,F1XT11
 
 
@@ -136,20 +137,19 @@ def tester(self):
 pol = MI()
 #pol=MI(run=[4,5])
 
-    ### Mod 2_1 produit F1XT1
-
+    ###  Mod 2_1 produit F1XT1
 # pol.ids([301])
 # pol.modHead([2],1)
 
-#     ### Mod 2_2 F2XT_1
+    ### Mod 2_2 F2XT_1
 # pol.ids([2501])
 # pol.modHead([2],1)
 
-#     ### Mod 10 F1XT14
+    ### Mod 10 F1XT14
 # pol.ids([1602604])
 # pol.mod([10])
 
-#     ### Mod 6 F1XT11
+    ### Mod 6 F1XT11
 # pol.ids([799003])
 # pol.mod([6,7])
 
