@@ -16,6 +16,7 @@ start_time = time.time()
 
 class MI(Portfolio):
     mods=[2,10,6,7]
+
 #Products: F1XT_1,F2XT_1,F1XT14,F1XT11
 
 
@@ -43,9 +44,7 @@ class MI(Portfolio):
         nbrMaturities=self.zero()
         nbrNewRed = self.zero()
         matRate=self.zero()
-        
-
-      
+             
         
 #Variables biométriques et génériques
         lapseTiming=0.5
@@ -71,9 +70,12 @@ class MI(Portfolio):
             
             nbrSurrender[:,i,:]=nbrPolIfSM[:,i,:]*lapse[:,i,:]*(1-(qxyD[:,i,:]))
             
-            nbrNewRed[:,i,:] = (nbrPolIf[:,i-1,:] - nbrDeath[:,i,:] - nbrSurrender[:,i,:] - nbrMaturities[:,i,:]) * reduction[:,i,:]
+            # nbrNewRed[:,i,:] = (nbrPolIf[:,i-1,:] - nbrDeath[:,i,:] - nbrSurrender[:,i,:] - nbrMaturities[:,i,:]) * reduction[:,i,:]
             
-            nbrPolIf[:,i,:]=nbrPolIf[:,i-1,:]-nbrDeath[:,i,:]-nbrSurrender[:,i,:]- nbrNewRed[:,i,:] - nbrMaturities[:,i,:]
+            # nbrPolIf[:,i,:]=nbrPolIf[:,i-1,:]-nbrDeath[:,i,:]-nbrSurrender[:,i,:]- nbrNewRed[:,i,:] - nbrMaturities[:,i,:]
+
+          
+            nbrPolIf[:,i,:]=nbrPolIf[:,i-1,:]-nbrDeath[:,i,:]-nbrSurrender[:,i,:] - nbrMaturities[:,i,:]
 
 
 #Sauvegarde des variables des actifs
@@ -134,27 +136,40 @@ def tester(self):
 
 pol = MI()
 #pol=MI(run=[4,5])
-# pol.ids([363001])
 
+    ###  Mod 2_1 produit F1XT1
+# pol.ids([301])
+# pol.modHead([2],1)
 
+    ### Mod 2_2 F2XT_1
+# pol.ids([2501])
+# pol.modHead([2],1)
+
+    ### Mod 10 F1XT14
+# pol.ids([1602604])
 # pol.mod([10])
-#pol.modHead([9],2)
-aa = pol.p
-# a=pol.nbrPolIf
-b=pol.nbrPolIfSM
-#c=pol.nbrMaturities
-#d=pol.nbrDeath
-#e=pol.nbrSurrender
-#f=pol.premiumCompl()
-#g=pol.premiumPure()
-#h=pol.deathClaim()
-#i=pol.fraisVisiteClaim()
-#j=pol.timeBeforeNextPay()
-#k=pol.risqueEnCour()
-# l=pol.adjustedReserve()
-#m=pol.reserveExpense()
-#n=pol.unitExpense()
-o=pol.totalPremium()
+
+    ### Mod 6 F1XT11
+# pol.ids([799003])
+# pol.mod([6,7])
+
+
+# a = pol.p
+# b=pol.nbrPolIf
+# c=pol.nbrPolIfSM
+# d=pol.nbrNewMat
+# e=pol.nbrDeath
+# f=pol.nbrSurrender
+# g=pol.premiumCompl()
+#h=pol.premiumPure()
+#i=pol.deathClaim()
+#j=pol.fraisVisiteClaim()
+#k=pol.timeBeforeNextPay()
+#l=pol.risqueEnCour()
+# m=pol.adjustedReserve()
+#n=pol.reserveExpense()
+#o=pol.unitExpense()
+p=pol.totalPremium()
 # q=pol.totalClaim()
 # r=pol.totalCommissions()
 # s=pol.totalExpense()
@@ -167,8 +182,7 @@ o=pol.totalPremium()
 
 print("Class MI--- %s sec" %'%.2f'%  (time.time() - start_time))
 
-monCas=b
-
+monCas=p
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
