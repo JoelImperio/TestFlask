@@ -99,36 +99,38 @@ class Test_EP(ut.TestCase):
 
 
 
-    # def test_Claim(self):
+    def test_Claim(self):
         
-    #     prophet=np.array(self.spProphet.loc[:self.length,'TOT_PREST'].to_numpy(),dtype=float)
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_PREST'].to_numpy(),dtype=float)
         
-    #     python=np.sum(self.sp.totalClaim()[:,:409,0],axis=0)
+        python=np.sum(self.sp.totalClaim()[:,:409,0],axis=0)
 
         
-    #     np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalClaim ERROR')
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalClaim ERROR')
             
             
-    # def test_Expense(self):
+    def test_Expense(self):
         
-    #     prophet=np.array(self.spProphet.loc[:self.length,'TOT_EXP'].to_numpy(),dtype=float)
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_EXP'].to_numpy(),dtype=float)
         
-    #     python=np.sum(self.sp.totalExpense()[:,:409,0],axis=0)
+        python=np.sum(self.sp.totalExpense()[:,:409,0],axis=0)
 
         
-    #     np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalExpense ERROR')
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalExpense ERROR')
             
 
 
-    # def test_BEL(self):
+    def test_BEL(self):
         
-    #     prophet=np.array(self.spProphet.loc[:self.length,'BEL_B'].to_numpy(),dtype=float)
+        prophet=np.array(self.spProphet.loc[:self.length,'BEL_B'].to_numpy(),dtype=float)
         
-    #     python=np.sum(self.sp.BEL()[:,:409,0],axis=0)
+        python=np.sum(self.sp.BEL()[:,:409,0],axis=0)
 
         
-    #     np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='BEL ERROR')
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='BEL ERROR')
             
+        
+        
 
     # def test_PGG(self):
         
@@ -158,6 +160,13 @@ class Test_EP_28(ut.TestCase):
  
     length = len(sp.totalPremium()[0,:,0])-1
     
+    
+    
+    
+# =============================================================================
+#     PRINCIPAUX VECTEUR A TESTER
+# =============================================================================
+    
     def test_Premium(self):
         
     ### La variable à tester 'PREM_INC'
@@ -168,6 +177,48 @@ class Test_EP_28(ut.TestCase):
         python=np.sum((self.sp.totalPremium())[:,:409,0],axis=0)
 
         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+
+
+
+    def test_Claim(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_PREST'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.totalClaim()[:,:409,0],axis=0)
+
+        
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalClaim ERROR')
+           
+
+
+    def test_Commissions(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_COMM'].to_numpy(),dtype=float)
+        
+        python=np.array(np.sum(self.sp.totalCommissions()[:,:409,0],axis=0),dtype=float)
+
+        
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalCommissions ERROR')
+
+
+
+    def test_expenses(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_EXP'].to_numpy(),dtype=float)
+        
+        python=np.sum((self.sp.totalExpense())[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+
+
+
+
+
+
+
+# =============================================================================
+# VECTEUR SECONDAIRE A TESTER
+# =============================================================================
 
 
 
@@ -199,6 +250,8 @@ class Test_EP_28(ut.TestCase):
         python=np.sum((self.sp.maturity())[:,:409,0],axis=0)
 
         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+
+
 
 
 
@@ -232,6 +285,57 @@ class Test_EP_29(ut.TestCase):
         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
         
         
+# =============================================================================
+#    4 PRINCIPAUX VECTEUR     
+# =============================================================================
+        
+    def test_Premium(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'PREM_INC'].to_numpy(),dtype=float)
+        
+        python=np.sum((self.sp.totalPremium())[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+
+
+
+    def test_Claim(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_PREST'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.totalClaim()[:,:409,0],axis=0)
+
+        
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalClaim ERROR')
+           
+
+
+    def test_Commissions(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_COMM'].to_numpy(),dtype=float)
+        
+        python=np.array(np.sum(self.sp.totalCommissions()[:,:409,0],axis=0),dtype=float)
+
+        
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalCommissions ERROR')
+
+
+
+    def test_expenses(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_EXP'].to_numpy(),dtype=float)
+        
+        python=np.sum((self.sp.totalExpense())[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+
+
+        
+        
+        
+        
+        
+        
     def test_DeathClaim(self):
         
         prophet=np.array(self.spProphet.loc[:self.length,'DEATH_OUTGO'].to_numpy(),dtype=float)
@@ -261,6 +365,7 @@ class Test_EP_29(ut.TestCase):
         python=np.sum((self.sp.maturity())[:,:409,0],axis=0)
 
         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+
 
 
 
@@ -283,16 +388,57 @@ class Test_EP_30(ut.TestCase):
     
     length = len(sp.totalPremium()[0,:,0])-1
     
+# =============================================================================
+#    4 PRINCIPAUX VECTEUR     
+# =============================================================================
+        
     def test_Premium(self):
         
-    ### La variable à tester 'PREM_INC'
         prophet=np.array(self.spProphet.loc[:self.length,'PREM_INC'].to_numpy(),dtype=float)
-        
-    ### La méthode à tester 'totalPremium()'
         
         python=np.sum((self.sp.totalPremium())[:,:409,0],axis=0)
 
         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+
+
+
+    def test_Claim(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_PREST'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.totalClaim()[:,:409,0],axis=0)
+
+        
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalClaim ERROR')
+           
+
+
+    def test_Commissions(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_COMM'].to_numpy(),dtype=float)
+        
+        python=np.array(np.sum(self.sp.totalCommissions()[:,:409,0],axis=0),dtype=float)
+
+        
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalCommissions ERROR')
+
+
+
+    def test_expenses(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_EXP'].to_numpy(),dtype=float)
+        
+        python=np.sum((self.sp.totalExpense())[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+
+
+        
+        
+        
+# =============================================================================
+# VECTEUR SECONDAIRE        
+# =============================================================================
         
         
     def test_DeathClaim(self):
@@ -323,6 +469,7 @@ class Test_EP_30(ut.TestCase):
         python=np.sum((self.sp.maturity())[:,:409,0],axis=0)
 
         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+
 
 
 
@@ -346,18 +493,57 @@ class Test_EP_31(ut.TestCase):
     
     length = len(sp.totalPremium()[0,:,0])-1
     
+# =============================================================================
+#    4 PRINCIPAUX VECTEUR     
+# =============================================================================
+        
     def test_Premium(self):
         
-    ### La variable à tester 'PREM_INC'
         prophet=np.array(self.spProphet.loc[:self.length,'PREM_INC'].to_numpy(),dtype=float)
-        
-    ### La méthode à tester 'totalPremium()'
         
         python=np.sum((self.sp.totalPremium())[:,:409,0],axis=0)
 
         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+
+
+
+    def test_Claim(self):
         
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_PREST'].to_numpy(),dtype=float)
         
+        python=np.sum(self.sp.totalClaim()[:,:409,0],axis=0)
+
+        
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalClaim ERROR')
+           
+
+
+    def test_Commissions(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_COMM'].to_numpy(),dtype=float)
+        
+        python=np.array(np.sum(self.sp.totalCommissions()[:,:409,0],axis=0),dtype=float)
+
+        
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalCommissions ERROR')
+
+
+
+    def test_expenses(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_EXP'].to_numpy(),dtype=float)
+        
+        python=np.sum((self.sp.totalExpense())[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+
+
+  
+      
+# =============================================================================
+#      VECTEURS SECONDAIRES  
+# =============================================================================
+ 
     def test_DeathClaim(self):
         
     ### La variable à tester 'PREM_INC'
@@ -388,6 +574,7 @@ class Test_EP_31(ut.TestCase):
         python=np.sum((self.sp.maturity())[:,:409,0],axis=0)
 
         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+
 
 
 
@@ -412,16 +599,54 @@ class Test_EP_32(ut.TestCase):
     
     length = len(sp.totalPremium()[0,:,0])-1
     
+# =============================================================================
+#    4 PRINCIPAUX VECTEUR     
+# =============================================================================
+        
     def test_Premium(self):
         
-    ### La variable à tester 'PREM_INC'
         prophet=np.array(self.spProphet.loc[:self.length,'PREM_INC'].to_numpy(),dtype=float)
-        
-    ### La méthode à tester 'totalPremium()'
         
         python=np.sum((self.sp.totalPremium())[:,:409,0],axis=0)
 
         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+
+
+
+    def test_Claim(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_PREST'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.totalClaim()[:,:409,0],axis=0)
+
+        
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalClaim ERROR')
+           
+
+
+    def test_Commissions(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_COMM'].to_numpy(),dtype=float)
+        
+        python=np.array(np.sum(self.sp.totalCommissions()[:,:409,0],axis=0),dtype=float)
+
+        
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalCommissions ERROR')
+
+
+
+    def test_expenses(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_EXP'].to_numpy(),dtype=float)
+        
+        python=np.sum((self.sp.totalExpense())[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+
+
+# =============================================================================
+# VECTEURS SECONDAIRES
+# =============================================================================
         
         
     def test_DeathClaim(self):
@@ -451,8 +676,6 @@ class Test_EP_32(ut.TestCase):
         python=np.sum((self.sp.maturity())[:,:409,0],axis=0)
 
         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
-
-
 
 
 
@@ -476,16 +699,55 @@ class Test_EP_33(ut.TestCase):
     
     length = len(sp.totalPremium()[0,:,0])-1
     
+# =============================================================================
+#    4 PRINCIPAUX VECTEUR     
+# =============================================================================
+        
     def test_Premium(self):
         
-    ### La variable à tester 'PREM_INC'
         prophet=np.array(self.spProphet.loc[:self.length,'PREM_INC'].to_numpy(),dtype=float)
-        
-    ### La méthode à tester 'totalPremium()'
         
         python=np.sum((self.sp.totalPremium())[:,:409,0],axis=0)
 
         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+
+
+
+    def test_Claim(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_PREST'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.totalClaim()[:,:409,0],axis=0)
+
+        
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalClaim ERROR')
+           
+
+
+    def test_Commissions(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_COMM'].to_numpy(),dtype=float)
+        
+        python=np.array(np.sum(self.sp.totalCommissions()[:,:409,0],axis=0),dtype=float)
+
+        
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalCommissions ERROR')
+
+
+
+    def test_expenses(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_EXP'].to_numpy(),dtype=float)
+        
+        python=np.sum((self.sp.totalExpense())[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+
+
+# =============================================================================
+#     VECTEUR SECONDAIRES    
+# =============================================================================
+        
         
         
     def test_DeathClaim(self):
@@ -516,8 +778,6 @@ class Test_EP_33(ut.TestCase):
         python=np.sum((self.sp.maturity())[:,:409,0],axis=0)
 
         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
-
-
 
 
 
@@ -541,17 +801,54 @@ class Test_EP_36(ut.TestCase):
     
     length = len(sp.totalPremium()[0,:,0])-1
     
+# =============================================================================
+#    4 PRINCIPAUX VECTEUR     
+# =============================================================================
+        
     def test_Premium(self):
         
-    ### La variable à tester 'PREM_INC'
         prophet=np.array(self.spProphet.loc[:self.length,'PREM_INC'].to_numpy(),dtype=float)
-        
-    ### La méthode à tester 'totalPremium()'
         
         python=np.sum((self.sp.totalPremium())[:,:409,0],axis=0)
 
         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+
+
+
+    def test_Claim(self):
         
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_PREST'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.totalClaim()[:,:409,0],axis=0)
+
+        
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalClaim ERROR')
+           
+
+
+    def test_Commissions(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_COMM'].to_numpy(),dtype=float)
+        
+        python=np.array(np.sum(self.sp.totalCommissions()[:,:409,0],axis=0),dtype=float)
+
+        
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalCommissions ERROR')
+
+
+
+    def test_expenses(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_EXP'].to_numpy(),dtype=float)
+        
+        python=np.sum((self.sp.totalExpense())[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+
+
+# =============================================================================
+#    VECTEURS SECONDAIRES
+# =============================================================================
         
     def test_DeathClaim(self):
 
@@ -581,7 +878,6 @@ class Test_EP_36(ut.TestCase):
         python=np.sum((self.sp.maturity())[:,:409,0],axis=0)
 
         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
-
 
 
 

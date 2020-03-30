@@ -605,7 +605,7 @@ class EP(Portfolio):
     
     #Retourne le coût par police pour les polices avec réduction possible (RENEXP_XRSE)
     # OK
-    def unitExpenseRed(self):
+    def unitExpense(self):
         
         inflation=np.roll(self.inflation(),[1],axis=1)
         inflation[:,0,:]=0
@@ -847,7 +847,7 @@ class EP(Portfolio):
         mUfii = self.mUfii()
         repPbMats = self.repPbMats()
         premInvest = self.premiumInvested() * self.nbrPolIfSM
-        unitExp = self.unitExpenseRed()
+        unitExp = self.unitExpense()
         reprisePB = self.reprisePB()
         dotationPB = self.dotationPB()
         pbSortie = self.pbSortie()
@@ -857,6 +857,7 @@ class EP(Portfolio):
         mathresPP = self.mathresBA()  
         totComm = self.commissions()
         monthPb = self.one() - self.allocMonths()
+        isActive = self.isActive()
     
         # calcul des exceptions
         # provMathAj[:,0,:] = premInc[:,0,:] - totExp[:,0,:] - riderCoutgo[:,0,:]
@@ -884,14 +885,14 @@ class EP(Portfolio):
             totExp[:,i,:] = unitExp[:,i,:] + adjMathRes2[:,i,:] * txReserve[:,i,:] 
             
             
-            provMathAj[:,i,:] = provMathIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInc[:,i,:] - riderCoutgo[:,i,:] - (totExp[:,i,:] + totComm[:,i,:]) - resReldMat[:,i,:]
+            provMathAj[:,i,:] = (provMathIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInc[:,i,:] - riderCoutgo[:,i,:] - (totExp[:,i,:] + totComm[:,i,:]) - resReldMat[:,i,:]) * isActive[:,i,:]
         
             oTaxblInc[:,i,:] = provMathAj[:,i,:] * mUfii[:,i,:]
             
             
             resFinMois[:,i,:] = oTaxblInc[:,i,:] + reprisePB[:,i,:] - totIntCred[:,i,:] - pbIncorpIF[:,i,:] - dotationPB[:,i,:] - pbSortie[:,i,:]
             
-            rfinAnn[:,i,:] = (rfinAnn[:,i-1,:] + resFinMois[:,i,:]) * monthPb[:,i,:]
+            rfinAnn[:,i,:] = (rfinAnn[:,i-1,:] + resFinMois[:,i,:]) * monthPb[:,i,:] * isActive[:,i,:]
             
             
             
@@ -913,15 +914,27 @@ class EP(Portfolio):
         
         self.premInvest = premInvest
         
-        
-        # self.mUfii = mUfii
+        self.fMathResIF = fMathResIF
+  
         
         # total expenses 
         self.totExp = totExp
+        
+
         return
 
+    def reserveExpense(self):
+        
+        reserveExpense = self.adjMathRes2 
+        return reserveExpense
 
 
+    def totalExpense(self):
+        total = self.totExp
+        return total
+    
+    
+    
 
 # =============================================================================
 # DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES
@@ -933,40 +946,44 @@ def tester(self):
 
 pol = EP()
 
-# a = pol.epgTxPB_PP()
+# a = pol.matu()
 
 
 #pol=EP(run=[4,5])
 # pol.ids([1731601, 1732501])
-# pol.ids([1731601])
+pol.ids([1764401])
 # pol.ids([493202, 524401])
 # pol.ids([515503,1736301,1900401,2168101,2396001,2500001,2500101,2466301])
 
 # 
-pol.mod([28])
+# pol.mod([33])
 
-fff = pol.repPbMats()
-riderPP = pol.riderCostPP()
+# a = pol.BEL()[:,:409,0]
+fff = pol.provMathAj
+
+
+
+# riderPP = pol.riderCostPP()
 
 #pol.modHead([9],2)
 # aa = pol.p
-a=pol.nbrPolIf
+# a=pol.nbrPolIf
 # fff = pol.reprisePB()
 #b=pol.nbrPolIfSM
 #c=pol.nbrMaturities
-d=pol.nbrDeath
+# d=pol.nbrDeath
 #e=pol.nbrSurrender
 #f=pol.premiumCompl()
 #g=pol.premiumPure()
-h=pol.deathClaim()
+# h=pol.deathClaim()
 #i=pol.fraisVisiteClaim()
 #j=pol.timeBeforeNextPay()
 #k=pol.risqueEnCour()
 # l=pol.adjustedReserve()
 #m=pol.reserveExpense()
 #n=pol.unitExpense()
-o=pol.totalPremium()
-q=pol.totalClaim()
+# o=pol.totalPremium()
+# q=pol.totalClaim()
 # r=pol.totalCommissions()
 # s=pol.totalExpense()
 # t=pol.BEL()
@@ -974,7 +991,7 @@ q=pol.totalClaim()
 # bel=np.sum(pol.BEL(), axis=0)
 # pgg=pol.PGG()
 
-# pol.p.to_excel('check portefeuille.xlsx')
+pol.p.to_excel('check portefeuille.xlsx')
         
 
 
@@ -997,6 +1014,6 @@ z.to_csv(r'check.csv',header=False)
 #Visualiser une dimension d'un numpy qui n'apparait pas
 #data=pol.lapse()
 #a=pd.DataFrame(data[:,:,4])
-a = pol.mUfii
+# a = pol.mUfii
 # z=pd.DataFrame(a[:,:,0])
 # z.to_excel('test mUfii.xlsx')
