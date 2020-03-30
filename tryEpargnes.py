@@ -837,6 +837,7 @@ class EP(Portfolio):
         nbrPupMat = self.nbrPupMat
         
         # fonction existantes
+        fMathResIF = self.provMathIf() + self.fondPB()
         provMathIf = self.provMathIf()
         riderCoutgo = self.claimCompl()
         pbIncorpIF = self.pbIncorpIF()
@@ -878,7 +879,7 @@ class EP(Portfolio):
             
 
         
-            adjMathRes2[:,i,:] = provMathIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInvest[:,i,:] - riderCoutgo[:,i,:] - resReldMat[:,i,:] - repPbMats[:,i,:]
+            adjMathRes2[:,i,:] = fMathResIF[:,i-1,:] + rfinAnn[:,i-1,:] + premInvest[:,i,:] - riderCoutgo[:,i,:] - resReldMat[:,i,:] - repPbMats[:,i,:]
         
             totExp[:,i,:] = unitExp[:,i,:] + adjMathRes2[:,i,:] * txReserve[:,i,:] 
             
@@ -912,6 +913,7 @@ class EP(Portfolio):
         
         self.premInvest = premInvest
         
+        
         # self.mUfii = mUfii
         
         # total expenses 
@@ -943,7 +945,7 @@ pol = EP()
 # 
 pol.mod([28])
 
-fff = pol.rfinAnn
+fff = pol.repPbMats()
 riderPP = pol.riderCostPP()
 
 #pol.modHead([9],2)
