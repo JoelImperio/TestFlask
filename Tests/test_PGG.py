@@ -23,12 +23,23 @@ ResultatPGG=pd.read_excel(path+'\Resultats_PGG.xls',sheet_name='Synthese',skipro
 # cov.start()
 
 
+    ### Précision souhaitée
+
+RTOL=0.1
+ATOL=1
+decimalPrecision=2
+
+#Ne marche pas pour les premiums d'AX
+# RTOL=0.0001
+# ATOL=0.001
+# decimalPrecision=2
+
+
+
 #Test spécifique produit pour le Best Estimate et la PGG
 class Test_FU(ut.TestCase):
 
-    RTOL=0.1
-    ATOL=1
-    decimalPrecision=2
+
     
     spProphet = DataProphet['FU'].replace('-',0)
     sp=FU()
@@ -45,7 +56,7 @@ class Test_FU(ut.TestCase):
         python=np.sum(self.sp.totalPremium()[:,:409,0],axis=0)
 
         
-        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalPremium ERROR ')
             
 
     def test_Claim(self):
@@ -55,7 +66,7 @@ class Test_FU(ut.TestCase):
         python=np.sum(self.sp.totalClaim()[:,:409,0],axis=0)
 
         
-        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalClaim ERROR')
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalClaim ERROR')
             
 
 
@@ -66,7 +77,7 @@ class Test_FU(ut.TestCase):
         python=np.array(np.sum(self.sp.totalCommissions()[:,:409,0],axis=0),dtype=float)
 
         
-        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalCommissions ERROR')
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalCommissions ERROR')
 
 
             
@@ -77,7 +88,7 @@ class Test_FU(ut.TestCase):
         python=np.sum(self.sp.totalExpense()[:,:409,0],axis=0)
 
         
-        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalExpense ERROR')
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalExpense ERROR')
             
 
 
@@ -88,7 +99,7 @@ class Test_FU(ut.TestCase):
         python=np.sum(self.sp.BEL()[:,:409,0],axis=0)
 
         
-        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='BEL ERROR')
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='BEL ERROR')
             
 
     def test_PGG(self):
@@ -97,15 +108,13 @@ class Test_FU(ut.TestCase):
         
         python=self.sp.PGG().values[0,0]
         
-        self.assertEqual(round(prophet,self.decimalPrecision),round(python,self.decimalPrecision))       
+        self.assertEqual(round(prophet,decimalPrecision),round(python,decimalPrecision))       
 
 
 #Test spécifique produit pour le Best Estimate et la PGG
 class Test_AX(ut.TestCase):
 
-    RTOL=0.1
-    ATOL=1
-    decimalPrecision=2
+
     
     spProphet = DataProphet['AX'].replace('-',0)
     sp=AX()
@@ -122,7 +131,7 @@ class Test_AX(ut.TestCase):
         python=np.sum(self.sp.totalPremium()[:,:409,0],axis=0)
 
         
-        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalPremium ERROR ')
             
 
     def test_Claim(self):
@@ -132,7 +141,7 @@ class Test_AX(ut.TestCase):
         python=np.sum(self.sp.totalClaim()[:,:409,0],axis=0)
 
         
-        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalClaim ERROR')
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalClaim ERROR')
             
 
 
@@ -143,7 +152,7 @@ class Test_AX(ut.TestCase):
         python=np.array(np.sum(self.sp.totalCommissions()[:,:409,0],axis=0),dtype=float)
 
         
-        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalCommissions ERROR')
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalCommissions ERROR')
 
 
             
@@ -154,7 +163,7 @@ class Test_AX(ut.TestCase):
         python=np.sum(self.sp.totalExpense()[:,:409,0],axis=0)
 
         
-        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalExpense ERROR')
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalExpense ERROR')
             
 
 
@@ -165,7 +174,7 @@ class Test_AX(ut.TestCase):
         python=np.sum(self.sp.BEL()[:,:409,0],axis=0)
 
         
-        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='BEL ERROR')
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='BEL ERROR')
             
 
     def test_PGG(self):
@@ -174,15 +183,13 @@ class Test_AX(ut.TestCase):
         
         python=self.sp.PGG().values[0,0]
         
-        self.assertEqual(round(prophet,self.decimalPrecision),round(python,self.decimalPrecision))       
+        self.assertEqual(round(prophet,decimalPrecision),round(python,decimalPrecision))       
 
 
 #Test spécifique produit pour le Best Estimate et la PGG
 class Test_HO(ut.TestCase):
 
-    RTOL=0.1
-    ATOL=1.0
-    decimalPrecision=2
+
     
     spProphet = DataProphet['HO'].replace('-',0)
     sp=HO()
@@ -199,7 +206,7 @@ class Test_HO(ut.TestCase):
         python=np.sum(self.sp.totalPremium()[:,:409,0],axis=0)
 
         
-        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalPremium ERROR ')
             
 
     def test_Claim(self):
@@ -209,7 +216,7 @@ class Test_HO(ut.TestCase):
         python=np.sum(self.sp.totalClaim()[:,:409,0],axis=0)
 
         
-        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalClaim ERROR')
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalClaim ERROR')
             
 
 
@@ -220,7 +227,7 @@ class Test_HO(ut.TestCase):
         python=np.array(np.sum(self.sp.totalCommissions()[:,:409,0],axis=0),dtype=float)
 
         
-        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalCommissions ERROR')
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalCommissions ERROR')
 
 
             
@@ -231,7 +238,7 @@ class Test_HO(ut.TestCase):
         python=np.sum(self.sp.totalExpense()[:,:409,0],axis=0)
 
         
-        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalExpense ERROR')
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalExpense ERROR')
             
 
 
@@ -242,7 +249,7 @@ class Test_HO(ut.TestCase):
         python=np.sum(self.sp.BEL()[:,:409,0],axis=0)
 
         
-        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='BEL ERROR')
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='BEL ERROR')
             
 
     def test_PGG(self):
@@ -251,14 +258,12 @@ class Test_HO(ut.TestCase):
         
         python=self.sp.PGG().values[0,0]
         
-        self.assertEqual(round(prophet,self.decimalPrecision),round(python,self.decimalPrecision))  
+        self.assertEqual(round(prophet,decimalPrecision),round(python,decimalPrecision))  
 
 #Test spécifique produit pour le Best Estimate et la PGG
 class Test_PR(ut.TestCase):
 
-    RTOL=0.1
-    ATOL=1.0
-    decimalPrecision=2
+
     
     spProphet = DataProphet['PR'].replace('-',0)
     sp=PR()
@@ -275,7 +280,7 @@ class Test_PR(ut.TestCase):
         python=np.sum(self.sp.totalPremium()[:,:409,0],axis=0)
 
         
-        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalPremium ERROR ')
             
 
     def test_Claim(self):
@@ -285,7 +290,7 @@ class Test_PR(ut.TestCase):
         python=np.sum(self.sp.totalClaim()[:,:409,0],axis=0)
 
         
-        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalClaim ERROR')
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalClaim ERROR')
             
 
 
@@ -296,7 +301,7 @@ class Test_PR(ut.TestCase):
         python=np.array(np.sum(self.sp.totalCommissions()[:,:409,0],axis=0),dtype=float)
 
         
-        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalCommissions ERROR')
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalCommissions ERROR')
 
 
             
@@ -307,7 +312,7 @@ class Test_PR(ut.TestCase):
         python=np.sum(self.sp.totalExpense()[:,:409,0],axis=0)
 
         
-        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalExpense ERROR')
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalExpense ERROR')
             
 
 
@@ -318,7 +323,7 @@ class Test_PR(ut.TestCase):
         python=np.sum(self.sp.BEL()[:,:409,0],axis=0)
 
         
-        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='BEL ERROR')
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='BEL ERROR')
             
 
     def test_PGG(self):
@@ -327,7 +332,7 @@ class Test_PR(ut.TestCase):
         
         python=self.sp.PGG().values[0,0]
         
-        self.assertEqual(round(prophet,self.decimalPrecision),round(python,self.decimalPrecision)) 
+        self.assertEqual(round(prophet,decimalPrecision),round(python,decimalPrecision)) 
 
 
 
