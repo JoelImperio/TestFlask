@@ -709,7 +709,7 @@ class EP(Portfolio):
         
         for i in range(1,self.shape[1]):
         
-            provTechAj[:,i,:] = provTechIf[:,i-1,:] + pbIncorpIf[:,i,:]+ primeInvest[:,i,:] - riderCoutgo[:,i,:] - tresRldMat[:,i,:]
+            provTechAj[:,i,:] = provTechIf[:,i-1,:] + pbIncorpIf[:,i,:] + primeInvest[:,i,:] - riderCoutgo[:,i,:] - tresRldMat[:,i,:]
         
         return provTechAj
     
@@ -798,6 +798,16 @@ class EP(Portfolio):
     
     
     
+# Arrondi des tables ACTU.FAC afin d'obtenir mUfii
+    def mUfii(self):
+        
+        rate = (1+self.rate())**12 - 1
+        rate = np.round(rate, decimals = 6)
+        
+        rate = (1+rate)**(1/12) - 1
+        return rate
+    
+    
     
     
 # Resultat financier du mois
@@ -812,63 +822,75 @@ class EP(Portfolio):
     def reserveForExp(self):
         
         # déclaration des nouvelles variables
-        resReldMat = pol.zero()
-        totExp = pol.zero()
-        rfinAnn = pol.zero()
-        oTaxblInc = pol.zero()
-        adjMathRes2 = pol.zero()
-        resFinMois = pol.zero()
-        provMathAj = pol.zero()
+        resReldMat = self.zero()
+        totExp = self.zero()
+        rfinAnn = self.zero()
+        oTaxblInc = self.zero()
+        adjMathRes2 = self.zero()
+        resFinMois = self.zero()
+        provMathAj = self.zero()
         
         # Nombre polices
-        nbrPolIf = pol.nbrPolIf
-        nbrPupsIf = pol.nbrPupsIf
-        noMat = pol.nbrNewMat
-        nbrPupMat = pol.nbrPupMat
+        nbrPolIf = self.nbrPolIf
+        nbrPupsIf = self.nbrPupsIf
+        noMat = self.nbrNewMat
+        nbrPupMat = self.nbrPupMat
         
         # fonction existantes
-        provMathIf = pol.provMathIf()
-        riderCoutgo = pol.premiumCompl()
-        pbIncorpIF = pol.pbIncorpIF()
-        premInc = pol.totalPremium()
-        mathResPP = pol.mathresBA()
-        pupMathRes = pol.pupMathRes()
-        fondPB = pol.fondPB()
-        mUfii = pol.rate()
-        repPbMats = pol.repPbMats()
-        premInvest = pol.premiumInvested() * pol.nbrPolIfSM
-        unitExp = pol.unitExpenseRed()
-        reprisePB = pol.reprisePB()
-        dotationPB = pol.dotationPB()
-        pbSortie = pol.pbSortie()
-        totIntCred = pol.intCredT()
-        provTechAj = pol.provTechAj()   
-        txReserve = pol.fraisGestionPlacement()
-        mathresPP = pol.mathresBA()    
-    
+        provMathIf = self.provMathIf()
+        riderCoutgo = self.claimCompl()
+        pbIncorpIF = self.pbIncorpIF()
+        premInc = self.totalPremium()
+        pupMathRes = self.pupMathRes()
+        fondPB = self.fondPB()
+        mUfii = self.mUfii()
+        repPbMats = self.repPbMats()
+        premInvest = self.premiumInvested() * self.nbrPolIfSM
+        unitExp = self.unitExpenseRed()
+        reprisePB = self.reprisePB()
+        dotationPB = self.dotationPB()
+        pbSortie = self.pbSortie()
+        totIntCred = self.intCredT()
+        provTechAj = self.provTechAj()   
+        txReserve = self.fraisGestionPlacement()
+        mathresPP = self.mathresBA()  
+        totComm = self.commissions()
+        monthPb = self.one() - self.allocMonths()
     
         # calcul des exceptions
-        provMathAj[:,0,:] = premInc[:,0,:] - totExp[:,0,:] - riderCoutgo[:,0,:]
+        # provMathAj[:,0,:] = premInc[:,0,:] - totExp[:,0,:] - riderCoutgo[:,0,:]
     
-    
+        # # condition qui met des 1 à polterm + 1
+        # cond = self.durationIf() == self.polTermM()+1
         
-        for i in range(1,pol.shape[1]):
+        for i in range(1,self.shape[1]):
+            
+            
+            resReldMatTEMP = (fondPB[:,i-1,:] + rfinAnn[:,i-1,:])
+            
+            resReldMat[:,i,:] = np.divide(resReldMatTEMP, (nbrPolIf[:,i-1,:] + nbrPupsIf[:,i-1,:]), out=np.zeros_like(resReldMatTEMP), where=(nbrPolIf[:,i-1,:] + nbrPupsIf[:,i-1,:])!=0)\
+                * (noMat[:,i,:] + nbrPupMat[:,i,:]) + mathresPP[:,i-1,:] * noMat[:,i,:] + pupMathRes[:,i-1,:] * nbrPupMat[:,i,:]
             
             
             
-            resReldMat[:,i,:] = mathresPP[:,i-1,:] * noMat[:,i,:] + pupMathRes[:,i-1,:] * nbrPupMat[:,i,:] + (fondPB[:,i-1,:] + rfinAnn[:,i-1,:]) / (nbrPolIf[:,i-1,:] + nbrPupsIf[:,i-1,:])*(noMat[:,i,:] + nbrPupMat[:,i,:])
+       
+            # resReldMat[:,i,:] = mathresPP[:,i-1,:] * noMat[:,i,:] + pupMathRes[:,i-1,:] * nbrPupMat[:,i,:] + (fondPB[:,i-1,:] + rfinAnn[:,i-1,:]) / (nbrPolIf[:,i-1,:] + nbrPupsIf[:,i-1,:])*(noMat[:,i,:] + nbrPupMat[:,i,:])
             
-            provMathAj[:,i,:] = provMathIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInc[:,i,:] - riderCoutgo[:,i,:] - totExp[:,i,:] - resReldMat[:,i,:]
-        
-            oTaxblInc[:,i,:] = provMathAj[:,i,:] * mUfii[:,i,:]
+
         
             adjMathRes2[:,i,:] = provMathIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInvest[:,i,:] - riderCoutgo[:,i,:] - resReldMat[:,i,:] - repPbMats[:,i,:]
         
-            totExp[:,i,:] = unitExp[:,i,:] + adjMathRes2[:,i,:] * txReserve[:,i,:]  
+            totExp[:,i,:] = unitExp[:,i,:] + adjMathRes2[:,i,:] * txReserve[:,i,:] 
+            
+            
+            provMathAj[:,i,:] = provMathIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInc[:,i,:] - riderCoutgo[:,i,:] - (totExp[:,i,:] + totComm[:,i,:]) - resReldMat[:,i,:]
+        
+            oTaxblInc[:,i,:] = provMathAj[:,i,:] * mUfii[:,i,:]
+            
             
             resFinMois[:,i,:] = oTaxblInc[:,i,:] + reprisePB[:,i,:] - totIntCred[:,i,:] - pbIncorpIF[:,i,:] - dotationPB[:,i,:] - pbSortie[:,i,:]
             
-            rfinAnn[:,i,:] = rfinAnn[:,i-1,:] + resFinMois[:,i,:]
+            rfinAnn[:,i,:] = (rfinAnn[:,i-1,:] + resFinMois[:,i,:]) * monthPb[:,i,:]
             
             
             
@@ -888,15 +910,20 @@ class EP(Portfolio):
 
         self.resReldMat = resReldMat
         
-
+        self.premInvest = premInvest
+        
+        # self.mUfii = mUfii
+        
+        # total expenses 
+        self.totExp = totExp
         return
 
 
 
 
-##############################################################################################################################
-###################################DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES#############################################
-##############################################################################################################################
+# =============================================================================
+# DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES
+# =============================================================================
 
 
 def tester(self):
@@ -914,15 +941,15 @@ pol = EP()
 # pol.ids([515503,1736301,1900401,2168101,2396001,2500001,2500101,2466301])
 
 # 
-# pol.mod([36])
+pol.mod([28])
 
-fff = oTaxblInc
+fff = pol.rfinAnn
 riderPP = pol.riderCostPP()
 
 #pol.modHead([9],2)
 # aa = pol.p
 a=pol.nbrPolIf
-fff = pol.reprisePB()
+# fff = pol.reprisePB()
 #b=pol.nbrPolIfSM
 #c=pol.nbrMaturities
 d=pol.nbrDeath
@@ -968,6 +995,6 @@ z.to_csv(r'check.csv',header=False)
 #Visualiser une dimension d'un numpy qui n'apparait pas
 #data=pol.lapse()
 #a=pd.DataFrame(data[:,:,4])
-
-
-
+a = pol.mUfii
+# z=pd.DataFrame(a[:,:,0])
+# z.to_excel('test mUfii.xlsx')
