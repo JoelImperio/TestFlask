@@ -39,6 +39,7 @@ class VE(Portfolio):
         super().update(subPortfolio)
         self.loopVE()
         self.lapse()
+        self.reserveForExp()
          
     def isLapse(self):
         lapse = self.zero()
@@ -339,20 +340,20 @@ class VE(Portfolio):
 # =============================================================================
     # --- Composants de totalExpense
 # =============================================================================
-    def initialExpenses(self):
-        initialExpenses = self.zero()
-        return initialExpenses
+    # def initialExpenses(self):
+    #     initialExpenses = self.zero()
+    #     return initialExpenses
       
-    def renewableExpenses(self):
-        reserveExpenses = (0.328733769/1200)
-        fixedAnnualExpense = (120/12)
-        inflation = self.inlfation()
-        renewableExpenses = (self.nbrPolIfSM() * inflation * fixedAnnualExpense + self.adjustedMathReserve() * reserveExpenses)
-        return renewableExpenses
+    # def renewableExpenses(self):
+    #     reserveExpenses = (0.328733769/1200)
+    #     fixedAnnualExpense = (120/12)
+    #     inflation = self.inlfation()
+    #     renewableExpenses = (self.nbrPolIfSM() * inflation * fixedAnnualExpense + self.adjustedMathReserve() * reserveExpenses)
+    #     return renewableExpenses
     
-    def adjustedMathReserve(self):
-        adjustedMathReserve = np.maximum(0, (self.fMathResIf() + self.rfinAnnNc() + self.ridercOutgo() + self.ppureEnc()))
-        return adjustedMathReserve
+    # def adjustedMathReserve(self):
+    #     adjustedMathReserve = np.maximum(0, (self.fMathResIf() + self.rfinAnnNc() + self.ridercOutgo() + self.ppureEnc()))
+    #     return adjustedMathReserve
     
     # F_MATH_RES_IF
     def fMathResIf(self):
@@ -360,10 +361,77 @@ class VE(Portfolio):
         return fMathResIf
     
     # RFIN_ANN_NC
-    def rfinAnnNc(self):
-        # c'est le bordel
-        rfinAnnNc = self.one()
-        return rfinAnnNc
+    # def rfinAnnNc(self):
+    #     # c'est le bordel
+    #     rfinAnnNc = self.one()
+    #     durationIf = self.durationIf()
+        
+    #     for i in range(1,self.shape[1]):
+    #         conditions = [(durationIf[:,i,:] % 12 <> 0)]
+    #         result =[(rfinAnnNc[:,i-1,:] + resFinFinMois[:,i,:])]
+    #         sinon = 0
+    #         valNetpFac = np.select(conditions,result,sinon)
+        
+        
+    #     return rfinAnnNc
+    
+    
+    def unitExpense(self):
+        inflation=np.roll(self.inflation(),[1],axis=1)
+        inflation[:,0,:]=0
+        coutParPolice=self.fraisGestion()
+        cost=coutParPolice*inflation*self.nbrPolIfSM
+        return cost
+
+    #  Calcul des réserve mathématiques adjustées
+    def reserveForExp(self):
+        # déclaration des nouvelles variables
+        totExp = self.zero()
+        rfinAnn = self.zero()
+        adjMathRes2 = self.zero()
+        resFinMois = self.zero()
+        provMathAj = self.zero()
+        totCom = self.totalCommissions()
+
+        # fonction existantes
+        fMathResIf = self.fMathResIf()
+        riderCoutgo = self.ridercOutgo()
+        premInc = self.totalPremium()
+        mathResPP = self.mathResBa()
+        # pupMathRes = self.pupMathRes()
+        mUfii = self.rate()
+        premInvest = self.purePremium() * self.nbrPolIfSM
+        unitExp = self.unitExpense()
+        # provTechAj = self.provTechAj()   
+        txReserve = self.fraisGestionPlacement()
+    
+        # calcul des exceptions
+        provMathAj[:,0,:] = premInc[:,0,:] - totExp[:,0,:] - riderCoutgo[:,0,:]
+
+        for i in range(1,self.shape[1]):
+            # Calcul ProvMathAj
+            provMathAj[:,i,:] = fMathResIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInc[:,i,:] - riderCoutgo[:,i,:] - totExp[:,i,:] - totCom[:,i,:] 
+            # Calcul adjMathRes2
+            adjMathRes2[:,i,:] = fMathResIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInvest[:,i,:] - riderCoutgo[:,i,:]
+            # Calcul totExp
+            totExp[:,i,:] = unitExp[:,i,:] + adjMathRes2[:,i,:] * txReserve[:,i,:] 
+            # Calcul resFinMois, en ordre
+            resFinMois[:,i,:] = provMathAj[:,i,:] * mUfii[:,i,:]
+            # Calcul RFIN_ANN_NC, en ordre
+            rfinAnn[:,i,:] = rfinAnn[:,i-1,:] + resFinMois[:,i,:]
+
+   #Définition des variables récursives
+        # Résultat financier en fin de mois non constaté
+        self.resFinMois = resFinMois
+        # Résultat de l'année en cours non constaté
+        self.rfinAnn = rfinAnn
+        # Reserves mathématiques ajustées pour calculer les expenses
+        self.adjMathRes2 = adjMathRes2
+        # Provisions mathématiques ajustées
+        self.provMathAj = provMathAj
+        # Total des expenses
+        self.totExp = totExp
+
     
     # PPURE_ENC
     def ppureEnc(self):
@@ -425,7 +493,9 @@ class VE(Portfolio):
 
 #Retourne les dépense totales 
     def totalExpense(self):
-        return self.initialExpenses() + self.renewableExpenses()
+        # return self.initialExpenses() + self.renewableExpenses()
+        totalExpense = self.totExp
+        return totalExpense
 
 # =============================================================================
     # --- Calcul du BEL   
@@ -450,12 +520,15 @@ pol = VE()
 
 # pol.ids([66102])
 
+test = pol.inflation()
+test2 = pol.nbrPolIfSM
+test3 = pol.totalExpense()
  
 x = pol.p
 
 x.to_excel('ptf.xlsx')
 
-monCas=pol.deathOutgo()
+monCas=pol.totalExpense()
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
