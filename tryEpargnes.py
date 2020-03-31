@@ -895,23 +895,4 @@ pgg=pol.PGG()
 
 print("Class EP--- %s sec" %'%.2f'%  (time.time() - start_time))
 
-monCas=pgg
-zz=np.sum(monCas, axis=0)
-zzz=np.sum(zz[:,0])
-z=pd.DataFrame(monCas[:,:,0])
-z=z.sum()
-z.to_csv(r'check.csv',header=False)
 
-
-# aaa=aa[['PMBPOL', 'PMBFRACT','POLSIT','PMBMOD','PMBTXINT']]
-
-
-# aa.to_excel("check portefeuille.xlsx", header = True )
-
-
-#Visualiser une dimension d'un numpy qui n'apparait pas
-#data=pol.lapse()
-#a=pd.DataFrame(data[:,:,4])
-# a = pol.mUfii
-# z=pd.DataFrame(a[:,:,0])
-# z.to_excel('test mUfii.xlsx')
