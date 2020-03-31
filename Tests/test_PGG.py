@@ -26,8 +26,8 @@ ResultatPGG=pd.read_excel(path+'\Resultats_PGG.xls',sheet_name='Synthese',skipro
 #Test spécifique produit pour le Best Estimate et la PGG
 class Test_FU(ut.TestCase):
 
-    RTOL=0.1
-    ATOL=1
+    RTOL=0.0001
+    ATOL=0.001
     decimalPrecision=2
     
     spProphet = DataProphet['FU'].replace('-',0)
@@ -103,8 +103,8 @@ class Test_FU(ut.TestCase):
 #Test spécifique produit pour le Best Estimate et la PGG
 class Test_AX(ut.TestCase):
 
-    RTOL=0.1
-    ATOL=1
+    RTOL=0.0001
+    ATOL=0.001
     decimalPrecision=2
     
     spProphet = DataProphet['AX'].replace('-',0)
@@ -180,8 +180,8 @@ class Test_AX(ut.TestCase):
 #Test spécifique produit pour le Best Estimate et la PGG
 class Test_HO(ut.TestCase):
 
-    RTOL=0.1
-    ATOL=1.0
+    RTOL=0.0001
+    ATOL=0.001
     decimalPrecision=2
     
     spProphet = DataProphet['HO'].replace('-',0)
@@ -256,8 +256,8 @@ class Test_HO(ut.TestCase):
 #Test spécifique produit pour le Best Estimate et la PGG
 class Test_PR(ut.TestCase):
 
-    RTOL=0.1
-    ATOL=1.0
+    RTOL=0.0001
+    ATOL=0.001
     decimalPrecision=2
     
     spProphet = DataProphet['PR'].replace('-',0)

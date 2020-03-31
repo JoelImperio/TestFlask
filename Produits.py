@@ -466,7 +466,7 @@ t=pol.BEL()
 # pgg=pol.PGG()
 
 
-monCas=t
+monCas=o
 
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
@@ -475,7 +475,7 @@ z=z.sum()
 z.to_csv(r'check.csv',header=False)
 
 
-
+pol.p.to_excel('check portefeuille.xlsx')
 
 # aa.to_excel("check portefeuille.xlsx", header = True )
 

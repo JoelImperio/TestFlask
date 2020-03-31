@@ -450,6 +450,8 @@ def portfolioPreProcessing(p):
     
     #Une police Hospitalis a un taux d'indexation sur la prime à 3%
     p.loc[p['PMBPOL'].isin([1637202]), 'POLINDEX'] = 0
+    # Une police axiprotect a un taux d'indexation sur la prime à 1%, on force à 0
+    p.loc[p['PMBPOL'].isin([2357801]), 'POLINDEX'] = 0
     
 
     agesInitial(p)
