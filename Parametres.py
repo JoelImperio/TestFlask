@@ -75,6 +75,9 @@ def allocationDesClassPGG(p):
     p.loc[p['ClassPGGinit'].isin(['EP','MI']),'ClassPGG']= \
     p.loc[p['ClassPGGinit'].isin(['EP','MI']),'ClassPGGinit'].map(str)+ \
     p.loc[p['ClassPGGinit'].isin(['EP','MI']),'PMBTXINT'].map(str)
+    
+    #Correction des polices Multi-taux affectées à la classe EP1.5    
+    p.loc[p['PMBPOL'].isin([1751801,514407]), 'ClassPGG'] = 'EP1.5'
 
     
 ##############################################################################################################################

@@ -823,7 +823,6 @@ class EP(Portfolio):
         # total expenses 
         self.totExp = totExp
         
-
         return
 
     def reserveExpense(self):
@@ -843,10 +842,6 @@ class EP(Portfolio):
 ### TEST ET FONCTIONALITES
 # =============================================================================
 
-
-def tester(self):
-    return self
-
 pol = EP()
 
 # a = pol.matu()
@@ -862,7 +857,7 @@ pol = EP()
 # pol.mod([29])
 
 # a = pol.BEL()[:,:409,0]
-fff = pol.nbrNewMat
+# fff = pol.nbrNewMat
 
 # a = pol.p
 
@@ -889,7 +884,7 @@ fff = pol.nbrNewMat
 # q=pol.totalClaim()
 # r=pol.totalCommissions()
 # s=pol.totalExpense()
-t=pol.BEL()
+# t=pol.BEL()
 
 # bel=np.sum(pol.BEL(), axis=0)
 pgg=pol.PGG()
@@ -900,7 +895,7 @@ pgg=pol.PGG()
 
 print("Class EP--- %s sec" %'%.2f'%  (time.time() - start_time))
 
-monCas=t
+monCas=pgg
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
