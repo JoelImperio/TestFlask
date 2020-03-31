@@ -750,6 +750,7 @@ class EP(Portfolio):
     
     
 #  Calcul des réserve mathématiques adjustées afin de calculer les expenses
+
     def reserveForExp(self):
         
         # déclaration des nouvelles variables
