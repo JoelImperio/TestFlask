@@ -9,9 +9,6 @@ from MyPyliferisk.mortalitytables import *
 #path = os.path.dirname(os.path.abspath(__file__))
 start_time = time.time()
 
-
-
-
 # =============================================================================
 #   Création de la classe Sérénité
 # =============================================================================
@@ -175,9 +172,7 @@ class VE(Portfolio):
 
     # PMG_SA_PC
     def pmgSaPc(self):
-        # pmgSaPc = self.fraisGestion() * self.valNetpFac()
-        # pmgSaPc = self.CG_SA_POL_PC() * self.valNetpFac() + self.CG_SA_PRI_PC() * self.valPolFac()
-        pmgSaPc = self.CG_SA_PRI_PC() * self.valNetpFac() + self.CG_SA_POL_PC() * self.valPolFac()
+        pmgSaPc = self.cgSaPriPc() * self.valNetpFac() + self.cgSaPolPc() * self.valPolFac()
         return pmgSaPc
        
     # PROV_GEST_PP
@@ -201,8 +196,6 @@ class VE(Portfolio):
         result =[(precPPbis)]
         sinon = 0
         precPP = np.select(conditions,result,sinon)
-        
-        
         return precPP
     
     # PR_PURE_PP
@@ -224,27 +217,19 @@ class VE(Portfolio):
     def valNetpPP(self):
         ValNetpPp = self.purePremium() * self.valNetpFac()
         return ValNetpPp
-        
-    # def fraisGestion(self):
-    #     fraisGestion = self.p['gestionLoading'].to_numpy()[:,np.newaxis,np.newaxis]*100
-    #     return fraisGestion
     
-    def CG_SA_POL_PC(self):
+    def cgSaPolPc(self):
         conditions = [(self.p['Age1AtEntry'] < 53), (self.p['Age1AtEntry'] < 70)]
         result =[(0.25), (0.45)]
         sinon = (0.9)
         cgSaPolPc = np.select(conditions,result,sinon)[:,np.newaxis,np.newaxis]
-        
-        # cgSaPolPc = cgSaPolPc * self.one()
         return cgSaPolPc
     
-    def CG_SA_PRI_PC(self):
+    def cgSaPriPc(self):
         conditions = [(self.p['Age1AtEntry'] < 53), (self.p['Age1AtEntry'] < 70)]
         result =[(0.35), (0.55)]
         sinon = (1.2)
         cgSaPriPc = np.select(conditions,result,sinon)[:,np.newaxis,np.newaxis]
-        
-        # cgSaPriPc = cgSaPriPc * self.one()
         return cgSaPriPc
     
     # PR_INVENT_PP
@@ -252,7 +237,7 @@ class VE(Portfolio):
         situation = self.p['POLSIT'][:,np.newaxis,np.newaxis]
         conditions = [(situation != 4) & (situation != 8) & (situation != 9)]
         # result =[(self.purePremium() + (self.fraisGestion()/100 * self.insuredSum()))]
-        result =[(self.purePremium() + ((self.CG_SA_POL_PC()+self.CG_SA_PRI_PC())/100 * self.insuredSum()))]
+        result =[(self.purePremium() + ((self.cgSaPolPc()+self.cgSaPriPc())/100 * self.insuredSum()))]
         sinon = 0
         PrInventPp = np.select(conditions,result,sinon)
         return PrInventPp
@@ -297,84 +282,43 @@ class VE(Portfolio):
     
     # DEATH_BEN_PP
     def deathBenefit(self):
-        capital = self.p['PMBCAPIT'].to_numpy()[:,np.newaxis,np.newaxis]
-        # primetot = self.p['POLPRTOT'].to_numpy()[:,np.newaxis,np.newaxis]     
+        capital = self.p['PMBCAPIT'].to_numpy()[:,np.newaxis,np.newaxis]    
         frac = 12 / self.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
         pbAcq = self.p['PMBPBEN'].to_numpy()[:,np.newaxis,np.newaxis]
-        # situation = self.p['POLSIT'][:,np.newaxis,np.newaxis]
-        durationif = self.durationIf()
-    
+        durationif = self.durationIf()  
         isPremPay = self.isPremPay()
-        # isPremPay[:,0,:] = 1
-        
-        # rajout nombre de primes payées en début de période
-        
         conditions = [durationif[:,0,:] != 1, durationif[:,0,:] == 1]
         result =[np.ceil(durationif[:,0,:]/frac[:,0,:]), 1]
         isPremPay[:,0,:] = np.select(conditions,result)
-        
-        # isPremPay[:,0,:] = (durationif[:,0,:]/frac[:,0,:])
-    
-        premiumsPaid = isPremPay * pol.p['POLPRTOT'][:,np.newaxis,np.newaxis]/pol.frac()
-             
+        premiumsPaid = isPremPay * pol.p['POLPRTOT'][:,np.newaxis,np.newaxis]/pol.frac()           
         cumulatedPremiums = pol.zero()
- 
-        cumulatedPremiums = np.cumsum(premiumsPaid, axis=1)
-            
-        # vecteur condition durationif > 12
+        cumulatedPremiums = np.cumsum(premiumsPaid, axis=1)      
         conditions = [(durationif>12)]
         result =[(0)]
         sinon = 1
         deathBenPP1 = np.select(conditions,result,sinon) * cumulatedPremiums
-            
         conditions = [(durationif>12)]
         result =[(1)]
         sinon = 0
         durationif12plus = np.select(conditions,result,sinon)
         deathBenPP2 = (capital + pbAcq) * durationif12plus  
-        
         deathBenPP = deathBenPP1 + deathBenPP2
-   
         return deathBenPP
 
 # =============================================================================
     # --- Composants de totalExpense
 # =============================================================================
-    # def initialExpenses(self):
-    #     initialExpenses = self.zero()
-    #     return initialExpenses
-      
-    # def renewableExpenses(self):
-    #     reserveExpenses = (0.328733769/1200)
-    #     fixedAnnualExpense = (120/12)
-    #     inflation = self.inlfation()
-    #     renewableExpenses = (self.nbrPolIfSM() * inflation * fixedAnnualExpense + self.adjustedMathReserve() * reserveExpenses)
-    #     return renewableExpenses
-    
-    # def adjustedMathReserve(self):
-    #     adjustedMathReserve = np.maximum(0, (self.fMathResIf() + self.rfinAnnNc() + self.ridercOutgo() + self.ppureEnc()))
-    #     return adjustedMathReserve
-    
     # F_MATH_RES_IF
     def fMathResIf(self):
         fMathResIf = self.mathResBa() * self.nbrPolIf
-        return fMathResIf
+        return fMathResIf    
     
-    # RFIN_ANN_NC
-    # def rfinAnnNc(self):
-    #     # c'est le bordel
-    #     rfinAnnNc = self.one()
-    #     durationIf = self.durationIf()
-        
-    #     for i in range(1,self.shape[1]):
-    #         conditions = [(durationIf[:,i,:] % 12 <> 0)]
-    #         result =[(rfinAnnNc[:,i-1,:] + resFinFinMois[:,i,:])]
-    #         sinon = 0
-    #         valNetpFac = np.select(conditions,result,sinon)
-        
-        
-    #     return rfinAnnNc
-    
+    def allocMonths(self):
+        calendarMonth=np.arange(start=self.p['DateCalcul'].dt.month.values[0].astype(int),stop=(self.shape[1]+self.p['DateCalcul'].dt.month.values[0].astype(int)))
+        calendarMonth=calendarMonth%12 + 1
+        calendarMonth=calendarMonth[np.newaxis,:,np.newaxis]*self.one()        
+        mask = calendarMonth ==1
+        return mask*1
     
     def unitExpense(self):
         inflation=np.roll(self.inflation(),[1],axis=1)
@@ -401,9 +345,12 @@ class VE(Portfolio):
         # pupMathRes = self.pupMathRes()
         provMathIf = self.mathResBa() * self.nbrPolIf
         mUfii = self.rate()
+        durationIf = self.durationIf()
+        monthPb = self.one() - self.allocMonths()
+        # isActive = self.isActive()
         
         # PPURE_ENC
-        premInvest = self.purePremium() * self.nbrPolIfSM / self.frac()
+        premInvest = self.purePremium() * self.nbrPolIfSM / self.frac() * self.isPremPay()
         
         unitExp = self.unitExpense()
         # provTechAj = self.provTechAj()   
@@ -426,7 +373,11 @@ class VE(Portfolio):
             resFinMois[:,i,:] = provMathAj[:,i,:] * mUfii[:,i,:]
             
             # Calcul RFIN_ANN_NC, en ordre
-            rfinAnn[:,i,:] = rfinAnn[:,i-1,:] + resFinMois[:,i,:]
+            # if durationIf[:,i,:] % 12 != self.zero():
+            #     rfinAnn[:,i,:] = rfinAnn[:,i-1,:] + resFinMois[:,i,:]
+            # else:
+            #     rfinAnn[:,i,:] = 0
+            rfinAnn[:,i,:] = (rfinAnn[:,i-1,:] + resFinMois[:,i,:]) * monthPb[:,i,:] 
 
    #Définition des variables récursives
         # Résultat financier en fin de mois non constaté
@@ -481,7 +432,7 @@ class VE(Portfolio):
 # =============================================================================
     # --- Calcul des composants du BEL 
 # =============================================================================
-#Retourne les primes totales perçues
+# Retourne les primes totales perçues
     # def totalPremium(self):
     #     premInc = self.p['POLPRTOT'][:,np.newaxis,np.newaxis]/self.frac()
     #     situation = self.p['POLSIT'][:,np.newaxis,np.newaxis]
@@ -509,25 +460,26 @@ class VE(Portfolio):
 # =============================================================================
     # --- Calcul du BEL   
 # =============================================================================
-    def BEL(self):
+    # def BEL(self):
         
-        interestRates=1+self.rate()       
-        premium=self.totalPremium()
-        claim=self.totalClaim()
-        expense=self.totalExpense()
-        commission=self.totalCommissions()
+    #     interestRates=1+self.rate()       
+    #     premium=self.totalPremium()
+    #     claim=self.totalClaim()
+    #     expense=self.totalExpense()
+    #     commission=self.totalCommissions()
         
-        bel=self.zero()
+    #     bel=self.zero()
               
-        for t in range(1,self.shape[1]+1):
-            bel[:,-t,:]=(bel[:,-t+1,:]+claim[:,-t+1,:]+expense[:,-t+1,:]+commission[:,-t+1,:]-premium[:,-t+1,:])/interestRates[:,-t+1,:]
-        return bel
+    #     for t in range(1,self.shape[1]+1):
+    #         bel[:,-t,:]=(bel[:,-t+1,:]+claim[:,-t+1,:]+expense[:,-t+1,:]+commission[:,-t+1,:]-premium[:,-t+1,:])/interestRates[:,-t+1,:]
+    #     return bel
     
     
     
 pol = VE()
 
-pol.ids([18105])
+# pol.ids([18105])
+# pol.ids([27503])
 
 test = pol.inflation()
 test2 = pol.nbrPolIfSM
@@ -537,7 +489,7 @@ x = pol.p
 
 x.to_excel('ptf.xlsx')
 
-monCas = pol.adjMathRes2
+monCas = pol.totalPremium()
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
