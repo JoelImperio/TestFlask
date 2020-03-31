@@ -434,7 +434,7 @@ def tester(self):
 
 # pol = HO()
 # pol=FU()
-# pol=AX()
+pol=AX()
 # pol=PR()
 #pol=FU(run=[4,5])
 # nomat = pol.nbrMaturities
@@ -456,23 +456,23 @@ def tester(self):
 # l=pol.adjustedReserve()
 #m=pol.reserveExpense()
 #n=pol.unitExpense()
-# o=pol.totalPremium()
+o=pol.totalPremium()
 # q=pol.totalClaim()
 # r=pol.totalCommissions()
 # s=pol.totalExpense()
-# t=pol.BEL()
+t=pol.BEL()
 
 # bel=np.sum(pol.BEL(), axis=0)
 # pgg=pol.PGG()
 
 
-# monCas=o
+monCas=t
 
-# zz=np.sum(monCas, axis=0)
-# zzz=np.sum(zz[:,0])
-# z=pd.DataFrame(monCas[:,:,0])
-# z=z.sum()
-# z.to_csv(r'check.csv',header=False)
+zz=np.sum(monCas, axis=0)
+zzz=np.sum(zz[:,0])
+z=pd.DataFrame(monCas[:,:,0])
+z=z.sum()
+z.to_csv(r'check.csv',header=False)
 
 
 

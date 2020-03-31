@@ -33,6 +33,29 @@ class EP(Portfolio):
         self.loopSaving()
         self.reserveForExp()
 
+
+
+
+
+
+
+
+#     def onePone(self):
+#         nbrPolices=int(len(self.p))
+#         nbrPeriodes= int(self.p['residualTermM'].max()+2)
+#         nbrRuns=int(len(self.runs))
+#         return np.copy(np.ones([nbrPolices,nbrPeriodes,nbrRuns]))
+
+# #Permet de créer un vecteur rempli de 0 pour la taille de portefeuille et la durée de projection  
+#     def zeroPone(self):             
+#         return np.copy(np.zeros_like(self.one()))
+
+
+
+
+
+
+
 #Cette Loop renvoie l'ensemble des variables récusrives pour les produits épargnes
     def loopSaving(self):
 
@@ -855,7 +878,7 @@ class EP(Portfolio):
         provTechAj = self.provTechAj()   
         txReserve = self.fraisGestionPlacement()
         mathresPP = self.mathresBA()  
-        totComm = self.commissions()
+        totComm = self.totalCommissions()
         monthPb = self.one() - self.allocMonths()
         isActive = self.isActive()
     
@@ -873,19 +896,13 @@ class EP(Portfolio):
             resReldMat[:,i,:] = np.divide(resReldMatTEMP, (nbrPolIf[:,i-1,:] + nbrPupsIf[:,i-1,:]), out=np.zeros_like(resReldMatTEMP), where=(nbrPolIf[:,i-1,:] + nbrPupsIf[:,i-1,:])!=0)\
                 * (noMat[:,i,:] + nbrPupMat[:,i,:]) + mathresPP[:,i-1,:] * noMat[:,i,:] + pupMathRes[:,i-1,:] * nbrPupMat[:,i,:]
             
-            
-            
-       
-            # resReldMat[:,i,:] = mathresPP[:,i-1,:] * noMat[:,i,:] + pupMathRes[:,i-1,:] * nbrPupMat[:,i,:] + (fondPB[:,i-1,:] + rfinAnn[:,i-1,:]) / (nbrPolIf[:,i-1,:] + nbrPupsIf[:,i-1,:])*(noMat[:,i,:] + nbrPupMat[:,i,:])
-            
 
-        
             adjMathRes2[:,i,:] = fMathResIF[:,i-1,:] + rfinAnn[:,i-1,:] + premInvest[:,i,:] - riderCoutgo[:,i,:] - resReldMat[:,i,:] - repPbMats[:,i,:]
         
             totExp[:,i,:] = unitExp[:,i,:] + adjMathRes2[:,i,:] * txReserve[:,i,:] 
             
             
-            provMathAj[:,i,:] = (provMathIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInc[:,i,:] - riderCoutgo[:,i,:] - (totExp[:,i,:] + totComm[:,i,:]) - resReldMat[:,i,:]) * isActive[:,i,:]
+            provMathAj[:,i,:] = provMathIf[:,i-1,:] + rfinAnn[:,i-1,:] + pbIncorpIF[:,i,:] + premInc[:,i,:] - riderCoutgo[:,i,:] - (totExp[:,i,:] + totComm[:,i,:]) - resReldMat[:,i,:]
         
             oTaxblInc[:,i,:] = provMathAj[:,i,:] * mUfii[:,i,:]
             
@@ -951,15 +968,15 @@ pol = EP()
 
 #pol=EP(run=[4,5])
 # pol.ids([1731601, 1732501])
-pol.ids([1764401])
+# pol.ids([1764401])
 # pol.ids([493202, 524401])
 # pol.ids([515503,1736301,1900401,2168101,2396001,2500001,2500101,2466301])
 
 # 
-# pol.mod([33])
+pol.mod([28])
 
 # a = pol.BEL()[:,:409,0]
-fff = pol.provMathAj
+fff = pol.nbrNewMat
 
 
 
