@@ -345,7 +345,7 @@ class VE(Portfolio):
         # pupMathRes = self.pupMathRes()
         provMathIf = self.mathResBa() * self.nbrPolIf
         mUfii = self.rate()
-        durationIf = self.durationIf()
+        # durationIf = self.durationIf()
         monthPb = self.one() - self.allocMonths()
         # isActive = self.isActive()
         
@@ -489,7 +489,7 @@ x = pol.p
 
 x.to_excel('ptf.xlsx')
 
-monCas = pol.totalPremium()
+monCas = pol.totalCommissions()
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
