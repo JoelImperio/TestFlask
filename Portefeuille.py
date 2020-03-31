@@ -303,8 +303,32 @@ class Portfolio(Hypo):
         dfPGG['PGG']=pgg
         
         
+      
+        # df = pd.DataFrame()
+        # df['ClassPGG'] = pol.p['ClassPGG']
+
         
-                      
+        # df['PMpgg']=pol.p['PMbasePGG']
+        
+        # df = df.to_numpy()
+        # bel=np.sum(pol.BEL(), axis=0)[0,:]
+        
+        # maxBel=max(bel)
+        
+        # pgg= max(0,maxBel-pm)
+        
+        # indexer=pol.p['ClassPGG'].unique()
+        
+        # pm=np.sum(pol.p['PMbasePGG'].to_numpy()[:,np.newaxis]) * indexer
+        
+        # dfPGG=pd.DataFrame(index=indexer,columns=['PGG'])
+        
+        # dfPGG['PGG']=pgg
+        
+                
+        
+        
+        
         return dfPGG
 
 

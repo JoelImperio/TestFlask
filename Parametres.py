@@ -341,9 +341,11 @@ def adjustAgesAndTerm(p):
     p.loc[p['residualTermM']<0,'residualTermM']=0
 
 
-##############################################################################################################################
-#Correction des ages pour HOSPITALIS/SERENITE . A supprimer pour corriger
-########################################################################################################################
+
+# =============================================================================
+# Correction des ages pour HOSPITALIS/SERENITE . A supprimer pour corriger
+# =============================================================================
+
        
     mask=(p['PMBMOD']==58)|(p['PMBMOD']==11)
     
@@ -364,13 +366,24 @@ def adjustAgesAndTerm(p):
 
     p.loc[mask,'Age1AtEntry']=age1
     
+    
+    
+# =============================================================================
+# Residual Term M pour ces cas MOD11 et 58
+# =============================================================================
+    
     mask=(p['PMBMOD']==58)
     p.loc[mask,'residualTermM']=((75-p.loc[mask,'Age1AtEntry'])*12)-p.loc[mask,'DurationIfInitial']
 
 # On force l'age 2 à 999 car les DCS ne prennent pas en compte la 2ème tête
     p.loc[mask,'Age2AtEntry']=999
     
-   
+    mask=(p['PMBMOD']==11)
+    p.loc[mask,'residualTermM']= (99*12)-p.loc[mask,'DurationIfInitial']
+    
+    
+    
+    
     
     
 ##############################################################################################################################
