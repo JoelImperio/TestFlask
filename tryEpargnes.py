@@ -160,7 +160,7 @@ class EP(Portfolio):
             
 #Définition des variables de PB pour actives et réduites
 
-    ### PB        
+   # PB        
             pbIncorPP[:,i,:] = np.nan_to_num(pbCalcPP[:,i-1,:] *  isActive[:,i-1,:])
             
             pbIncorPUP[:,i,:] = np.nan_to_num(pbCalcPUP[:,i-1,:]  * isActive[:,i-1,:]) 
@@ -270,6 +270,12 @@ class EP(Portfolio):
         
         return
 
+
+# =============================================================================
+    ### CALCUL DES PRIMES
+# =============================================================================
+
+
 #Retourne les primes commerciales annuel  avec indexation
     def premiumAnnual(self):
         
@@ -346,6 +352,12 @@ class EP(Portfolio):
             precPP[:,i,:]=precPP[:,i-1,:]+riderIncPP[:,i,:] - ((frek[:,i,:]/12)*riderIncPP2[:,i,:])
               
         return precPP
+
+
+# =============================================================================
+    ### CALCUL DES CLAIMS 
+# =============================================================================
+
 
 #Retourne les claims décès
     def deathClaim(self):
@@ -541,9 +553,9 @@ class EP(Portfolio):
 
     
 # =============================================================================
-# --- CALCUL DES EXPENSES
+    ### CALCUL DES EXPENSES
 # =============================================================================
-    
+
     
 #Retourne le coût par police pour les polices avec réduction possible (RENEXP_XRSE)
     def unitExpense(self):
@@ -851,7 +863,7 @@ class EP(Portfolio):
     
 
 # =============================================================================
-# DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES
+### TEST ET FONCTIONALITES
 # =============================================================================
 
 
@@ -870,7 +882,7 @@ pol = EP()
 # pol.ids([515503,1736301,1900401,2168101,2396001,2500001,2500101,2466301])
 
 # 
-pol.mod([29])
+# pol.mod([29])
 
 # a = pol.BEL()[:,:409,0]
 fff = pol.nbrNewMat
@@ -903,7 +915,7 @@ fff = pol.nbrNewMat
 t=pol.BEL()
 
 # bel=np.sum(pol.BEL(), axis=0)
-# pgg=pol.PGG()
+pgg=pol.PGG()
 
 # pol.p.to_excel('check portefeuille.xlsx')
         

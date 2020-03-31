@@ -303,6 +303,9 @@ class Portfolio(Hypo):
         dfPGG=pd.DataFrame(index=indexer,columns=['PGG'])
         
         dfPGG['PGG']=pgg
+        
+        
+        
                       
         return dfPGG
 
