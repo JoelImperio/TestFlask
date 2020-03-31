@@ -120,6 +120,7 @@ class Test_EP(ut.TestCase):
             
 
 
+
     def test_BEL(self):
         
         prophet=np.array(self.spProphet.loc[:self.length,'BEL_B'].to_numpy(),dtype=float)
@@ -212,6 +213,17 @@ class Test_EP_28(ut.TestCase):
 
 
 
+    def test_BEL(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'BEL_B'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.BEL()[:,:409,0],axis=0)
+
+        
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='BEL ERROR')
+            
+        
+        
 
 
 
@@ -286,7 +298,7 @@ class Test_EP_29(ut.TestCase):
         
         
 # =============================================================================
-#    4 PRINCIPAUX VECTEUR     
+#    PRINCIPAUX VECTEUR     
 # =============================================================================
         
     def test_Premium(self):
@@ -332,8 +344,20 @@ class Test_EP_29(ut.TestCase):
 
         
         
+    def test_BEL(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'BEL_B'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.BEL()[:,:409,0],axis=0)
+
+        
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='BEL ERROR')
+            
         
         
+# =============================================================================
+#      Vecteur secondaires   
+# =============================================================================
         
         
     def test_DeathClaim(self):
@@ -389,7 +413,7 @@ class Test_EP_30(ut.TestCase):
     length = len(sp.totalPremium()[0,:,0])-1
     
 # =============================================================================
-#    4 PRINCIPAUX VECTEUR     
+#    PRINCIPAUX VECTEUR     
 # =============================================================================
         
     def test_Premium(self):
@@ -433,6 +457,17 @@ class Test_EP_30(ut.TestCase):
         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
 
 
+        
+    def test_BEL(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'BEL_B'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.BEL()[:,:409,0],axis=0)
+
+        
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='BEL ERROR')
+            
+        
         
         
         
@@ -494,7 +529,7 @@ class Test_EP_31(ut.TestCase):
     length = len(sp.totalPremium()[0,:,0])-1
     
 # =============================================================================
-#    4 PRINCIPAUX VECTEUR     
+#    PRINCIPAUX VECTEUR     
 # =============================================================================
         
     def test_Premium(self):
@@ -538,7 +573,17 @@ class Test_EP_31(ut.TestCase):
         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
 
 
-  
+    def test_BEL(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'BEL_B'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.BEL()[:,:409,0],axis=0)
+
+        
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='BEL ERROR')
+            
+        
+         
       
 # =============================================================================
 #      VECTEURS SECONDAIRES  
@@ -600,7 +645,7 @@ class Test_EP_32(ut.TestCase):
     length = len(sp.totalPremium()[0,:,0])-1
     
 # =============================================================================
-#    4 PRINCIPAUX VECTEUR     
+#    PRINCIPAUX VECTEUR     
 # =============================================================================
         
     def test_Premium(self):
@@ -644,6 +689,19 @@ class Test_EP_32(ut.TestCase):
         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
 
 
+
+
+    def test_BEL(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'BEL_B'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.BEL()[:,:409,0],axis=0)
+
+        
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='BEL ERROR')
+            
+        
+        
 # =============================================================================
 # VECTEURS SECONDAIRES
 # =============================================================================
@@ -700,7 +758,7 @@ class Test_EP_33(ut.TestCase):
     length = len(sp.totalPremium()[0,:,0])-1
     
 # =============================================================================
-#    4 PRINCIPAUX VECTEUR     
+#    PRINCIPAUX VECTEUR     
 # =============================================================================
         
     def test_Premium(self):
@@ -744,6 +802,19 @@ class Test_EP_33(ut.TestCase):
         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
 
 
+
+
+    def test_BEL(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'BEL_B'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.BEL()[:,:409,0],axis=0)
+
+        
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='BEL ERROR')
+            
+        
+        
 # =============================================================================
 #     VECTEUR SECONDAIRES    
 # =============================================================================
@@ -802,7 +873,7 @@ class Test_EP_36(ut.TestCase):
     length = len(sp.totalPremium()[0,:,0])-1
     
 # =============================================================================
-#    4 PRINCIPAUX VECTEUR     
+#    PRINCIPAUX VECTEUR     
 # =============================================================================
         
     def test_Premium(self):
@@ -846,6 +917,18 @@ class Test_EP_36(ut.TestCase):
         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
 
 
+
+    def test_BEL(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'BEL_B'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.BEL()[:,:409,0],axis=0)
+
+        
+        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='BEL ERROR')
+            
+        
+        
 # =============================================================================
 #    VECTEURS SECONDAIRES
 # =============================================================================

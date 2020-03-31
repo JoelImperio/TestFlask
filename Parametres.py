@@ -202,7 +202,6 @@ def adjustedFracAndPremium(p):
     
     mask = (p['PMBMOD'].isin([28,29,30,31,32,33,36,2,10,6,7, 11, 1]))  
     
-
     mask4_5_9_0 = (p['POLSIT']==4) | (p['POLSIT']==9) | (p['PMBFRACT']==0) | (p['PMBFRACT']==5)
     
     p.loc[mask &  mask4_5_9_0 ,'POLPRTOT']=0
@@ -342,9 +341,11 @@ def adjustAgesAndTerm(p):
     p.loc[p['residualTermM']<0,'residualTermM']=0
 
 
-##############################################################################################################################
-#Correction des ages pour HOSPITALIS/SERENITE . A supprimer pour corriger
-########################################################################################################################
+
+# =============================================================================
+# Correction des ages pour HOSPITALIS/SERENITE . A supprimer pour corriger
+# =============================================================================
+
        
     mask=(p['PMBMOD']==58)|(p['PMBMOD']==11)
     
@@ -365,13 +366,24 @@ def adjustAgesAndTerm(p):
 
     p.loc[mask,'Age1AtEntry']=age1
     
+    
+    
+# =============================================================================
+# Residual Term M pour ces cas MOD11 et 58
+# =============================================================================
+    
     mask=(p['PMBMOD']==58)
     p.loc[mask,'residualTermM']=((75-p.loc[mask,'Age1AtEntry'])*12)-p.loc[mask,'DurationIfInitial']
 
 # On force l'age 2 à 999 car les DCS ne prennent pas en compte la 2ème tête
     p.loc[mask,'Age2AtEntry']=999
     
-   
+    mask=(p['PMBMOD']==11)
+    p.loc[mask,'residualTermM']= (99*12)-p.loc[mask,'DurationIfInitial']
+    
+    
+    
+    
     
     
 ##############################################################################################################################
@@ -389,9 +401,7 @@ def adjustAgesAndTerm(p):
          
     age1=(((12*(dateDebut.dt.year-date1.dt.year)+dateDebut.dt.month-date1.dt.month+(dateDebut.dt.day/100)-(date1.dt.day/100))/12)+0.5).astype(int)
     age2=(((12*(dateDebut.dt.year-date2.dt.year)+dateDebut.dt.month-date2.dt.month+(dateDebut.dt.day/100)-(date2.dt.day/100))/12)+0.5).astype(int)
-    
-    
-  
+      
     age1[age1==0]=1
     
     p.loc[mask,'Age1AtEntry']=age1
@@ -450,6 +460,8 @@ def portfolioPreProcessing(p):
     
     #Une police Hospitalis a un taux d'indexation sur la prime à 3%
     p.loc[p['PMBPOL'].isin([1637202]), 'POLINDEX'] = 0
+    # Une police axiprotect a un taux d'indexation sur la prime à 1%, on force à 0
+    p.loc[p['PMBPOL'].isin([2357801]), 'POLINDEX'] = 0
     
 
     agesInitial(p)
@@ -604,7 +616,7 @@ class Hypo:
 #Permet de créer un vecteur  rempli de 1 pour la taille de portefeuille et la durée de projection  
     def one(self):
         nbrPolices=int(len(self.p))
-        nbrPeriodes= int(self.p['residualTermM'].max()+1)
+        nbrPeriodes= int(self.p['residualTermM'].max()+2)
         nbrRuns=int(len(self.runs))
         return np.copy(np.ones([nbrPolices,nbrPeriodes,nbrRuns]))
 
@@ -633,7 +645,7 @@ class Hypo:
 
 # Retourne une template avec les années chaque mois
     def templateAllYear(self):
-        model=pd.date_range(start=self.p['DateCalcul'].min(), periods=int(self.p['residualTermM'].max()+1), freq='M')
+        model=pd.date_range(start=self.p['DateCalcul'].min(), periods=int(self.p['residualTermM'].max()+2), freq='M')
         model=pd.DataFrame(model).set_index(0).transpose()       
         model=model.copy()
         model.columns=model.columns.year

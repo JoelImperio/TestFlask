@@ -39,7 +39,6 @@ decimalPrecision=2
 #Test spécifique produit pour le Best Estimate et la PGG
 class Test_FU(ut.TestCase):
 
-
     
     spProphet = DataProphet['FU'].replace('-',0)
     sp=FU()
@@ -113,7 +112,6 @@ class Test_FU(ut.TestCase):
 
 #Test spécifique produit pour le Best Estimate et la PGG
 class Test_AX(ut.TestCase):
-
 
     
     spProphet = DataProphet['AX'].replace('-',0)
@@ -189,7 +187,6 @@ class Test_AX(ut.TestCase):
 #Test spécifique produit pour le Best Estimate et la PGG
 class Test_HO(ut.TestCase):
 
-
     
     spProphet = DataProphet['HO'].replace('-',0)
     sp=HO()
@@ -262,7 +259,6 @@ class Test_HO(ut.TestCase):
 
 #Test spécifique produit pour le Best Estimate et la PGG
 class Test_PR(ut.TestCase):
-
 
     
     spProphet = DataProphet['PR'].replace('-',0)
