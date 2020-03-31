@@ -53,7 +53,7 @@ class Test_VE(ut.TestCase):
         
         prophet=np.array(self.spProphet.loc[:408,'TOT_PREST'].to_numpy(),dtype=float)
         
-        python=np.sum(self.sp.totalClaim()[:,:409,0],axis=0)
+        python=np.sum(self.sp.totalClaim()[:,:409,0],axis=0,dtype=float)
 
         
         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalClaim ERROR')
@@ -102,33 +102,33 @@ class Test_VE(ut.TestCase):
 
 
 #Test spécifique pour une police pour le Best Estimate et la PGG
-class Test_VE_POLICE(ut.TestCase):
+# class Test_VE_POLICE(ut.TestCase):
 
-    RTOL=0.1
-    ATOL=1
-    decimalPrecision=2
+#     RTOL=0.1
+#     ATOL=1
+#     decimalPrecision=2
     
-    ### Onglet fichier résultat 
-    ongletResultat='MI_POLICE'
-    spProphet = DataProphet[ongletResultat].replace('-',0)
+#     ### Onglet fichier résultat 
+#     ongletResultat='MI_POLICE'
+#     spProphet = DataProphet[ongletResultat].replace('-',0)
     
-    ### Police à tester
-    polnum=[301]
+#     ### Police à tester
+#     polnum=[301]
     
-    sp=VE()
-    sp.ids(polnum)
+#     sp=VE()
+#     sp.ids(polnum)
 
     
-    def test_Premium(self):
+#     def test_Premium(self):
         
-    ### La variable à tester 'PREM_INC'
-        prophet=np.array(self.spProphet.loc[:408,'PREM_INC'].to_numpy(),dtype=float)
+#     ### La variable à tester 'PREM_INC'
+#         prophet=np.array(self.spProphet.loc[:408,'PREM_INC'].to_numpy(),dtype=float)
         
-    ### La méthode à tester 'totalPremium()'
-        python=np.sum(self.sp.totalPremium()[:,:409,0],axis=0)
+#     ### La méthode à tester 'totalPremium()'
+#         python=np.sum(self.sp.totalPremium()[:,:409,0],axis=0)
 
         
-        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
+#         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalPremium ERROR ')
             
 
 
