@@ -345,9 +345,3 @@ print("Class Portefeuille--- %s sec" %'%.2f'%  (time.time() - start_time))
 ###Visualiser un vecteur np en réduisant une dimension
 #data=a
 #a=pd.DataFrame(data[:,:,1])
-
-
-
-
-
-
