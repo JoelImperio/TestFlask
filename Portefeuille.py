@@ -290,22 +290,31 @@ class Portfolio(Hypo):
 
     def PGG(self):
         
-        pm=np.sum(self.p['PMbasePGG'].to_numpy())
+        pgg=self.p[['PMbasePGG','ClassPGG']]
+        pgg=pgg.reset_index(drop=True)
         
-        bel=np.sum(self.BEL(), axis=0)[0,:]
+        bel=self.BEL()[:,0,:]
         
-        maxBel=max(bel)
+        for i in range(0,self.shape[2]):
+            
+            run='Run_%s' % i
+            pgg[run]=bel[:,i]
         
-        pgg= max(0,maxBel-pm)
         
-        indexer=self.p['ClassPGG'].unique()
+        pgg=pgg.groupby(['ClassPGG']).sum()
+         
         
-        dfPGG=pd.DataFrame(index=indexer,columns=['PGG'])
+        pgg['MaxBEL']=pgg.loc[:, pgg.columns != 'PMbasePGG'].max(axis=1)
         
-        dfPGG['PGG']=pgg
+        pgg['PGG']=pgg['MaxBEL']-pgg['PMbasePGG']
+        
+        pgg.loc[pgg['PGG']<0,'PGG'] = 0
+                
+        dfPGG=pd.DataFrame(index=pgg.index,columns=['PGG'])
+        
+        dfPGG['PGG']=pgg['PGG']
                       
         return dfPGG
-
 
 
 
@@ -339,42 +348,6 @@ print("Class Portefeuille--- %s sec" %'%.2f'%  (time.time() - start_time))
 #data=a
 #a=pd.DataFrame(data[:,:,1])
 
-
-
-# pggClasse=pol.p['ClassPGG'].to_numpy()[:,np.newaxis]
-
-# bel=np.append(bel,values=pggClasse, axis=1)
-
-
-# bel=np.sum(pol.BEL(), axis=0)
-
-pm=pol.p[['PMbasePGG','ClassPGG']]
-pm=pm.reset_index(drop=True)
-
-bel=pol.BEL()[:,0,:]
-
-for i in range(0,pol.shape[2]):
-    
-    run='Run_%s' % i
-    pm[run]=bel[:,i]
-
-
-pm=pm.groupby(['ClassPGG']).sum()
-
-
-
-pm['MaxBEL']=pm.loc[:, pm.columns != 'PMbasePGG'].max(axis=1)
-
-pm['PGG']=pm['MaxBEL']-pm['PMbasePGG']
-
-pm.loc[pm['PGG']<0,'PGG'] = 0
-
-        
-indexer=pm['ClassPGG']
-
-dfPGG=pd.DataFrame(index=indexer,columns=['PGG'])
-
-dfPGG['PGG']=pm['PGG']
 
 
 
