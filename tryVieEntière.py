@@ -397,10 +397,14 @@ class VE(Portfolio):
         fMathResIf = self.fMathResIf()
         riderCoutgo = self.ridercOutgo()
         premInc = self.totalPremium()
-        mathResPP = self.mathResBa()
+        # mathResPP = self.mathResBa()
         # pupMathRes = self.pupMathRes()
+        provMathIf = self.mathResBa() * self.nbrPolIf
         mUfii = self.rate()
-        premInvest = self.purePremium() * self.nbrPolIfSM
+        
+        # PPURE_ENC
+        premInvest = self.purePremium() * self.nbrPolIfSM / self.frac()
+        
         unitExp = self.unitExpense()
         # provTechAj = self.provTechAj()   
         txReserve = self.fraisGestionPlacement()
@@ -409,14 +413,18 @@ class VE(Portfolio):
         provMathAj[:,0,:] = premInc[:,0,:] - totExp[:,0,:] - riderCoutgo[:,0,:]
 
         for i in range(1,self.shape[1]):
-            # Calcul ProvMathAj
-            provMathAj[:,i,:] = fMathResIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInc[:,i,:] - riderCoutgo[:,i,:] - totExp[:,i,:] - totCom[:,i,:] 
             # Calcul adjMathRes2
-            adjMathRes2[:,i,:] = fMathResIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInvest[:,i,:] - riderCoutgo[:,i,:]
+            adjMathRes2[:,i,:] = np.maximum(0, fMathResIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInvest[:,i,:] - riderCoutgo[:,i,:])
+            
             # Calcul totExp
             totExp[:,i,:] = unitExp[:,i,:] + adjMathRes2[:,i,:] * txReserve[:,i,:] 
+            
+            # Calcul ProvMathAj
+            provMathAj[:,i,:] = provMathIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInc[:,i,:] - riderCoutgo[:,i,:] - (totExp[:,i,:] + totCom[:,i,:])
+            
             # Calcul resFinMois, en ordre
             resFinMois[:,i,:] = provMathAj[:,i,:] * mUfii[:,i,:]
+            
             # Calcul RFIN_ANN_NC, en ordre
             rfinAnn[:,i,:] = rfinAnn[:,i-1,:] + resFinMois[:,i,:]
 
@@ -431,6 +439,7 @@ class VE(Portfolio):
         self.provMathAj = provMathAj
         # Total des expenses
         self.totExp = totExp
+        self.provMathIf = provMathIf
 
     
     # PPURE_ENC
@@ -473,15 +482,15 @@ class VE(Portfolio):
     # --- Calcul des composants du BEL 
 # =============================================================================
 #Retourne les primes totales perçues
-    def totalPremium(self):
-        premInc = self.p['POLPRTOT'][:,np.newaxis,np.newaxis]/self.frac()
-        situation = self.p['POLSIT'][:,np.newaxis,np.newaxis]
+    # def totalPremium(self):
+    #     premInc = self.p['POLPRTOT'][:,np.newaxis,np.newaxis]/self.frac()
+    #     situation = self.p['POLSIT'][:,np.newaxis,np.newaxis]
         
-        conditions = [(situation != 4) & (situation != 8) & (situation != 9)]
-        result =[(premInc*self.nbrPolIfSM*self.isPremPay())]
-        sinon = 0
-        prem = np.select(conditions,result,sinon)
-        return prem
+    #     conditions = [(situation != 4) & (situation != 8) & (situation != 9)]
+    #     result =[(premInc*self.nbrPolIfSM*self.isPremPay())]
+    #     sinon = 0
+    #     prem = np.select(conditions,result,sinon)
+    #     return prem
 
 #Retourne le total des prestations payés 
     def totalClaim(self):
@@ -518,7 +527,7 @@ class VE(Portfolio):
     
 pol = VE()
 
-# pol.ids([66102])
+pol.ids([18105])
 
 test = pol.inflation()
 test2 = pol.nbrPolIfSM
@@ -528,7 +537,7 @@ x = pol.p
 
 x.to_excel('ptf.xlsx')
 
-monCas=pol.totalExpense()
+monCas = pol.adjMathRes2
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
