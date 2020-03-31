@@ -869,10 +869,10 @@ pol = EP()
 # pol.ids([515503,1736301,1900401,2168101,2396001,2500001,2500101,2466301])
 
 # 
-# pol.mod([36])
+pol.mod([29])
 
 # a = pol.BEL()[:,:409,0]
-fff = pol.totalExpense()
+fff = pol.nbrNewMat
 
 
 
@@ -899,7 +899,7 @@ fff = pol.totalExpense()
 # q=pol.totalClaim()
 # r=pol.totalCommissions()
 # s=pol.totalExpense()
-# t=pol.BEL()
+t=pol.BEL()
 
 # bel=np.sum(pol.BEL(), axis=0)
 # pgg=pol.PGG()
@@ -910,7 +910,7 @@ fff = pol.totalExpense()
 
 print("Class EP--- %s sec" %'%.2f'%  (time.time() - start_time))
 
-monCas=fff
+monCas=t
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])

@@ -604,7 +604,7 @@ class Hypo:
 #Permet de créer un vecteur  rempli de 1 pour la taille de portefeuille et la durée de projection  
     def one(self):
         nbrPolices=int(len(self.p))
-        nbrPeriodes= int(self.p['residualTermM'].max()+1)
+        nbrPeriodes= int(self.p['residualTermM'].max()+2)
         nbrRuns=int(len(self.runs))
         return np.copy(np.ones([nbrPolices,nbrPeriodes,nbrRuns]))
 
@@ -633,7 +633,7 @@ class Hypo:
 
 # Retourne une template avec les années chaque mois
     def templateAllYear(self):
-        model=pd.date_range(start=self.p['DateCalcul'].min(), periods=int(self.p['residualTermM'].max()+1), freq='M')
+        model=pd.date_range(start=self.p['DateCalcul'].min(), periods=int(self.p['residualTermM'].max()+2), freq='M')
         model=pd.DataFrame(model).set_index(0).transpose()       
         model=model.copy()
         model.columns=model.columns.year
