@@ -77,7 +77,7 @@ CHANGEMENT APPORTé DANS PARAMÈTRE
 
 - Reduction rate corrigé, ajout du calcul en fonction du fractionnement ainsi qu'ajout de isLapse dans le return
 
-
+-EP les polices 1751801 et 514407 multitaux n'étaient pas fans l'extraction de la PGG (EP1.5)
 
 - Ajout de la loop permettant de calculer les polices réduite inforce
 

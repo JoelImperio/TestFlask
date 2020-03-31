@@ -352,18 +352,19 @@ class Test_EP(ut.TestCase):
 
     length = len(sp.totalPremium()[0,:,0]) - 1
     
+
+    def test_nombrePolices(self):
+        nbrPolices=877
+        self.assertEqual(len(self.sp.p),nbrPolices)
     
     
     def test_Premium(self):
         
-    ### La variable à tester 'PREM_INC'
+        ### La variable à tester 'PREM_INC'
         prophet=np.array(self.spProphet.loc[:self.length,'PREM_INC'].to_numpy(),dtype=float)
         
         
-        # prophet=np.array(spProphet.loc[:length,'PREM_INC'].to_numpy(),dtype=float)
-        
-        
-    ### La méthode à tester 'totalPremium()'
+        ### La méthode à tester 'totalPremium()'
         python=np.sum(self.sp.totalPremium()[:,:409,0],axis=0)
 
         
@@ -385,11 +386,8 @@ class Test_EP(ut.TestCase):
         
     def test_DeathClaim(self):
         
-    ### La variable à tester 'PREM_INC'
         prophet=np.array(self.spProphet.loc[:self.length,'DEATH_OUTGO'].to_numpy(),dtype=float)
-        
-    ### La méthode à tester 'totalPremium()'
-        
+                
         python=np.sum((self.sp.deathClaim())[:,:409,0],axis=0)
 
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalPremium ERROR ')
@@ -476,3 +474,4 @@ print("Tests--- %s sec" %'%.2f'%  (time.time() - start_time))
 # suite = loader.discover('.')
 # runner = ut.TextTestRunner()
 # runner.run(suite)
+
