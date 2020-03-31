@@ -64,8 +64,8 @@ class Test_VE(ut.TestCase):
         
         prophet=np.array(self.spProphet.loc[:408,'TOT_COMM'].to_numpy(),dtype=float)
         
-        python=np.array(np.sum(self.sp.totalCommissions()[:,:409,0],axis=0),dtype=float)
-
+        # python=np.array(np.sum(self.sp.totalCommissions()[:,:409,0],axis=0),dtype=float)
+        python=np.array(np.sum(self.sp.totalCommissions()[:,:409,0],axis=0))
         
         np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='totalCommissions ERROR')
 
