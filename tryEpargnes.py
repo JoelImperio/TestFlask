@@ -951,7 +951,7 @@ pol = EP()
 
 #pol=EP(run=[4,5])
 # pol.ids([1731601, 1732501])
-pol.ids([1764401])
+# pol.ids([1764401])
 # pol.ids([493202, 524401])
 # pol.ids([515503,1736301,1900401,2168101,2396001,2500001,2500101,2466301])
 
@@ -989,7 +989,7 @@ fff = pol.provMathAj
 # t=pol.BEL()
 
 # bel=np.sum(pol.BEL(), axis=0)
-# pgg=pol.PGG()
+pgg=pol.PGG()
 
 pol.p.to_excel('check portefeuille.xlsx')
         
