@@ -202,7 +202,6 @@ def adjustedFracAndPremium(p):
     
     mask = (p['PMBMOD'].isin([28,29,30,31,32,33,36,2,10,6,7, 11, 1]))  
     
-#### --- AJOUT JO
     mask4_5_9_0 = (p['POLSIT']==4) | (p['POLSIT']==9) | (p['PMBFRACT']==0) | (p['PMBFRACT']==5)
     
     p.loc[mask &  mask4_5_9_0 ,'POLPRTOT']=0
@@ -389,9 +388,7 @@ def adjustAgesAndTerm(p):
          
     age1=(((12*(dateDebut.dt.year-date1.dt.year)+dateDebut.dt.month-date1.dt.month+(dateDebut.dt.day/100)-(date1.dt.day/100))/12)+0.5).astype(int)
     age2=(((12*(dateDebut.dt.year-date2.dt.year)+dateDebut.dt.month-date2.dt.month+(dateDebut.dt.day/100)-(date2.dt.day/100))/12)+0.5).astype(int)
-    
-    
-### --- AJOUT JO    
+      
     age1[age1==0]=1
     
     p.loc[mask,'Age1AtEntry']=age1
