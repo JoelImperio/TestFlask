@@ -81,7 +81,6 @@ class EP(Portfolio):
    
         # Taux annualisé
         txIntPC = self.txInt()**(12) - 1
-
         txPbPC = self.txPbPC()/100
         
         # taux annualisé
@@ -109,7 +108,6 @@ class EP(Portfolio):
         reduction = self.reduction()    
         
  
-        
         qxy=self.qxyExpMens()
         qxyD =lapseTiming * self.qxyExpMens()
         txInteret = self.txInt()
@@ -154,13 +152,7 @@ class EP(Portfolio):
             eppAcquAPPUP[:,i,:] = np.divide(epTemp,nbrPupsIf[:,i,:],out=np.zeros_like(epTemp), where=nbrPupsIf[:,i,:]!=0)
 
             
-
-           
-            
-            
-#Définition des variables de PB pour actives et réduites
-
-   # PB        
+#Définition des variables de PB pour actives et réduites      
             pbIncorPP[:,i,:] = np.nan_to_num(pbCalcPP[:,i-1,:] *  isActive[:,i-1,:])
             
             pbIncorPUP[:,i,:] = np.nan_to_num(pbCalcPUP[:,i-1,:]  * isActive[:,i-1,:]) 
@@ -168,7 +160,6 @@ class EP(Portfolio):
             pbSortDTHS[:,i,:] = np.nan_to_num(pbCalcPPdths[:,i,:] * isActive[:,i,:]) 
             
             pbPupDTHS[:,i,:] = np.nan_to_num(pbCalcPUPdths[:,i,:] * isActive[:,i,:]) 
-
          
             pbAcquAVPUP[:,i,:] = (pbAcquAPPUP[:,i-1,:] + pbIncorPUP[:,i,:]) * txInteret[:,i,:]
 
@@ -186,12 +177,10 @@ class EP(Portfolio):
             
             pbCalcPUP[:,i,:] = np.maximum((epgTxPbPUP[:,i,:] - eppAcquAPPUP[:,i,:] - pbAcquAPPUP[:,i,:]),0) * allocMonths[:,i,:]
             
-            
             pbCalcPPdths[:,i,:] = np.maximum((epgTxPB_PP[:,i,:] - epargnAcquPP[:,i,:] - pbAcquPP[:,i,:]),0) * (1 - allocMonths[:,i,:])
             
             pbCalcPUPdths[:,i,:] = np.maximum((epgTxPbPUP[:,i,:] - eppAcquAPPUP[:,i,:] - pbAcquAPPUP[:,i,:]),0) * (1 - allocMonths[:,i,:])
             
- 
             pbSortMatsPP[:,i,:] = pbCalcPP[:,i,:] * isActive[:,i,:]
             
             pbSortMatsPUP[:,i,:] = pbCalcPUP[:,i,:] * isActive[:,i,:]
@@ -393,7 +382,6 @@ class EP(Portfolio):
 
 
 
-
 #Retourne les rachats totaux (SURR_OUTGO)
     def surrender(self):
         
@@ -408,14 +396,6 @@ class EP(Portfolio):
         surrRed[self.durationIf() <= 12] = 0
         
         return surrIf + surrRed
-
-#Retourne les échéances (MAT_OUTGO)
-    def maturity(self):
-        return self.zero()
-
-
-
-
 
 
  # ici on détermine le capital pour Protection d'avenir en fonction de l'âge
@@ -547,11 +527,6 @@ class EP(Portfolio):
 
  
 
-
-
-
-
-    
 # =============================================================================
     ### CALCUL DES EXPENSES
 # =============================================================================
@@ -742,6 +717,8 @@ class EP(Portfolio):
         
 #         return pb
     
+    
+    
 # Reprise sur fond de PB suite à une maturité  
     def repPbMats(self):
         return self.zero()
@@ -887,7 +864,7 @@ pol = EP()
 # a = pol.BEL()[:,:409,0]
 fff = pol.nbrNewMat
 
-
+# a = pol.p
 
 # riderPP = pol.riderCostPP()
 
