@@ -290,9 +290,17 @@ def projectionLengh(p):
  # # Traitement du mod 29
     # mask=(p['PMBMOD']==29)
     # p.loc[mask,'residualTermM']=((ageMaxEP-p.loc[mask,'Age1AtEntry'])*12)-p.loc[mask,'DurationIfInitial']    
+
     
+
     #Replacer 999 pour les deuxièmes assurés des polices à une tête
     p.loc[p['POLNBTETE']==1,'Age2AtEntry']=999
+
+
+ # Traitement des vies entières
+    mask=(p['PMBMOD']==11)
+    p.loc[mask,'residualTermM']=((115-p.loc[mask,'Age1AtEntry'])*12)-p.loc[mask,'DurationIfInitial']
+
 
 
 ##############################################################################################################################
@@ -381,8 +389,7 @@ def adjustAgesAndTerm(p):
 # On force l'age 2 à 999 car les DCS ne prennent pas en compte la 2ème tête
     p.loc[mask,'Age2AtEntry']=999
     
-    mask=(p['PMBMOD']==11)
-    p.loc[mask,'residualTermM']= (99*12)-p.loc[mask,'DurationIfInitial']
+
     
     
     
@@ -1010,9 +1017,9 @@ def testerHypo():
     return 0
 
 #myHypo=Hypo(Run=[0,5])
-# myHypo=Hypo()
+myHypo=Hypo()
 
-# myHypo.mod([8,9,70,58])
+myHypo.mod([11])
 # p = myHypo.ids([10105])
 #myHypo.groupe(['MI3.5'])
 
@@ -1020,7 +1027,7 @@ def testerHypo():
 ###Les méthodes de la class
 
 #za=myHypo.tout
-# zb=myHypo.p
+zb=myHypo.p
 #zc=myHypo.runs
 #zd=myHypo.shape
 #ze=myHypo.one()

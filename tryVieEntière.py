@@ -481,7 +481,7 @@ pol = VE()
 # pol.ids([18105])
 # pol.ids([27503])
 
-test = pol.inflation()
+test = pol.age()
 test2 = pol.nbrPolIfSM
 test3 = pol.totalExpense()
  

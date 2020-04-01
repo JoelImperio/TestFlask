@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from Parametres import Hypo, allRuns,tableExperience
 from MyPyliferisk import MortalityTable
+from MyPyliferisk.mortalitytables import *
 import time
 import os, os.path
 path = os.path.dirname(os.path.abspath(__file__))
@@ -53,7 +54,7 @@ class Portfolio(Hypo):
         aQx=pd.DataFrame(mt.qx).to_numpy()
         
         myAge=(self.age(ass)).astype(int)
-        myAge=np.where(myAge>mt.w,mt.w-1,myAge)
+        myAge=np.where(myAge>=mt.w,mt.w-1,myAge)
         
         myQx=np.take(aQx,myAge)
         
@@ -324,15 +325,15 @@ def testerPortfolio():
     return
   
 #myPolicies=Portfolio(runs=[4,5])
-#myPolicies=Portfolio()
+myPolicies=Portfolio()
 
-#myPolicies.mod([8,9])
-#myPolicies.ids([896002])
+myPolicies.mod([11])
+# myPolicies.ids([27503])
 #myPolicies.groupe(['MI3.5'])
 
 #Les méthodes de la class Portfolio()
 
-#za=myPolicies.age(1)
+# za=myPolicies.age()
 #zb=myPolicies.qx(table=EKM05i,exp=41.73,ass=2)
 #zc=myPolicies.qxExp(assExp=2)
 #zd=myPolicies.qxExpMens(ass=2)
