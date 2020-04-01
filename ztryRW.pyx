@@ -845,6 +845,9 @@ class EP(Portfolio):
 pol = EP()
 
 
+a=pol.loopSaving()
+
+
 # pol.p.to_excel('check portefeuille.xlsx')
         
 

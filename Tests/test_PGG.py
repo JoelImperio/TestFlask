@@ -24,11 +24,7 @@ ResultatPGG=pd.read_excel(path+'\Resultats_PGG.xls',sheet_name='Synthese',skipro
 
 
     ### Précision souhaitée
-
-# RTOL=0.1
-# ATOL=1
-# decimalPrecision=2
-
+    
 RTOL=0.0001
 ATOL=0.001
 decimalPrecision=2
@@ -444,19 +440,18 @@ class Test_EP(ut.TestCase):
 
         
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='BEL ERROR')
+
             
-        
-        
+    def test_PGG(self):
 
-    # def test_PGG(self):
-        
-    #     prophet=ResultatPGG.loc[ResultatPGG['Prophet'].isin(['Fun']),'PGG'].values[0]
-        
-    #     python=self.sp.PGG().values[0,0]
-        
-    #     self.assertEqual(round(prophet,self.decimalPrecision),round(python,self.decimalPrecision))       
-
-
+        python=np.array(self.sp.PGG().to_numpy(),dtype=float)
+        python= np.squeeze(python)         
+                
+        prophet=ResultatPGG.loc[ResultatPGG['Prophet'].isin(['EP000','EP025','EP050','EP075','EP125','EP150','EP175','EP200','EP250']),'PGG']
+        prophet=np.array(prophet[0:len(python)].to_numpy(),dtype=float)
+              
+        np.testing.assert_allclose(np.around(prophet,decimals=decimalPrecision),np.around(python,decimals=decimalPrecision), rtol = RTOL, atol = (decimalPrecision/(decimalPrecision*100)), err_msg='PGG ERROR')
+       
 
 
 #Print les tests et la couverture
