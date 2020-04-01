@@ -1064,7 +1064,6 @@ class EP(Portfolio):
         nbrNewMat = self.nbrNewMat
         pbInforce = self.zero()
         pbSortMatsPP = self.pbSortMatsPP
-        pbSortMatsPUP = self.pbSortMatsPUP
 
         for i in range(1,self.shape[1]):
             pbInforce[:,i,:] =  pbSortMatsPP[:,i-1,:] * nbrNewMat[:,i,:] 
@@ -1086,6 +1085,7 @@ class EP(Portfolio):
             fondPB[:,i,:] =  fondPB[:,i-1,:] + dotationPB[:,i,:] - reprisePB[:,i,:]
   
         return reprisePB
+    
     
 # meme Méthode car j'ai besoin de fondPB (à changer) 
     def fondPB(self):
@@ -1232,16 +1232,14 @@ class EP(Portfolio):
         
         return
 
+
     def reserveExpense(self):
         
-        reserveExpense = self.adjMathRes2 
+        reserveExpense = self.adjMathRes2 * self.fraisGestionPlacement()
         return reserveExpense
 
 
-    def totalExpense(self):
-        total = self.totExp
-        return total
-    
+
     
 print("Class EP--- %s sec" %'%.2f'%  (time.time() - start_time))   
 

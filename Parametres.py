@@ -295,6 +295,10 @@ def projectionLengh(p):
     p.loc[p['POLNBTETE']==1,'Age2AtEntry']=999
 
 
+
+
+
+
 ##############################################################################################################################
 #Correction des ages et du résidual terme pour Axiprotect et Preciso (Réplication Prophet) A supprimer pour corriger
 ##############################################################################################################################
@@ -394,8 +398,8 @@ def adjustAgesAndTerm(p):
 ########################################################################################################################
 
             
-    mask=(p['PMBMOD'].isin([28,29,30,31,32,33,36]))
-    
+    mask=(p['PMBMOD'].isin([28,29,30,31,32,33,36, 2, 6, 7]))
+
     date1=pd.to_datetime(p.loc[mask,'CLIDTNAISS'])
     
     date2=pd.to_datetime(p.loc[mask,'CLIDTNAISS2'])
@@ -407,8 +411,8 @@ def adjustAgesAndTerm(p):
       
     age1[age1==0]=1
     
-    p.loc[mask,'Age1AtEntry']=age1
-    p.loc[mask,'Age2AtEntry']=age2
+    p.loc[(mask),'Age1AtEntry']=age1
+    p.loc[(mask),'Age2AtEntry']=age2
  
     mask1=(mask) & (p['POLNBTETE']==1)    
     p.loc[mask1,'residualTermM']= p.loc[mask1,'POLDURC']*12-p.loc[mask1,'DurationIfInitial']
@@ -432,8 +436,29 @@ def adjustAgesAndTerm(p):
     
     p.loc[p['residualTermM']<0,'residualTermM']=0
             
-        
        
+        
+# --- AJOUT JO
+# Traitement des modalité 10
+        
+    mask=(p['PMBMOD'].isin([10]))
+
+    date1=pd.to_datetime(p.loc[mask,'CLIDTNAISS'])
+    
+    date2=pd.to_datetime(p.loc[mask,'CLIDTNAISS2'])
+    
+    dateDebut=pd.to_datetime(p.loc[mask,'POLDTDEB'])
+         
+    age1=(((12*(dateDebut.dt.year-date1.dt.year)+dateDebut.dt.month-date1.dt.month+(dateDebut.dt.day/100)-(date1.dt.day/100))/12)+0.5).astype(int)
+    age2=(((12*(dateDebut.dt.year-date2.dt.year)+dateDebut.dt.month-date2.dt.month+(dateDebut.dt.day/100)-(date2.dt.day/100))/12)+0.5).astype(int)
+      
+    age1[age1==0]=1
+    
+    p.loc[(mask),'Age1AtEntry']=age1
+    p.loc[(mask),'Age2AtEntry']=age2   
+
+     
+    p.loc[mask,'residualTermM']= p.loc[mask,'POLDURC']*12-p.loc[mask,'DurationIfInitial']    
     
 ##############################################################################################################################
 #Permet de formater la dataframe du portefeuille des polices avant d'entrer dans la classe Hypo
@@ -454,6 +479,12 @@ def portfolioPreProcessing(p):
     p.loc[p['PMBPOL'].isin([60602]), 'CLIDTNAISS2'] = '19551009'
 
     p.loc[p['PMBPOL'].isin([786502]), 'CLIDTNAISS'] = '19611028'
+    
+# --- AJOUT JO
+    p.loc[p['PMBPOL'].isin([3101]), 'CLIDTNAISS'] = '19700910'
+    p.loc[p['PMBPOL'].isin([783401]), 'CLIDTNAISS'] = '19730718'
+    
+    
     
     #Lorsque la police a une tête l'age du deuxième assuré est 0 donc il né à la date début de la police (ensuite 999 ans)
     p.loc[p.POLNBTETE==1, 'CLIDTNAISS2'] = p.loc[p.POLNBTETE==1, 'POLDTDEB']

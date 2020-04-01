@@ -84,24 +84,24 @@ CHANGEMENT APPORTé DANS PARAMÈTRE
 
 
 
-CHANGEMENT APPORTER DANS PRODUITS
-
-- J'ai rajouter les produits HOSPITALIS (HO) et Preciso (PREC) en copiant collant certaines formule, il faut déterminé quelles sont les formule à remonté
 
 
 
+ERREUR DANS MIXTES
 
+- Les lapses ne prennent pas en compte isLapse() dans prophet, donc la personne peut lapse à n'importe quel moment même si elle paye une prime annuelle.
 
-
-
-CHANGEMENT DANS QRY
-
-- Ajout de POLSIT et POLCPLA et POLCPL9 dans Qry.txt (nécessaire pour les produits avec réduction possible)
+- Il n'y a pas de nbrNewPups, donc les réductions sont à 0 pour les mixtes.
 
 
 
 
 
-CHANGEMENT A EFFECTUER:
 
-- Il faudrait ajouté encore un T temporel pour les polices avec maturité, car la maturité arrive en t+1 et les projections se terminent en t
+
+
+
+
+
+
+
