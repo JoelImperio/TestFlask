@@ -222,7 +222,7 @@ class MI(Portfolio):
         
  
         qxy=self.qxExpMens()
-        qxyD =lapseTiming * self.qxyExpMens()
+        qxyD =lapseTiming * self.qxExpMens()
         txInteret = self.txInt()
         # prEncInv = self.premiumInvested()
 
@@ -428,10 +428,10 @@ pol = MI()
 
     ### Mod 2_2 F2XT_1
 # pol.ids([2501])
-# pol.modHead([2],1)
+# pol.modHead([2],2)
 
     ### Mod 10 F1XT14
-pol.ids([1602604])
+# pol.ids([1602604])
 # pol.mod([10])
 
     ### Mod 6 F1XT11
@@ -440,7 +440,7 @@ pol.ids([1602604])
 
 
 # a = pol.p
-b=pol.nbrSurrender
+b=pol.nbrPolIf
 # c=pol.nbrPolIfSM
 # d=pol.nbrNewMat
 # e=pol.nbrDeath
@@ -487,5 +487,5 @@ pol.p.to_excel("check portefeuille.xlsx", header = True )
 #data=pol.lapse()
 #a=pd.DataFrame(data[:,:,4])
 
-
+a = pol.p
 
