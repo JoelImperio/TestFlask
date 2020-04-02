@@ -481,15 +481,15 @@ pol = VE()
 # pol.ids([18105])
 # pol.ids([27503])
 
-test = pol.inflation()
-test2 = pol.nbrPolIfSM
-test3 = pol.totalExpense()
+test =  pol.purePremium() * pol.nbrPolIfSM / pol.frac() * pol.isPremPay()
+# test2 = pol.nbrPolIfSM
+# test3 = pol.totalExpense()
  
-x = pol.p
+# x = pol.p
 
-x.to_excel('ptf.xlsx')
+# x.to_excel('ptf.xlsx')
 
-monCas = pol.totalCommissions()
+monCas = test
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])

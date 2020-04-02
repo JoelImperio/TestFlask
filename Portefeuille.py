@@ -53,7 +53,7 @@ class Portfolio(Hypo):
         aQx=pd.DataFrame(mt.qx).to_numpy()
         
         myAge=(self.age(ass)).astype(int)
-        myAge=np.where(myAge>mt.w,mt.w-1,myAge)
+        myAge=np.where(myAge>=mt.w,mt.w-1,myAge)
         
         myQx=np.take(aQx,myAge)
         

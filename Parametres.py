@@ -220,6 +220,7 @@ def adjustedFracAndPremium(p):
     p.loc[mask &  mask4_5_9_0 ,'POLPRCPL9']=0
     p.loc[mask &  mask4_5_9_0 ,'POLPRCPLA']=0  
     p.loc[mask &  mask4_5_9_0 ,'POLPRCPLB']=0
+    p.loc[mask &  mask4_5_9_0 ,'POLPRVIEHT']=0
     
  
     p.loc[mask & (p['PMBFRACT']==0) , 'PMBFRACT'] = 1
@@ -483,6 +484,7 @@ def portfolioPreProcessing(p):
 # --- AJOUT JO
     p.loc[p['PMBPOL'].isin([3101]), 'CLIDTNAISS'] = '19700910'
     p.loc[p['PMBPOL'].isin([783401]), 'CLIDTNAISS'] = '19730718'
+
     
     
     
@@ -533,6 +535,9 @@ def portfolioPreProcessing(p):
     
     #Traitement des ages et policy terme selon Prophet pour mod70 (nous pensons que cela est erroné)
     adjustAgesAndTerm(p)
+    
+    # On enlève les 18 polices que prophet ne prenait pas en compte pour les mod6
+    p.loc[p['PMBPOL'].isin([1302, 96803, 96804, 96805, 96806, 150003, 150004, 150005, 150103, 150104, 150105, 262905, 263003, 448502, 448503, 514408, 514409, 2547101]), 'Age1AtEntry'] = 999
         
     # Ajout de la colonne contenant les chargements d'acquisition
     premiumAquisitionLoading(p)

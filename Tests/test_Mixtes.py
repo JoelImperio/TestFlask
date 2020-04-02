@@ -209,15 +209,18 @@ class Test_MOD_10(ut.TestCase):
 # VECTEUR SECONDAIRE A TESTER
 # =============================================================================
 
-
-
     def test_nbPolif(self):
         
         prophet=np.array(self.spProphet.loc[:self.length,'NO_POLS_IF'].to_numpy(),dtype=float)
         
         python=np.sum((self.sp.nbrPolIf)[:,:409,0],axis=0)
 
-        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='NbrPolif ERROR ')
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='NbrPolif ERROR ')
+
+
+
+
+
 
 
 
@@ -242,12 +245,9 @@ class Test_MOD_2_1(ut.TestCase):
     
 
 
-
 # =============================================================================
 # VECTEUR SECONDAIRE A TESTER
 # =============================================================================
-
-
 
     def test_nbPolif(self):
         
@@ -255,7 +255,84 @@ class Test_MOD_2_1(ut.TestCase):
         
         python=np.sum((self.sp.nbrPolIf)[:,:409,0],axis=0)
 
-        np.testing.assert_allclose(prophet, python, rtol = self.RTOL, atol = self.ATOL, err_msg='NbrPolif ERROR ')
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='NbrPolif ERROR ')
+
+
+
+
+
+class Test_MOD_2_2(ut.TestCase):
+
+    
+    ### Onglet fichier résultat 
+    ongletResultat='MOD2_2'
+    spProphet = DataProphet[ongletResultat].replace('-',0)
+    
+
+    sp=MI()
+    sp.modHead([2],2)
+ 
+    length = len(sp.nbrPolIf[0,:,0])-1
+    
+    
+# =============================================================================
+#     PRINCIPAUX VECTEUR A TESTER
+# =============================================================================
+    
+
+# =============================================================================
+# VECTEUR SECONDAIRE A TESTER
+# =============================================================================
+
+    def test_nbPolif(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'NO_POLS_IF'].to_numpy(),dtype=float)
+        
+        python=np.sum((self.sp.nbrPolIf)[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='NbrPolif ERROR ')
+
+
+
+
+
+
+
+class Test_MOD_6_7(ut.TestCase):
+
+    
+    ### Onglet fichier résultat 
+    ongletResultat='MOD6_7'
+    spProphet = DataProphet[ongletResultat].replace('-',0)
+    
+
+    sp=MI()
+    sp.mod([6,7])
+ 
+    length = len(sp.nbrPolIf[0,:,0])-1
+    
+    
+# =============================================================================
+#     PRINCIPAUX VECTEUR A TESTER
+# =============================================================================
+    
+
+# =============================================================================
+# VECTEUR SECONDAIRE A TESTER
+# =============================================================================
+
+    def test_nbPolif(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'NO_POLS_IF'].to_numpy(),dtype=float)
+        
+        python=np.sum((self.sp.nbrPolIf)[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='NbrPolif ERROR ')
+
+
+
+
+
 
 
 

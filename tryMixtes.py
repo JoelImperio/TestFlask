@@ -18,8 +18,10 @@ class MI(Portfolio):
     mods=[2,10,6,7]
 
 #Products: F1XT_1,F2XT_1,F1XT14,F1XT11
-
-
+    
+    # age limite pour la garantie complémentaire CPL1
+    ageLimiteCPL1 = 60
+    ageLimiteCPL2 = 65
     
     def __init__(self,run=allRuns,\
                  PortfolioNew=True, SinistralityNew=True,LapseNew=True,CostNew=True,RateNew=True ):
@@ -97,6 +99,24 @@ class MI(Portfolio):
 #         return
 
 
+#Retourne la probabilité de décès d'expérience (FAUSSE DANS PROPHET POUR LES MODALITES 6 ET 7 CAR LA MORTALITE D'EXPERIENCE EST A 100%)
+    def qxExp(self,assExp=1):
+        
+        mortExp = self.dc()
+        
+        # On ajuste la mortalité d'expérience pour modalité 6 et 7 (A SUPPRIMER POUR CORRIGER)
+        mod = self.p['PMBMOD'].to_numpy()[:,np.newaxis,np.newaxis]  * self.one()
+        mask = ((mod == 7) | (mod == 6))
+        mortExp[mask] = 1
+        
+        
+        myQx=self.qx(ass=assExp)*mortExp
+        
+        return np.copy(myQx)
+
+
+
+
 
 #Retourne les taux de rachat selon le fractionnement. Les taux apparaissent uniquement le mois avant un paiement de prime
     def lapse(self):
@@ -152,8 +172,12 @@ class MI(Portfolio):
 #Cette Loop renvoie l'ensemble des variables récusrives pour les produits épargnes
     def loopSaving(self):
 
-#Variables des actifs            
-        nbrPolIf=self.one()
+#Variables des actifs  
+# Condition me permettant de supprimer les polices qui ont un age à 999 (mis volontairement dans le preprocessing)
+        nbrPolIf = self.age() < 999
+        nbrPolIf = nbrPolIf * self.one()
+        
+        # nbrPolIf = self.one()
         nbrPolIfSM=self.zero()
         nbrDeath=self.zero()
         nbrSurrender=self.zero()
@@ -178,12 +202,12 @@ class MI(Portfolio):
 #Variables de PB actifs et réduites
 
         pbAcquAVPUP = self.zero()
-        pbAcquAPPUP =self.zero()
+        pbAcquAPPUP = self.zero()
         pbIncorPUP = self.zero()      
         epgTxPbPUP = self.zero()
         pbCalcPUP = self.zero()
-        pbPupDTHS=self.zero()
-        pbSortDTHS=self.zero()
+        pbPupDTHS = self.zero()
+        pbSortDTHS = self.zero()
         
         epgTxPbPUP[:,0,:] = 0
         
@@ -220,9 +244,20 @@ class MI(Portfolio):
         lapse = self.lapse()        
         reduction = self.reduction()    
         
- 
-        qxy=self.qxExpMens()
-        qxyD =lapseTiming * self.qxExpMens()
+
+        qxy = self.qxExpMens() 
+        qx = self.qxExp()
+        
+    # Modification les mixtes 2 tetes sont en fait calculée en fonction de l'assuré 1 (Ce qui est faux)
+        mask = (((self.p['PMBMOD']==2) & (self.p['POLNBTETE']==2))).astype(bool)
+   
+
+        qxy[mask] = qx[mask] + qx[mask] - qx[mask]*qx[mask]
+        qxy[mask] = 1-(1-qxy[mask])**(1/12)
+        
+        
+        
+        qxyD =lapseTiming * qxy
         txInteret = self.txInt()
         # prEncInv = self.premiumInvested()
 
@@ -375,17 +410,41 @@ class MI(Portfolio):
 
 
 
-
-
-
+# Prime complémentaire qui va dépendre de la modalité et du tarif
+    def annRider(self):
+        
+        # Prime complémentaire pour les mixtes
+        primeCompl = (self.p['POLPRCPL1'] + self.p['POLPRCPL3'] + self.p['POLPRCPL4'] + self.p['POLPRCPL5']\
+                      + self.p['POLPRCPL6'] + self.p['POLPRCPL9'])[:,np.newaxis,np.newaxis] * self.one()
+            
+        # Prime complémentaire pour les taux d'interet inférieur à 2.5 et age dépassant 65
+        primeCompl2 = (self.p['POLPRCPL3'] + self.p['POLPRCPL4'] + self.p['POLPRCPL9'])[:,np.newaxis,np.newaxis] * self.one()
+        
+        # Condition sur la limite d'age qui va dépendre de la modalité et du tarif, ici du taux t'intêret
+     
+        maskA = ((self.p['POLINTERG'] <= 2)[:,np.newaxis,np.newaxis] * self.one()).astype(bool)
+        maskB = ((self.p['POLINTERG'] > 2)[:,np.newaxis,np.newaxis] * self.one()).astype(bool)
+        
+        maskCPL1 = (self.age() <= self.ageLimiteCPL1 ).astype(bool)
+        maskCPL2 = (self.age() <= self.ageLimiteCPL2).astype(bool)
+  
+        total = self.zero()
+        
+        
+        conditions = [ maskA * maskCPL2, maskA * maskCPL1, maskB * maskCPL1  ]
+        choices = [primeCompl2, primeCompl, primeCompl]
+        
+        total = np.select(conditions, choices, default=0)
+       
+        return total
 
 
 
 #Retourne les primes totales perçues
     def totalPremium(self):
-        premInc=(self.p['POLPRTOT'])[:,np.newaxis,np.newaxis]/self.frac()
-           
-        prem=premInc*self.nbrPolIfSM*self.isPremPay()*self.indexation()
+        premInc=((self.p['POLPRVIEHT'] - self.p['POLPRCPLA'])[:,np.newaxis,np.newaxis])/self.frac()
+        premCompl = self.annRider() / self.frac()
+        prem=(premInc*self.indexation() + premCompl) *self.nbrPolIfSM*self.isPremPay()
         
         return prem
 
@@ -423,7 +482,7 @@ pol = MI()
 #pol=MI(run=[4,5])
 
     ###  Mod 2_1 produit F1XT1
-# pol.ids([301])
+pol.ids([175001])
 # pol.modHead([2],1)
 
     ### Mod 2_2 F2XT_1
@@ -437,6 +496,9 @@ pol = MI()
     ### Mod 6 F1XT11
 # pol.ids([799003])
 # pol.mod([6,7])
+age = pol.age()
+
+
 
 
 # a = pol.p
@@ -467,7 +529,7 @@ p=pol.totalPremium()
 
 print("Class MI--- %s sec" %'%.2f'%  (time.time() - start_time))
 
-monCas=b
+monCas=p
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
