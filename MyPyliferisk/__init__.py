@@ -117,7 +117,8 @@ class Actuarial:
         if self.lx == []:
             self.lx = [100000.0]
             for val in self.qx:
-                self.lx.append(self.lx[-1] * ( 1 - val / 1000))
+                self.lx.append(self.lx[-1] * ( 1 - val))
+                # self.lx.append(self.lx[-1] * ( 1 - val / 1000))
         if self.lx[-1] != 0.0 : 
             self.lx.append(0.0)
         if self.w == 0 : 
@@ -126,7 +127,8 @@ class Actuarial:
             #self.qx = []
             l_x = self.lx[0]
             for l_x1 in self.lx[1:]:
-                self.qx.append((l_x - l_x1) * 1000 / l_x)
+                # self.qx.append((l_x - l_x1) * 1000 / l_x)
+                self.qx.append((l_x - l_x1) / l_x)
                 l_x = l_x1
         if self.dx == []:
             dx_0 = -1
@@ -138,7 +140,10 @@ class Actuarial:
         if self.ex == []:
             for g in range(0, len(self.lx[:-1])):
                 lx_g = self.lx[g]
-                self.ex.append(0.5 + sum(self.lx[g + 1:-1]) / lx_g) #[g+1:-2] according notes from ucm
+                if lx_g > 0:
+                    self.ex.append(0.5 + sum(self.lx[g + 1:-1]) / lx_g) #[g+1:-2] according notes from ucm
+                else:
+                    self.ex.append(0)
         if self.Dx == []:
             #self.Dx = []
             age = -1
