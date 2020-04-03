@@ -438,8 +438,7 @@ def adjustAgesAndTerm(p):
     p.loc[p['residualTermM']<0,'residualTermM']=0
             
        
-        
-# --- AJOUT JO
+    
 # Traitement des modalité 10
         
     mask=(p['PMBMOD'].isin([10]))
@@ -481,7 +480,6 @@ def portfolioPreProcessing(p):
 
     p.loc[p['PMBPOL'].isin([786502]), 'CLIDTNAISS'] = '19611028'
     
-# --- AJOUT JO
     p.loc[p['PMBPOL'].isin([3101]), 'CLIDTNAISS'] = '19700910'
     p.loc[p['PMBPOL'].isin([783401]), 'CLIDTNAISS'] = '19730718'
 
