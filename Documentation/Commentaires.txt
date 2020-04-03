@@ -84,24 +84,25 @@ CHANGEMENT APPORTé DANS PARAMÈTRE
 
 
 
-CHANGEMENT APPORTER DANS PRODUITS
 
-- J'ai rajouter les produits HOSPITALIS (HO) et Preciso (PREC) en copiant collant certaines formule, il faut déterminé quelles sont les formule à remonté
+- Les totalpremium prennent en compte POLPRTOT, mais ne sont pas diminué lorsque l'assuré atteint l'age maximum d'une des garanties.
 
+ERREUR DANS MIXTES
 
+- Les lapses ne prennent pas en compte isLapse() dans prophet, donc la personne peut lapse à n'importe quel moment même si elle paye une prime annuelle.
 
+- Il n'y a pas de nbrNewPups, donc les réductions sont à 0 pour les mixtes.
 
+- La mortalité d'expérience pour les modalité 6 et 7 est tout le temps de 100%'
 
-
-
-CHANGEMENT DANS QRY
-
-- Ajout de POLSIT et POLCPLA et POLCPL9 dans Qry.txt (nécessaire pour les produits avec réduction possible)
-
-
+- Les Qx pour les modalité 2 à 2 têtes sont fausses dans prophet. On fait le calcul de la probabilité jointe de décès OK mais uniquement avec le qx du 1ER ASSURE !!!! 
+ça nous donne qxy = qx + qx -qx*qx au lieu de qxy = qx + qy -qx*qy
 
 
 
-CHANGEMENT A EFFECTUER:
 
-- Il faudrait ajouté encore un T temporel pour les polices avec maturité, car la maturité arrive en t+1 et les projections se terminent en t
+
+
+
+
+
