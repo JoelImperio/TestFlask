@@ -542,11 +542,11 @@ test10 = pol.durationIf()
  
 # x = pol.p
 
-# x.to_excel('ptf.xlsx')
+# x.to_excel(r'zFT/ptf.xlsx')
 
 monCas = pol.valNetpPP()
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
 z=z.sum()
-z.to_csv(r'check.csv',header=False)
+z.to_csv(r'zFT/check.csv',header=False)

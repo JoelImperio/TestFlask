@@ -1270,12 +1270,12 @@ print("Class EP--- %s sec" %'%.2f'%  (time.time() - start_time))
 # zzz=np.sum(zz[:,0])
 # z=pd.DataFrame(monCas[:,:,0])
 # z=z.sum()
-# z.to_csv(r'check.csv',header=False)
+# z.to_csv(r'zRW/check.csv',header=False)
 
 
-# pol.p.to_excel('check portefeuille.xlsx')
+# pol.p.to_excel(r'zRW/check portefeuille.xlsx')
 
-# aa.to_excel("check portefeuille.xlsx", header = True )
+
 
 
 #Visualiser une dimension d'un numpy qui n'apparait pas
