@@ -534,14 +534,14 @@ zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
 z=z.sum()
-z.to_csv(r'JO/check.csv',header=False)
+z.to_csv(r'zJO/check.csv',header=False)
 
 
 # aaa=aa[['PMBPOL', 'PMBFRACT','POLSIT','PMBMOD','PMBTXINT']]
 
 
 
-pol.p.to_excel(r'JO/check portefeuille.xlsx', header = True )
+pol.p.to_excel(r'zJO/check portefeuille.xlsx', header = True )
 # aa.to_excel("check portefeuille.xlsx", header = True )
 
 
