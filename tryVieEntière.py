@@ -16,7 +16,7 @@ tableFemmes = 'EKF05i'
 tableHommes = 'EKM05i'
     
 class VE(Portfolio):
-    mods=[11]
+    mods=[1,11]
 
     lapseTiming = 0.5
     minResPp = 0
@@ -263,7 +263,14 @@ class VE(Portfolio):
     
     # MATH_RES_BA
     def mathResBa(self):
-        mathResBa = np.maximum(self.insuredSum() + self.valAccrbPP() + self.provGestPP() + self.valPrecPP() - self.valNetpPP() - self.valZillPP(), self.minResPp)
+        
+        # pour la 11:
+        # mathResBa = np.maximum(self.insuredSum() + self.valAccrbPP() + self.provGestPP() + self.valPrecPP() - self.valNetpPP() - self.valZillPP(), self.minResPp)
+        
+        # pour la 01:
+        mathResBa = np.maximum(self.insuredSum()  + self.valPrecPP() - self.valNetpPP() - self.valZillPP(), self.minResPp)
+        
+        
         return mathResBa
 
     # NO_SURRS
@@ -420,28 +427,54 @@ class VE(Portfolio):
         return deathOutgo
     
     def ridercOutgo(self):
+        
+        # old code 
+        # situation = self.p['POLSIT'][:,np.newaxis,np.newaxis]
+        # conditions = [(self.age() <= 85) & (situation != 4) & (situation != 8) & (situation != 9)]
+        # # Attention:
+        # result =[(self.totalPremium() * self.dcAccident())]
+        # # Faux, il ne faut pas prendre la prime totale mais la prime accident
+        # sinon = 0
+        # ridercOutgo = np.select(conditions,result,sinon)
+        
+        totalPremium = self.totalPremium()
+        cpl3 = (self.p['POLPRCPL3'])[:,np.newaxis,np.newaxis]/self.frac()
+        dcAccident = self.dcAccident()    
         situation = self.p['POLSIT'][:,np.newaxis,np.newaxis]
-        conditions = [(self.age() <= 85) & (situation != 4) & (situation != 8) & (situation != 9)]
-        # Attention:
-        result =[(self.totalPremium() * self.dcAccident())]
-        # Faux, il ne faut pas prendre la prime totale mais la prime accident
-        sinon = 0
-        ridercOutgo = np.select(conditions,result,sinon)
-        return ridercOutgo
+        ridercOutgo = self.zero()
+        zero = self.zero()
+        isPremPay = self.isPremPay()
+        nbrPolIfSM = self.nbrPolIfSM
+        
+        mask_infeqf85 = (self.age() <= 85) & (situation != 4) & (situation != 8) & (situation != 9)
+        mask_sup85 = (self.age() > 85) & (situation != 4) & (situation != 8) & (situation != 9)  
+        
+        ridercOutgo[(self.mask([11])) & mask_infeqf85] = totalPremium[(self.mask([11])) & mask_infeqf85] * dcAccident[(self.mask([11])) & mask_infeqf85]
+        ridercOutgo[(self.mask([11])) & mask_sup85] = zero[(self.mask([11])) & mask_sup85] 
+        
+        ridercOutgo[(self.mask([1])) & mask_infeqf85] = cpl3[(self.mask([1])) & mask_infeqf85] * dcAccident[(self.mask([1])) & mask_infeqf85] * isPremPay[(self.mask([1])) & mask_infeqf85] * nbrPolIfSM[(self.mask([1])) & mask_infeqf85]
+        ridercOutgo[(self.mask([1])) & mask_sup85] = zero[(self.mask([1])) & mask_sup85] 
     
+        return ridercOutgo
+
 # =============================================================================
     # --- Calcul des composants du BEL 
 # =============================================================================
 # Retourne les primes totales perçues
-    # def totalPremium(self):
-    #     premInc = self.p['POLPRTOT'][:,np.newaxis,np.newaxis]/self.frac()
-    #     situation = self.p['POLSIT'][:,np.newaxis,np.newaxis]
+    def totalPremium(self):
         
-    #     conditions = [(situation != 4) & (situation != 8) & (situation != 9)]
-    #     result =[(premInc*self.nbrPolIfSM*self.isPremPay())]
-    #     sinon = 0
-    #     prem = np.select(conditions,result,sinon)
-    #     return prem
+        primetot = (self.p['POLPRTOT'])[:,np.newaxis,np.newaxis]/self.frac()
+        primecompl = (self.p['POLPRCPL3'])[:,np.newaxis,np.newaxis]/self.frac() 
+        modalite = (self.p['PMBMOD'])[:,np.newaxis,np.newaxis]
+        
+        conditions = [(self.age() <= 85) | (modalite == 11), (self.age() > 85) & (modalite == 1)]
+        result =[(primetot), (primetot - primecompl)]
+        premInc = np.select(conditions,result) 
+        
+        prem=premInc*self.nbrPolIfSM*self.isPremPay()*self.indexation()
+        
+        return prem
+
 
 #Retourne le total des prestations payés 
     def totalClaim(self):
@@ -472,8 +505,9 @@ class VE(Portfolio):
               
     #     for t in range(1,self.shape[1]+1):
     #         bel[:,-t,:]=(bel[:,-t+1,:]+claim[:,-t+1,:]+expense[:,-t+1,:]+commission[:,-t+1,:]-premium[:,-t+1,:])/interestRates[:,-t+1,:]
-    #     return bel
     
+    
+    #     return bel
     
     
 pol = VE()
@@ -481,15 +515,36 @@ pol = VE()
 # pol.ids([18105])
 # pol.ids([27503])
 
-test = pol.age()
+pol.ids([818202])
+# pol.ids([572405, 572503, 731902, 732001, 818202, 889603, 1132602, 1132701, 2211301])
+
+   
+    
+    
+
+
+test = pol.nbrDeath
 test2 = pol.nbrPolIfSM
-test3 = pol.totalExpense()
+test3 = pol.nbrPolIf
+test4 = pol.nbrSurrender
+test5 = pol.nbrMaturities
+test6 = pol.qxyExpMens()
+test7 = pol.lapse()
+test8 = pol.qxExp()
+test9 = pol.qx()
+test10 = pol.durationIf()
+
+
+
+
+
+
  
 x = pol.p
 
 x.to_excel('ptf.xlsx')
 
-monCas = pol.totalCommissions()
+monCas = pol.valNetpPP()
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])

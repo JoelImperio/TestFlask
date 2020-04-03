@@ -298,7 +298,7 @@ def projectionLengh(p):
 
 
  # Traitement des vies entières
-    mask=(p['PMBMOD']==11)
+    mask=(p['PMBMOD']==11)|(p['PMBMOD']==1)
     p.loc[mask,'residualTermM']=((115-p.loc[mask,'Age1AtEntry'])*12)-p.loc[mask,'DurationIfInitial']
 
 
@@ -358,7 +358,7 @@ def adjustAgesAndTerm(p):
 # =============================================================================
 
        
-    mask=(p['PMBMOD']==58)|(p['PMBMOD']==11)
+    mask=(p['PMBMOD']==58)|(p['PMBMOD']==11)|(p['PMBMOD']==1)
     
     date1=pd.to_datetime(p.loc[mask,'CLIDTNAISS'])
        
