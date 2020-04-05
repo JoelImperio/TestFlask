@@ -459,14 +459,15 @@ class Test_EP(ut.TestCase):
 # cov.stop
 # cov.save
 # cov.report()
-ut.main()
+# ut.main()
 
-print("Tests--- %s sec" %'%.2f'%  (time.time() - start_time))
+
 
 #Permet de lancer l'ensemble des test du workspace
 
-# loader = ut.TestLoader()
-# suite = loader.discover('.')
-# runner = ut.TextTestRunner()
-# runner.run(suite)
+loader = ut.TestLoader()
+suite = loader.discover('.')
+runner = ut.TextTestRunner()
+runner.run(suite)
 
+print("Tests--- %s sec" %'%.2f'%  (time.time() - start_time))
