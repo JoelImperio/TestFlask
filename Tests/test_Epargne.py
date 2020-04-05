@@ -6,7 +6,7 @@ import os, os.path
 path = os.path.dirname(os.path.abspath(__file__))
 
     ### Importer script
-from tryEpargnes import EP
+from Produits import EP
 
 start_time = time.time()
 
