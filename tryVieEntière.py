@@ -6,7 +6,7 @@ import time
 import os, os.path
 #from MyPyliferisk import mortalitytables
 from MyPyliferisk.mortalitytables import *
-#path = os.path.dirname(os.path.abspath(__file__))
+path = os.path.dirname(os.path.abspath(__file__))
 start_time = time.time()
 
 # =============================================================================
