@@ -249,10 +249,10 @@ zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
 z=z.sum()
-z.to_csv(r'check.csv',header=False)
+z.to_csv(path+'/zFT/check.csv',header=False)
 
 ss = pol.p
-ss.to_excel("check portefeuille.xlsx", header = True )
+ss.to_excel(path+'/zFT/check portefeuille.xlsx', header = True )
 #Visualiser une dimension d'un numpy qui n'apparait pas
 # test = pol.reduction()
 # data=pupEben

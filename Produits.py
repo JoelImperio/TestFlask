@@ -1237,11 +1237,9 @@ class EP(Portfolio):
         
         reserveExpense = self.adjMathRes2 * self.fraisGestionPlacement()
         return reserveExpense
-
-
-
     
 print("Class EP--- %s sec" %'%.2f'%  (time.time() - start_time))   
+
 
 # =============================================================================
 ### TEST ET FONCTIONALITES
@@ -1270,10 +1268,10 @@ print("Class EP--- %s sec" %'%.2f'%  (time.time() - start_time))
 # zzz=np.sum(zz[:,0])
 # z=pd.DataFrame(monCas[:,:,0])
 # z=z.sum()
-# z.to_csv(r'zRW/check.csv',header=False)
+# z.to_csv(path+'/zRW/check.csv',header=False)
 
 
-# pol.p.to_excel(r'zRW/check portefeuille.xlsx')
+# pol.p.to_excel(path+'/zRW/check portefeuille.xlsx')
 
 
 
