@@ -17,7 +17,7 @@ start_time = time.time()
     ### Importation Data tests
 from tryMixtes import MI
 #L'ensemble des variables Prophet par produit
-DataProphet=pd.read_excel(path+'\Resultats_Prophet.xls',sheet_name=None,skiprows=7)
+DataProphet=pd.read_excel(path+'\Resultats_Prophet_Mixtes.xls',sheet_name=None,skiprows=7)
 
 #Les resultats de la PGG selon la répartition en vigueur
 ResultatPGG=pd.read_excel(path+'\Resultats_PGG.xls',sheet_name='Synthese',skiprows=3)
