@@ -257,9 +257,9 @@ class MI(Portfolio):
         
         
         
-        qxyD =lapseTiming * qxy
+        qxyD = lapseTiming * qxy
         txInteret = self.txInt()
-        # prEncInv = self.premiumInvested()
+        prEncInv = self.premiumInvested()
 
         #Définition du vecteur des maturités (bool)        
         matRate[polTermM+1 ==self.durationIf()]=1 
@@ -275,9 +275,8 @@ class MI(Portfolio):
             
             nbrSurrender[:,i,:]=nbrPolIfSM[:,i,:]*lapse[:,i,:]*(1-(qxyD[:,i,:]))
             
-
-            
             nbrPolIf[:,i,:]=nbrPolIf[:,i-1,:]-nbrDeath[:,i,:]-nbrSurrender[:,i,:] - nbrMaturities[:,i,:]
+
 
 #Définition des variables des réduites
             nbrPupMaturities[:,i,:]=nbrPupsIf[:,i-1,:]*matRate[:,i,:]
@@ -290,48 +289,62 @@ class MI(Portfolio):
             
             nbrPupsIf[:,i,:]=nbrPupsIf[:,i-1,:]-nbrPupDeath[:,i,:]-nbrPupSurrender[:,i,:] - nbrPupMaturities[:,i,:] + nbrNewRed[:,i,:]
 
-#Définition des variables d'épargne pour actives et réduites
-#             epargnAcquPP[:,i,:]= (epargnAcquPP[:,i-1,:] + prEncInv[:,i,:]) * txInteret[:,i,:]
 
-#             epAcquAVPUP[:,i,:] = eppAcquAPPUP[:,i-1,:] * txInteret[:,i,:]
+
+#Définition des variables d'épargne pour actives et réduites
+            epargnAcquPP[:,i,:]= (epargnAcquPP[:,i-1,:] + prEncInv[:,i,:]) * txInteret[:,i,:]
+
+            epAcquAVPUP[:,i,:] = eppAcquAPPUP[:,i-1,:] * txInteret[:,i,:]
             
-#             epTemp = epAcquAVPUP[:,i,:] * (nbrPupsIf[:,i,:] - nbrNewRed[:,i,:]) + epargnAcquPP[:,i,:] * nbrNewRed[:,i,:]
+            epTemp = epAcquAVPUP[:,i,:] * (nbrPupsIf[:,i,:] - nbrNewRed[:,i,:]) + epargnAcquPP[:,i,:] * nbrNewRed[:,i,:]
             
-#             eppAcquAPPUP[:,i,:] = np.divide(epTemp,nbrPupsIf[:,i,:],out=np.zeros_like(epTemp), where=nbrPupsIf[:,i,:]!=0)
+            eppAcquAPPUP[:,i,:] = np.divide(epTemp,nbrPupsIf[:,i,:],out=np.zeros_like(epTemp), where=nbrPupsIf[:,i,:]!=0)
 
             
 # #Définition des variables de PB pour actives et réduites      
-#             pbIncorPP[:,i,:] = np.nan_to_num(pbCalcPP[:,i-1,:] *  isActive[:,i-1,:])
+            pbIncorPP[:,i,:] = np.nan_to_num(pbCalcPP[:,i-1,:] *  isActive[:,i-1,:])
             
-#             pbIncorPUP[:,i,:] = np.nan_to_num(pbCalcPUP[:,i-1,:]  * isActive[:,i-1,:]) 
+            pbIncorPUP[:,i,:] = np.nan_to_num(pbCalcPUP[:,i-1,:]  * isActive[:,i-1,:]) 
+            
+            pbAcquPP[:,i,:] = (pbAcquPP[:,i-1,:] + pbIncorPP[:,i,:]) * txInteret[:,i,:] * isActive[:,i,:]       
+            
+            
+            
+            
+            
 
-#             pbSortDTHS[:,i,:] = np.nan_to_num(pbCalcPPdths[:,i,:] * isActive[:,i,:]) 
+            pbSortDTHS[:,i,:] = np.nan_to_num(pbCalcPPdths[:,i,:] * isActive[:,i,:]) 
             
-#             pbPupDTHS[:,i,:] = np.nan_to_num(pbCalcPUPdths[:,i,:] * isActive[:,i,:]) 
+            pbPupDTHS[:,i,:] = np.nan_to_num(pbCalcPUPdths[:,i,:] * isActive[:,i,:]) 
          
-#             pbAcquAVPUP[:,i,:] = (pbAcquAPPUP[:,i-1,:] + pbIncorPUP[:,i,:]) * txInteret[:,i,:]
+            pbAcquAVPUP[:,i,:] = (pbAcquAPPUP[:,i-1,:] + pbIncorPUP[:,i,:]) * txInteret[:,i,:]
 
-#             pbAcquPP[:,i,:] = (pbAcquPP[:,i-1,:] + pbIncorPP[:,i,:]) * txInteret[:,i,:] * isActive[:,i,:]            
+     
 
-#             pbTemp=pbAcquAVPUP[:,i,:] * (nbrPupsIf[:,i,:] - nbrNewRed[:,i,:]) + pbAcquPP[:,i,:] * nbrNewRed[:,i,:]            
+            pbTemp=pbAcquAVPUP[:,i,:] * (nbrPupsIf[:,i,:] - nbrNewRed[:,i,:]) + pbAcquPP[:,i,:] * nbrNewRed[:,i,:]            
             
-#             pbAcquAPPUP[:,i,:] = np.divide(pbTemp,nbrPupsIf[:,i,:],out=np.zeros_like(pbTemp), where=nbrPupsIf[:,i,:]!=0)       
+            pbAcquAPPUP[:,i,:] = np.divide(pbTemp,nbrPupsIf[:,i,:],out=np.zeros_like(pbTemp), where=nbrPupsIf[:,i,:]!=0)       
   
-#             epgTxTEMP = epgTxPbPUP[:,i-1,:] * (nbrPupsIf[:,i,:] - nbrNewRed[:,i,:]) * (txTot[:,i,:]**(1/12)) + (epgTxPB_PP[:,i,:] *  nbrNewRed[:,i,:])
+            epgTxTEMP = epgTxPbPUP[:,i-1,:] * (nbrPupsIf[:,i,:] - nbrNewRed[:,i,:]) * (txTot[:,i,:]**(1/12)) + (epgTxPB_PP[:,i,:] *  nbrNewRed[:,i,:])
             
-#             epgTxPbPUP[:,i,:] =  np.divide(epgTxTEMP, nbrPupsIf[:,i,:], out=np.zeros_like(epgTxTEMP), where=nbrPupsIf[:,i,:]!=0)
+            epgTxPbPUP[:,i,:] =  np.divide(epgTxTEMP, nbrPupsIf[:,i,:], out=np.zeros_like(epgTxTEMP), where=nbrPupsIf[:,i,:]!=0)
+            
+            
+            
                
-#             pbCalcPP[:,i,:] = np.maximum((epgTxPB_PP[:,i,:] - epargnAcquPP[:,i,:] - pbAcquPP[:,i,:]),0)  * allocMonths[:,i,:]
+            pbCalcPP[:,i,:] = np.maximum((epgTxPB_PP[:,i,:] - epargnAcquPP[:,i,:] - pbAcquPP[:,i,:]),0)  * allocMonths[:,i,:]
             
-#             pbCalcPUP[:,i,:] = np.maximum((epgTxPbPUP[:,i,:] - eppAcquAPPUP[:,i,:] - pbAcquAPPUP[:,i,:]),0) * allocMonths[:,i,:]
             
-#             pbCalcPPdths[:,i,:] = np.maximum((epgTxPB_PP[:,i,:] - epargnAcquPP[:,i,:] - pbAcquPP[:,i,:]),0) * (1 - allocMonths[:,i,:])
             
-#             pbCalcPUPdths[:,i,:] = np.maximum((epgTxPbPUP[:,i,:] - eppAcquAPPUP[:,i,:] - pbAcquAPPUP[:,i,:]),0) * (1 - allocMonths[:,i,:])
+            pbCalcPUP[:,i,:] = np.maximum((epgTxPbPUP[:,i,:] - eppAcquAPPUP[:,i,:] - pbAcquAPPUP[:,i,:]),0) * allocMonths[:,i,:]
             
-#             pbSortMatsPP[:,i,:] = pbCalcPP[:,i,:] * isActive[:,i,:]
+            pbCalcPPdths[:,i,:] = np.maximum((epgTxPB_PP[:,i,:] - epargnAcquPP[:,i,:] - pbAcquPP[:,i,:]),0) * (1 - allocMonths[:,i,:])
             
-#             pbSortMatsPUP[:,i,:] = pbCalcPUP[:,i,:] * isActive[:,i,:]
+            pbCalcPUPdths[:,i,:] = np.maximum((epgTxPbPUP[:,i,:] - eppAcquAPPUP[:,i,:] - pbAcquAPPUP[:,i,:]),0) * (1 - allocMonths[:,i,:])
+            
+            pbSortMatsPP[:,i,:] = pbCalcPP[:,i,:] * isActive[:,i,:]
+            
+            pbSortMatsPUP[:,i,:] = pbCalcPUP[:,i,:] * isActive[:,i,:]
 
 #Sauvegarde des variables des actifs
        
@@ -408,42 +421,48 @@ class MI(Portfolio):
         return
 
 
+# retourne un vecteur de 1 à 12 selon la duration de la police, si + élevé de 12 mois alors 12
+    def firstYear(self):
+        dur s
+        dur = self.durationIf() < 12
+        return dur
 
 
 # Prime complémentaire qui va dépendre de la modalité et du tarif
     def annRider(self):
         
         # Prime complémentaire pour les mixtes
-        primeCompl = (pol.p['POLPRCPL1'] + pol.p['POLPRCPL3'] + pol.p['POLPRCPL4'] + pol.p['POLPRCPL5']\
-                      + pol.p['POLPRCPL6'] + pol.p['POLPRCPL9'])
+        primeCompl = (self.p['POLPRCPL1'] + self.p['POLPRCPL3'] + self.p['POLPRCPL4'] + self.p['POLPRCPL5']\
+                      + self.p['POLPRCPL6'] + self.p['POLPRCPL9'])
             
         # Prime complémentaire pour les taux d'interet inférieur à 2.5 et age dépassant 65
-        primeCompl2 = (pol.p['POLPRCPL3'] + pol.p['POLPRCPL4'] + pol.p['POLPRCPL9'])
+        primeCompl2 = (self.p['POLPRCPL3'] + self.p['POLPRCPL4'] + self.p['POLPRCPL9'])
         
         
         # prime complémentaire pour les produits mixtes à 2 têtes (A SUPPRIMER POUR CORRIGER)
-        mask22 = (pol.p['POLNBTETE'] == 2)
-        primeCompl[mask22] = (pol.p['POLPRCPL1'] + pol.p['POLPRCPL3'] + pol.p['POLPRCPL4'] + pol.p['POLPRCPL5'] + pol.p['POLPRCPL6'])[mask22]   
-        primeCompl2[mask22] = (pol.p['POLPRCPL3'] + pol.p['POLPRCPL4'])[mask22]
+        mask22 = (self.p['POLNBTETE'] == 2)
+        primeCompl[mask22] = (self.p['POLPRCPL1'] + self.p['POLPRCPL3'] + self.p['POLPRCPL4'] + self.p['POLPRCPL5'] + self.p['POLPRCPL6'])[mask22]   
+        primeCompl2[mask22] = (self.p['POLPRCPL3'] + self.p['POLPRCPL4'])[mask22]
         
         
         # prime complémentaire pour pour les modalités 10
-        mask10 = (pol.p['PMBMOD'] == 10)
-        primeCompl[mask10] = (pol.p['POLPRCPL1'] + pol.p['POLPRCPL3'] + pol.p['POLPRCPL4'] + pol.p['POLPRCPL5'] \
-                              + pol.p['POLPRCPL6'] + pol.p['POLPRCPL8'] + pol.p['POLPRCPL9'])[mask10]   
+        mask10 = (self.p['PMBMOD'] == 10)
+        primeCompl[mask10] = (self.p['POLPRCPL1'] + self.p['POLPRCPL3'] + self.p['POLPRCPL4'] + self.p['POLPRCPL5'] \
+                              + self.p['POLPRCPL6'] + self.p['POLPRCPL8'] + self.p['POLPRCPL9'])[mask10]   
         primeCompl2[mask10] = primeCompl[mask10]
         
-        primeCompl = primeCompl[:,np.newaxis,np.newaxis] * pol.one()
-        primeCompl2 = primeCompl2[:,np.newaxis,np.newaxis] * pol.one()
+        
+        primeCompl = primeCompl[:,np.newaxis,np.newaxis] * self.one()
+        primeCompl2 = primeCompl2[:,np.newaxis,np.newaxis] * self.one()
         
         # Condition sur la limite d'age qui va dépendre de la modalité et du tarif, ici du taux t'intêret
-        maskA = ((pol.p['POLINTERG'] <= 2)[:,np.newaxis,np.newaxis] * pol.one()).astype(bool)
-        maskB = ((pol.p['POLINTERG'] > 2)[:,np.newaxis,np.newaxis] * pol.one()).astype(bool)
+        maskA = ((self.p['POLINTERG'] <= 2)[:,np.newaxis,np.newaxis] * self.one()).astype(bool)
+        maskB = ((self.p['POLINTERG'] > 2)[:,np.newaxis,np.newaxis] * self.one()).astype(bool)
         
-        maskCPL1 = (pol.age() <= pol.ageLimiteCPL1 ).astype(bool)
-        maskCPL2 = (pol.age() <= pol.ageLimiteCPL2).astype(bool)
+        maskCPL1 = (self.age() <= self.ageLimiteCPL1 ).astype(bool)
+        maskCPL2 = (self.age() <= self.ageLimiteCPL2).astype(bool)
   
-        total = pol.zero()
+        total = self.zero()
         
         
         conditions = [ maskA * maskCPL1, maskA * maskCPL2, maskB * maskCPL1  ]
@@ -459,8 +478,13 @@ class MI(Portfolio):
     def totalPremium(self):
         premInc=((self.p['POLPRVIEHT'] - self.p['POLPRCPLA'])[:,np.newaxis,np.newaxis])/self.frac()
         premCompl = self.annRider() / self.frac()
-        prem=(premInc*self.indexation() + premCompl) *self.nbrPolIfSM*self.isPremPay()
+
+        prem=(premInc*self.indexation() + premCompl) * self.nbrPolIfSM * self.isPremPay()
         
+        # prime à 0 pour les modalités 6 et 7
+        mask67 = self.mask([6,7])
+        prem[mask67] = 0
+   
         return prem
 
 
@@ -506,11 +530,11 @@ pol = MI()
 
     ### Mod 10 F1XT14
 # pol.ids([1602604])
-pol.mod([10])
+# pol.mod([10])
 
     ### Mod 6 F1XT11
 # pol.ids([799003])
-# pol.mod([6,7])
+pol.mod([6,7])
 age = pol.age()
 
 
