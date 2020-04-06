@@ -1,0 +1,11 @@
+VE:
+- minResPp est toujours à zéro, l'enlever des calculs?
+
+
+
+Modalité 11:
+- La prime pure c'est le capital divisé par 99. Ca devrait être le capital * Mx/Nx
+
+
+
+Modalité 01:

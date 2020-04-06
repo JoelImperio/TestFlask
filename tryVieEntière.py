@@ -5,7 +5,7 @@ import pandas as pd
 import time
 import os, os.path
 #from MyPyliferisk import mortalitytables
-from MyPyliferisk import *
+from MyPyliferisk import Actuarial
 from MyPyliferisk.mortalitytables import *
 path = os.path.dirname(os.path.abspath(__file__))
 start_time = time.time()
@@ -17,12 +17,10 @@ tableFemmes = 'EKF05i'
 tableHommes = 'EKM05i'
     
 class VE(Portfolio):
-    mods=[1]
+    mods=[11]
 
+    # LapseTimine à 0.5 pour les VE
     lapseTiming = 0.5
-    minResPp = 0
-    aidsDefRes = 0
-    # valZillPc = (5/100)
             
     tableFemmes = 'EKF05i'
     tableHommes = 'EKM05i'
@@ -38,31 +36,27 @@ class VE(Portfolio):
         self.loopVE()
         self.lapse()
         self.reserveForExp()
-         
+    
+    # Fonction pour savoir si une police lapse, voir pourquoi elle est là
     def isLapse(self):
         lapse = self.zero()
         check1 = (self.frac() * (self.durationIf()+12)/12)
         check2 = np.floor((self.frac()*(self.durationIf()+12)/12))
-
         condlist = [check1 - check2 == 0, check1 - check2 != 0]
         # choicelist = [lapse[:,:,:]==0, lapse[:,:,:] ==1 ]
         choicelist = [lapse[:,:,:]==0, lapse[:,:,:] ==0 ]
-        
         myLapse=np.select(condlist, choicelist)
-        
         # Le premier mois il n'y a pas de payement car la prime est payé en début de mois et les date de calcul sont en fin de mois
         myLapse[:,0,:] = 0
         
         return myLapse
-        
+    
+    # Fonction des lapse, pareil qu'au dessus    
     def lapse(self):
-
         h=self.hypoSet(self.LapseNew)
-        
         lapseSensiMoins=h.iloc[56,2]
         lapseSensiPlus=h.iloc[57,2]       
         cl=self.p['ClassPGGinit']
-        
         lapseRates=h.iloc[23:32,1:12]
         lapseRates.columns = lapseRates.iloc[0]
         lapseRates=lapseRates.drop(lapseRates.index[0])
@@ -72,7 +66,6 @@ class VE(Portfolio):
 
         dur=self.durationIf()
         dur=dur[:,:,0][:,:,np.newaxis]*self.oneAllrun()
-        
 
         condlist = [dur<=12,dur<=24,dur<=36,dur<=48,dur<=60, 
                     dur<=72,dur<=84,dur<=96,dur<=108, 
@@ -83,17 +76,16 @@ class VE(Portfolio):
                       lapseRates[:,9,:] ]
         mylapse=np.select(condlist, choicelist)
 
-        
         mylapse[:,:,[3,4]]=mylapse[:,:,[3,4]]*lapseSensiMoins
         mylapse[:,:,2]=mylapse[:,:,2]*lapseSensiPlus
        
-        #Dimensionner pour les runs et le portefeuille en appel    
+        # Dimensionner pour les runs et le portefeuille en appel    
         mylapse=mylapse[:,:,self.runs]
         
-        #Prise en compte du taux fractionnel et de la mise en place avant un paiement
+        # Prise en compte du taux fractionnel et de la mise en place avant un paiement
         frac=self.frac()
         
-        #Fractionnement à 0 sont remplacer par 1
+        # Fractionnement à 0 sont remplacer par 1
         frac[frac==0]=12
         # mylapse=1-(1-mylapse)**(1/frac)
         mylapse=1-(1-mylapse)**(1/12)
@@ -102,38 +94,31 @@ class VE(Portfolio):
         
         return mylapse
      
+    # Loop qui calcule les maturités, inforce annuels et mensuels, nombre de morts, nombre de surrenders.    
     def loopVE(self):
         
-        lapseTiming = 0.5
-        
+        # Vecteur mise à zéro
         nbrPolIf=self.one()
         nbrDeath=self.zero()
         nbrSurrender=self.zero()
         nbrMaturities=self.zero()
         nbrPolIfSM=self.zero()
-        
         matRate=self.zero()
+        
+        # Déclaration de certains vecteurs
         polTermM=self.polTermM()
-        
         matRate[polTermM + 1==self.durationIf()]=1
-        
         qxy=self.qxyExpMens()
         lapse=self.lapse()
-           
+         
+        # Début du loop
         for i in range(1,self.shape[1]):
-            
             nbrMaturities[:,i,:]=nbrPolIf[:,i-1,:]*matRate[:,i,:]
-            
             nbrPolIfSM[:,i,:]=nbrPolIf[:,i-1,:]-nbrMaturities[:,i,:]
-            
-            nbrDeath[:,i,:]=nbrPolIfSM[:,i,:]*qxy[:,i,:]*(1-(lapse[:,i,:]*(1-lapseTiming)))
-            
-            nbrSurrender[:,i,:]=nbrPolIfSM[:,i,:]*lapse[:,i,:]*(1-(qxy[:,i,:]*lapseTiming))
-
+            nbrDeath[:,i,:]=nbrPolIfSM[:,i,:]*qxy[:,i,:]*(1-(lapse[:,i,:]*(1-self.lapseTiming)))
+            nbrSurrender[:,i,:]=nbrPolIfSM[:,i,:]*lapse[:,i,:]*(1-(qxy[:,i,:]*self.lapseTiming))
             nbrPolIf[:,i,:]=nbrPolIf[:,i-1,:]-nbrMaturities[:,i,:]-nbrDeath[:,i,:]-nbrSurrender[:,i,:]
 
-#Définition des variables récursives
-        
         #Nombre de polices actives                                 
         self.nbrPolIf=nbrPolIf
         #Nombre de police actives en déduisant les échéances du mois
@@ -144,8 +129,12 @@ class VE(Portfolio):
         self.nbrDeath=nbrDeath
         #Nombre d'annulation de contrat
         self.nbrSurrender=nbrSurrender
-        
-   
+    
+# =============================================================================
+    ### FONCTIONS ACTUARIELLES
+# =============================================================================       
+    
+   # Fonction de calcul des Dx
     def dx(self,table=tableHommes):
         txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis]/100
         myDx = self.zero()
@@ -159,6 +148,7 @@ class VE(Portfolio):
             myDx[mask_txTech] = np.take(aDx, myAge[mask_txTech])
         return myDx
 
+    # Fonction de calcul des Mx
     def mx(self,table=tableHommes):
         txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis]/100
         myMx = self.zero()
@@ -172,6 +162,7 @@ class VE(Portfolio):
             myMx[mask_txTech] = np.take(aMx, myAge[mask_txTech])
         return myMx
     
+    # Fonction de calcul des Nx
     def nx(self,table=tableHommes):
         txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis]/100
         myNx = self.zero()
@@ -184,13 +175,9 @@ class VE(Portfolio):
             myAge = np.where(myAge>=mt.w, mt.w-1, myAge)
             myNx[mask_txTech] = np.take(aNx, myAge[mask_txTech])
         return myNx
-    
-# =============================================================================
-    # --- Début des variables du produit
-# =============================================================================
 
 # =============================================================================
-    # ---Calcul de surrOutgo
+    ### CALCUL DES SURRENDER
 # =============================================================================
 
     # VAL_SA_PP - capital de la police
@@ -198,7 +185,7 @@ class VE(Portfolio):
         sumAssdPp = self.p['PMBCAPIT'].to_numpy()[:,np.newaxis,np.newaxis]*self.one()
         return sumAssdPp
     
-    # VAL_ACCRB_PP               
+    # VAL_ACCRB_PP - valeur de la PB acquise en début de projection               
     def valAccrbPP(self):
         valAccrbPp = self.p['PMBPBEN'].to_numpy()[:,np.newaxis,np.newaxis]*self.one()
         return valAccrbPp
@@ -221,7 +208,7 @@ class VE(Portfolio):
         - self.valNetpFac() * (self.prInventPP() - self.purePremium())
         return provGestPp
     
-    # VAL_PREC_PP
+    # VAL_PREC_PP - risque en cours
     def valPrecPP(self):
         situation = self.p['POLSIT'][:,np.newaxis,np.newaxis]
         agelimite=(self.age()<=85)
@@ -238,17 +225,11 @@ class VE(Portfolio):
         precPP = np.select(conditions,result,sinon)
         return precPP
     
-    # PR_PURE_PP - Prime pure
+    # PR_PURE_PP - Prime pure calcul éronné pour la mod11
     def purePremium(self):
         purePremium =  self.insuredSum() / 99
         return purePremium
    
-    #/\ Prime totale, doublon à effecer après avoir corrigé les références /\
-    def primeTotale(self):
-        frac = self.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
-        primeTotale = self.p['POLPRTOT'].to_numpy()[:,np.newaxis,np.newaxis] / frac * self.isPremPay()
-        return primeTotale 
-    
     # Primes mensuelles (ne dépend pas de isprempay)
     def primeTotaleMensuelle(self):
         frac = self.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
@@ -260,21 +241,6 @@ class VE(Portfolio):
         ValNetpPp = self.purePremium() * self.valNetpFac()
         return ValNetpPp
     
-    # Frais sur durée du contrat
-    def cgSaPolPc(self):
-        conditions = [(self.p['Age1AtEntry'] < 53), (self.p['Age1AtEntry'] < 70)]
-        result =[(0.25), (0.45)]
-        sinon = (0.9)
-        cgSaPolPc = np.select(conditions,result,sinon)[:,np.newaxis,np.newaxis]
-        return cgSaPolPc
-    # Frais sur durée du paiement des primes
-    def cgSaPriPc(self):
-        conditions = [(self.p['Age1AtEntry'] < 53), (self.p['Age1AtEntry'] < 70)]
-        result =[(0.35), (0.55)]
-        sinon = (1.2)
-        cgSaPriPc = np.select(conditions,result,sinon)[:,np.newaxis,np.newaxis]
-        return cgSaPriPc
-    
     # PR_INVENT_PP
     def prInventPP(self):
         situation = self.p['POLSIT'][:,np.newaxis,np.newaxis]
@@ -285,52 +251,82 @@ class VE(Portfolio):
         PrInventPp = np.select(conditions,result,sinon)
         return PrInventPp
       
-    # VAL_NETP_FAC
+    # VAL_NETP_FAC - durée restante mensuelle, à 0 si pas de paiement des primes
     def valNetpFac(self):
         situation = self.p['POLSIT'][:,np.newaxis,np.newaxis]
         conditions = [(situation != 4) & (situation != 8) & (situation != 9)]
-        result =[(99 - (self.durationIf()/12))]
+        result = [(99 - (self.durationIf()/12))]
         sinon = 0
         valNetpFac = np.select(conditions,result,sinon)
         return valNetpFac
     
+    # VAL_POL_FAC - durée restante mensuelle, ne dépend pas des primes
     def valPolFac(self):
         valPolFac = 99 - (self.durationIf()/12)
         return valPolFac
     
-    # VAL_ZILL_PP    
+    # VAL_ZILL_PP - valeur de zillmérisation    
     def valZillPP(self):
         valZillPC = (5/100) * self.one()
         ValZillPP = np.minimum(valZillPC * self.prInventPP() * self.valNetpFac(), self.insuredSum() - self.valNetpPP() + self.provGestPP())
         return ValZillPP
     
-    # MATH_RES_BA
+    # MATH_RES_BA - provision mathématique - en cours
     def mathResBa(self):
         
         # pour la 11:
-        # mathResBa = np.maximum(self.insuredSum() + self.valAccrbPP() + self.provGestPP() + self.valPrecPP() - self.valNetpPP() - self.valZillPP(), self.minResPp)
+        # mathResBa = np.maximum(self.insuredSum() + self.valAccrbPP() + self.provGestPP() + self.valPrecPP() - self.valNetpPP() - self.valZillPP(), 0)
         
         # pour la 01:
-        mathResBa = np.maximum(self.insuredSum()  + self.valPrecPP() - self.valNetpPP() - self.valZillPP(), self.minResPp)
+        mathResBa = np.maximum(self.insuredSum()  + self.valPrecPP() - self.valNetpPP() - self.valZillPP(), 0)
         
         
         return mathResBa
+    
+# =============================================================================
+    ### FRAIS -> INTEGRER PTF
+# =============================================================================
 
-    # NO_SURRS
+    # Frais sur durée du contrat
+    def cgSaPolPc(self):
+        conditions = [(self.p['Age1AtEntry'] < 53), (self.p['Age1AtEntry'] < 70)]
+        result =[(0.25), (0.45)]
+        sinon = (0.9)
+        cgSaPolPc = np.select(conditions,result,sinon)[:,np.newaxis,np.newaxis]
+        return cgSaPolPc
+    
+    # Frais sur durée du paiement des primes
+    def cgSaPriPc(self):
+        conditions = [(self.p['Age1AtEntry'] < 53), (self.p['Age1AtEntry'] < 70)]
+        result =[(0.35), (0.55)]
+        sinon = (1.2)
+        cgSaPriPc = np.select(conditions,result,sinon)[:,np.newaxis,np.newaxis]
+        return cgSaPriPc
+    
+# =============================================================================
+    ### FONCTIONS DOUBLONS
+# =============================================================================
+
+    # NO_SURRS - nombre de surrenders - a priori à effacer après vérification
     def numberSurrenders(self):
         noSurrs = self.nbrPolIfSM * self.lapse() * (1-self.lapseTiming*self.qxExpMens())
         return noSurrs
-
-# =============================================================================
-    # ---Calcul de deathOutgo
-# =============================================================================    
     
-    # NO_DEATHS
+    # Prime totale, doublon à effecer après avoir corrigé les références
+    def primeTotale(self):
+        frac = self.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
+        primeTotale = self.p['POLPRTOT'].to_numpy()[:,np.newaxis,np.newaxis] / frac * self.isPremPay()
+        return primeTotale 
+
+    # NO_DEATHS - nombre de morts
     def numberDeaths(self):
         noDeaths= self.qxExpMens() * self.nbrPolIfSM *(1 - self.lapse()*self.lapseTiming)
         return noDeaths
-    
-    # DEATH_BEN_PP
+# =============================================================================
+    ### CALCUL DE DEATHOUTGO
+# =============================================================================    
+
+    # DEATH_BEN_PP - calcul du death benefit
     def deathBenefit(self):
         capital = self.p['PMBCAPIT'].to_numpy()[:,np.newaxis,np.newaxis]    
         frac = 12 / self.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
@@ -356,13 +352,13 @@ class VE(Portfolio):
         return deathBenPP
 
 # =============================================================================
-    # --- Composants de totalExpense
+    ### CALCUL DE TOTALEXPENSE
 # =============================================================================
-    # F_MATH_RES_IF
+    # F_MATH_RES_IF - prov math actualisée avec les inforce
     def fMathResIf(self):
         fMathResIf = self.mathResBa() * self.nbrPolIf
         return fMathResIf    
-    
+   
     def allocMonths(self):
         calendarMonth=np.arange(start=self.p['DateCalcul'].dt.month.values[0].astype(int),stop=(self.shape[1]+self.p['DateCalcul'].dt.month.values[0].astype(int)))
         calendarMonth=calendarMonth%12 + 1
@@ -454,7 +450,7 @@ class VE(Portfolio):
         return ppureEnc
         
 # =============================================================================
-    # --- Composants de totalClaim    
+    ### CALCUL DES CLAIMS   
 # =============================================================================
     def surrOutgo(self):
         conditions = [(self.durationIf()>36)]
@@ -501,7 +497,7 @@ class VE(Portfolio):
         return ridercOutgo
 
 # =============================================================================
-    # --- Calcul des composants du BEL 
+    ### CALCUL DU BEL
 # =============================================================================
 # Retourne les primes totales perçues
     def totalPremium(self):
