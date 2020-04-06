@@ -431,8 +431,8 @@ class MI(Portfolio):
         total = self.zero()
         
         
-        conditions = [ maskA * maskCPL2, maskA * maskCPL1, maskB * maskCPL1  ]
-        choices = [primeCompl2, primeCompl, primeCompl]
+        conditions = [ maskA * maskCPL1, maskA * maskCPL2, maskB * maskCPL1  ]
+        choices = [ primeCompl, primeCompl2, primeCompl]
         
         total = np.select(conditions, choices, default=0)
        
@@ -482,8 +482,8 @@ pol = MI()
 #pol=MI(run=[4,5])
 
     ###  Mod 2_1 produit F1XT1
-pol.ids([175001])
-# pol.modHead([2],1)
+# pol.ids([393305])
+pol.modHead([2],1)
 
     ### Mod 2_2 F2XT_1
 # pol.ids([2501])
