@@ -500,7 +500,7 @@ def portfolioPreProcessing(p):
     # Une police axiprotect a un taux d'indexation sur la prime à 1%, on force à 0
     p.loc[p['PMBPOL'].isin([2357801]), 'POLINDEX'] = 0
     
-
+    
     agesInitial(p)
     
 #Formatage des colonnes et création des colonnes utiles    

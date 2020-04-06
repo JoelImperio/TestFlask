@@ -414,21 +414,36 @@ class MI(Portfolio):
     def annRider(self):
         
         # Prime complémentaire pour les mixtes
-        primeCompl = (self.p['POLPRCPL1'] + self.p['POLPRCPL3'] + self.p['POLPRCPL4'] + self.p['POLPRCPL5']\
-                      + self.p['POLPRCPL6'] + self.p['POLPRCPL9'])[:,np.newaxis,np.newaxis] * self.one()
+        primeCompl = (pol.p['POLPRCPL1'] + pol.p['POLPRCPL3'] + pol.p['POLPRCPL4'] + pol.p['POLPRCPL5']\
+                      + pol.p['POLPRCPL6'] + pol.p['POLPRCPL9'])
             
         # Prime complémentaire pour les taux d'interet inférieur à 2.5 et age dépassant 65
-        primeCompl2 = (self.p['POLPRCPL3'] + self.p['POLPRCPL4'] + self.p['POLPRCPL9'])[:,np.newaxis,np.newaxis] * self.one()
+        primeCompl2 = (pol.p['POLPRCPL3'] + pol.p['POLPRCPL4'] + pol.p['POLPRCPL9'])
+        
+        
+        # prime complémentaire pour les produits mixtes à 2 têtes (A SUPPRIMER POUR CORRIGER)
+        mask22 = (pol.p['POLNBTETE'] == 2)
+        primeCompl[mask22] = (pol.p['POLPRCPL1'] + pol.p['POLPRCPL3'] + pol.p['POLPRCPL4'] + pol.p['POLPRCPL5'] + pol.p['POLPRCPL6'])[mask22]   
+        primeCompl2[mask22] = (pol.p['POLPRCPL3'] + pol.p['POLPRCPL4'])[mask22]
+        
+        
+        # prime complémentaire pour pour les modalités 10
+        mask10 = (pol.p['PMBMOD'] == 10)
+        primeCompl[mask10] = (pol.p['POLPRCPL1'] + pol.p['POLPRCPL3'] + pol.p['POLPRCPL4'] + pol.p['POLPRCPL5'] \
+                              + pol.p['POLPRCPL6'] + pol.p['POLPRCPL8'] + pol.p['POLPRCPL9'])[mask10]   
+        primeCompl2[mask10] = primeCompl[mask10]
+        
+        primeCompl = primeCompl[:,np.newaxis,np.newaxis] * pol.one()
+        primeCompl2 = primeCompl2[:,np.newaxis,np.newaxis] * pol.one()
         
         # Condition sur la limite d'age qui va dépendre de la modalité et du tarif, ici du taux t'intêret
-     
-        maskA = ((self.p['POLINTERG'] <= 2)[:,np.newaxis,np.newaxis] * self.one()).astype(bool)
-        maskB = ((self.p['POLINTERG'] > 2)[:,np.newaxis,np.newaxis] * self.one()).astype(bool)
+        maskA = ((pol.p['POLINTERG'] <= 2)[:,np.newaxis,np.newaxis] * pol.one()).astype(bool)
+        maskB = ((pol.p['POLINTERG'] > 2)[:,np.newaxis,np.newaxis] * pol.one()).astype(bool)
         
-        maskCPL1 = (self.age() <= self.ageLimiteCPL1 ).astype(bool)
-        maskCPL2 = (self.age() <= self.ageLimiteCPL2).astype(bool)
+        maskCPL1 = (pol.age() <= pol.ageLimiteCPL1 ).astype(bool)
+        maskCPL2 = (pol.age() <= pol.ageLimiteCPL2).astype(bool)
   
-        total = self.zero()
+        total = pol.zero()
         
         
         conditions = [ maskA * maskCPL1, maskA * maskCPL2, maskB * maskCPL1  ]
@@ -483,15 +498,15 @@ pol = MI()
 
     ###  Mod 2_1 produit F1XT1
 # pol.ids([393305])
-pol.modHead([2],1)
+# pol.modHead([2],1)
 
     ### Mod 2_2 F2XT_1
-# pol.ids([2501])
+# pol.ids([2135101])
 # pol.modHead([2],2)
 
     ### Mod 10 F1XT14
 # pol.ids([1602604])
-# pol.mod([10])
+pol.mod([10])
 
     ### Mod 6 F1XT11
 # pol.ids([799003])
@@ -541,7 +556,7 @@ z.to_csv(path+'/zJO/check.csv',header=False)
 
 
 
-pol.p.to_excel(path+'/zJO/check portefeuille.xlsx', header = True )
+# pol.p.to_excel(path+'/zJO/check portefeuille.xlsx', header = True )
 # aa.to_excel("check portefeuille.xlsx", header = True )
 
 

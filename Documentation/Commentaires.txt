@@ -98,7 +98,8 @@ CHANGEMENT APPORTé DANS PARAMÈTRE
 - MI Les Qx pour les modalité 2 à 2 têtes sont fausses dans prophet. On fait le calcul de la probabilité jointe de décès OK mais uniquement avec le qx du 1ER ASSURE !!!! 
 ça nous donne qxy = qx + qx -qx*qx au lieu de qxy = qx + qy -qx*qy
 
-
+- MI les primes total et complémentaire sont a revoir. On prend pas en compte POLPRCPLA dans total premium mais pas non plus dans ANN_RIDER_PP. Pour les mixtes 2 têtes
+nous prenons pas en compte les complémentaire protection d'avenir dans ANN_RIDER_PP mais par contre nous déduisons POLPRCPLA de POLPRVIEHT pour avoir les primes total'
 
 
 
