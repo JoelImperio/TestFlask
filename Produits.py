@@ -631,7 +631,7 @@ class EP(Portfolio):
 
 
 
-#Sauvgarde des variables de  PB pour actives et réduites
+#Sauvegarde des variables de  PB pour actives et réduites
         
         # PB acquise par police AVANT nouvelle réduction                                 
         self.pbAcquAVPUP=np.nan_to_num(pbAcquAVPUP)
