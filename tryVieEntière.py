@@ -5,6 +5,7 @@ import pandas as pd
 import time
 import os, os.path
 #from MyPyliferisk import mortalitytables
+from MyPyliferisk import *
 from MyPyliferisk.mortalitytables import *
 path = os.path.dirname(os.path.abspath(__file__))
 start_time = time.time()
@@ -16,7 +17,7 @@ tableFemmes = 'EKF05i'
 tableHommes = 'EKM05i'
     
 class VE(Portfolio):
-    mods=[1,11]
+    mods=[1]
 
     lapseTiming = 0.5
     minResPp = 0
@@ -143,8 +144,47 @@ class VE(Portfolio):
         self.nbrDeath=nbrDeath
         #Nombre d'annulation de contrat
         self.nbrSurrender=nbrSurrender
-    
+        
+   
+    def dx(self,table=tableHommes):
+        txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis]/100
+        myDx = self.zero()
+        for i in range(0, 375, 25):
+            txInt = i / 10000
+            mask_txTech = ((txTech == txInt)*self.one()).astype(bool)
+            mt = Actuarial(nt=EKM95, i=txInt)
+            aDx = pd.DataFrame(mt.Dx).to_numpy()
+            myAge = (self.age()).astype(int)
+            myAge = np.where(myAge>=mt.w, mt.w-1, myAge)
+            myDx[mask_txTech] = np.take(aDx, myAge[mask_txTech])
+        return myDx
 
+    def mx(self,table=tableHommes):
+        txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis]/100
+        myMx = self.zero()
+        for i in range(0, 375, 25):
+            txInt = i / 10000
+            mask_txTech = ((txTech == txInt)*self.one()).astype(bool)
+            mt = Actuarial(nt=EKM95, i=txInt)
+            aMx = pd.DataFrame(mt.Mx).to_numpy()
+            myAge = (self.age()).astype(int)
+            myAge = np.where(myAge>=mt.w, mt.w-1, myAge)
+            myMx[mask_txTech] = np.take(aMx, myAge[mask_txTech])
+        return myMx
+    
+    def nx(self,table=tableHommes):
+        txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis]/100
+        myNx = self.zero()
+        for i in range(0, 375, 25):
+            txInt = i / 10000
+            mask_txTech = ((txTech == txInt)*self.one()).astype(bool)
+            mt = Actuarial(nt=EKM95, i=txInt)
+            aNx = pd.DataFrame(mt.Nx).to_numpy()
+            myAge = (self.age()).astype(int)
+            myAge = np.where(myAge>=mt.w, mt.w-1, myAge)
+            myNx[mask_txTech] = np.take(aNx, myAge[mask_txTech])
+        return myNx
+    
 # =============================================================================
     # --- Début des variables du produit
 # =============================================================================
@@ -153,7 +193,7 @@ class VE(Portfolio):
     # ---Calcul de surrOutgo
 # =============================================================================
 
-    # VAL_SA_PP
+    # VAL_SA_PP - capital de la police
     def insuredSum(self):
         sumAssdPp = self.p['PMBCAPIT'].to_numpy()[:,np.newaxis,np.newaxis]*self.one()
         return sumAssdPp
@@ -163,19 +203,19 @@ class VE(Portfolio):
         valAccrbPp = self.p['PMBPBEN'].to_numpy()[:,np.newaxis,np.newaxis]*self.one()
         return valAccrbPp
     
-    # ADUE_VAL
+    # ADUE_VAL - Annuité actuarielle
     def adueVal(self):
         polTerm = self.p['POLDURC'].to_numpy()[:,np.newaxis,np.newaxis]
         adueVal = polTerm - ((self.durationIf()+1)/12)
         adueVal = np.floor(adueVal)
         return adueVal
 
-    # PMG_SA_PC
+    # PMG_SA_PC - traitement des frais pour provGestPP
     def pmgSaPc(self):
         pmgSaPc = self.cgSaPriPc() * self.valNetpFac() + self.cgSaPolPc() * self.valPolFac()
         return pmgSaPc
        
-    # PROV_GEST_PP
+    # PROV_GEST_PP - Provision de gestion par police, quelle logique?
     def provGestPP(self):
         provGestPp = self.pmgSaPc()/100 * (self.insuredSum() + self.valAccrbPP()) \
         - self.valNetpFac() * (self.prInventPP() - self.purePremium())
@@ -198,33 +238,36 @@ class VE(Portfolio):
         precPP = np.select(conditions,result,sinon)
         return precPP
     
-    # PR_PURE_PP
+    # PR_PURE_PP - Prime pure
     def purePremium(self):
         purePremium =  self.insuredSum() / 99
         return purePremium
-    
+   
+    #/\ Prime totale, doublon à effecer après avoir corrigé les références /\
     def primeTotale(self):
         frac = self.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
         primeTotale = self.p['POLPRTOT'].to_numpy()[:,np.newaxis,np.newaxis] / frac * self.isPremPay()
         return primeTotale 
     
+    # Primes mensuelles (ne dépend pas de isprempay)
     def primeTotaleMensuelle(self):
         frac = self.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
         primeTotaleMensuelle = self.p['POLPRTOT'].to_numpy()[:,np.newaxis,np.newaxis] *self.one() / frac
         return primeTotaleMensuelle 
 
-    # VAL_NETP_PP
+    # VAL_NETP_PP valeur des primes nettes
     def valNetpPP(self):
         ValNetpPp = self.purePremium() * self.valNetpFac()
         return ValNetpPp
     
+    # Frais sur durée du contrat
     def cgSaPolPc(self):
         conditions = [(self.p['Age1AtEntry'] < 53), (self.p['Age1AtEntry'] < 70)]
         result =[(0.25), (0.45)]
         sinon = (0.9)
         cgSaPolPc = np.select(conditions,result,sinon)[:,np.newaxis,np.newaxis]
         return cgSaPolPc
-    
+    # Frais sur durée du paiement des primes
     def cgSaPriPc(self):
         conditions = [(self.p['Age1AtEntry'] < 53), (self.p['Age1AtEntry'] < 70)]
         result =[(0.35), (0.55)]
@@ -515,13 +558,26 @@ pol = VE()
 # pol.ids([18105])
 # pol.ids([27503])
 
-pol.ids([818202])
+# pol.ids([818202])
 # pol.ids([572405, 572503, 731902, 732001, 818202, 889603, 1132602, 1132701, 2211301])
 
-   
-    
-    
+pol.ids([71601])
 
+
+# txTech = pol.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis]/100
+# myDxTot = pol.zero()
+# myDx = pol.zero()
+
+# txInt = 25 / 10000
+# # txInt = 0 / 100
+# mask_txTech = ((txTech == txInt)*pol.one()).astype(bool)
+# mt = Actuarial(nt=EKM95, i=txInt)
+# aDx = pd.DataFrame(mt.Dx).to_numpy()
+
+# myAge = (pol.age()).astype(int)
+# myAge = np.where(myAge>=mt.w, mt.w-1, myAge)
+# myDx[mask_txTech] = np.take(aDx, myAge[mask_txTech])
+   
 
 test = pol.nbrDeath
 test2 = pol.nbrPolIfSM
@@ -534,17 +590,15 @@ test8 = pol.qxExp()
 test9 = pol.qx()
 test10 = pol.durationIf()
 
-
-
-
+testdx = pol.nx()
 
 
  
-# x = pol.p
+x = pol.p
 
 # x.to_excel(path+'/zFT/ptf.xlsx')
 
-monCas = pol.valNetpPP()
+monCas = pol.dx()
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
