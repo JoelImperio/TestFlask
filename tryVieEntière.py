@@ -22,8 +22,8 @@ class VE(Portfolio):
     # LapseTimine à 0.5 pour les VE
     lapseTiming = 0.5
             
-    tableFemmes = 'EKF05i'
-    tableHommes = 'EKM05i'
+    tableFemmes = EKF95
+    tableHommes = EKM95
     
     def __init__(self,run=allRuns,\
                  PortfolioNew=True, SinistralityNew=True,LapseNew=True,CostNew=True,RateNew=True ):
@@ -134,44 +134,54 @@ class VE(Portfolio):
     ### FONCTIONS ACTUARIELLES
 # =============================================================================       
     
+
+    def ageInit(self):
+        age = (self.p['Age1AtEntry'].to_numpy()[:,np.newaxis,np.newaxis]*self.one())
+        return age
+    
+    def ageFinal(self):
+        age = ((self.p['Age1AtEntry'] + (self.p['residualTermM'] + self.p['DurationIfInitial'])/12).to_numpy()[:,np.newaxis,np.newaxis]*self.one())
+        return age
+        
    # Fonction de calcul des Dx
-    def dx(self,table=tableHommes):
+    def dx(self, myAge, table=tableHommes):
+        myAge = myAge.astype(int)
         txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis]/100
         myDx = self.zero()
         for i in range(0, 375, 25):
             txInt = i / 10000
             mask_txTech = ((txTech == txInt)*self.one()).astype(bool)
-            mt = Actuarial(nt=EKM95, i=txInt)
+            mt = Actuarial(nt=table, i=txInt)
             aDx = pd.DataFrame(mt.Dx).to_numpy()
-            myAge = (self.age()).astype(int)
             myAge = np.where(myAge>=mt.w, mt.w-1, myAge)
             myDx[mask_txTech] = np.take(aDx, myAge[mask_txTech])
-        return myDx
+        self.dx = dx
+
 
     # Fonction de calcul des Mx
-    def mx(self,table=tableHommes):
+    def mx(self, myAge, table=tableHommes):
+        myAge = myAge.astype(int)
         txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis]/100
         myMx = self.zero()
         for i in range(0, 375, 25):
             txInt = i / 10000
             mask_txTech = ((txTech == txInt)*self.one()).astype(bool)
-            mt = Actuarial(nt=EKM95, i=txInt)
+            mt = Actuarial(nt=table, i=txInt)
             aMx = pd.DataFrame(mt.Mx).to_numpy()
-            myAge = (self.age()).astype(int)
             myAge = np.where(myAge>=mt.w, mt.w-1, myAge)
             myMx[mask_txTech] = np.take(aMx, myAge[mask_txTech])
         return myMx
     
     # Fonction de calcul des Nx
-    def nx(self,table=tableHommes):
+    def nx(self, myAge, table=tableHommes):
+        myAge = myAge.astype(int)
         txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis]/100
         myNx = self.zero()
         for i in range(0, 375, 25):
             txInt = i / 10000
             mask_txTech = ((txTech == txInt)*self.one()).astype(bool)
-            mt = Actuarial(nt=EKM95, i=txInt)
+            mt = Actuarial(nt=table, i=txInt)
             aNx = pd.DataFrame(mt.Nx).to_numpy()
-            myAge = (self.age()).astype(int)
             myAge = np.where(myAge>=mt.w, mt.w-1, myAge)
             myNx[mask_txTech] = np.take(aNx, myAge[mask_txTech])
         return myNx
@@ -551,13 +561,13 @@ class VE(Portfolio):
     
 pol = VE()
 
-# pol.ids([18105])
+pol.ids([18105])
 # pol.ids([27503])
 
 # pol.ids([818202])
 # pol.ids([572405, 572503, 731902, 732001, 818202, 889603, 1132602, 1132701, 2211301])
 
-pol.ids([71601])
+# pol.ids([71601])
 
 
 # txTech = pol.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis]/100
@@ -586,15 +596,15 @@ test8 = pol.qxExp()
 test9 = pol.qx()
 test10 = pol.durationIf()
 
-testdx = pol.nx()
+# testdx = pol.nx()
 
-
+testage = pol.ageFinal()
  
 x = pol.p
 
-# x.to_excel(path+'/zFT/ptf.xlsx')
+x.to_excel(path+'/zFT/ptf.xlsx')
 
-monCas = pol.dx()
+monCas = pol.dx(pol.ageInit())
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])

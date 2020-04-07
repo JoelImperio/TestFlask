@@ -381,7 +381,7 @@ def adjustAgesAndTerm(p):
     
     
 # =============================================================================
-# Residual Term M pour ces cas MOD11 et 58
+# Residual Term M pour ces cas et 58
 # =============================================================================
     
     mask=(p['PMBMOD']==58)
