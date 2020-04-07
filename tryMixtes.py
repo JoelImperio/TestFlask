@@ -6,6 +6,8 @@ import numpy as np
 import pandas as pd
 import time
 import os, os.path
+from MyPyliferisk import Actuarial
+from MyPyliferisk.mortalitytables import *
 path = os.path.dirname(os.path.abspath(__file__))
 start_time = time.time()
 
@@ -22,7 +24,7 @@ class MI(Portfolio):
     # age limite pour la garantie complémentaire CPL1
     ageLimiteCPL1 = 60
     ageLimiteCPL2 = 65
-    
+    tableHommes = EKM95
     def __init__(self,run=allRuns,\
                  PortfolioNew=True, SinistralityNew=True,LapseNew=True,CostNew=True,RateNew=True ):
         super().__init__(runs=run,\
@@ -34,6 +36,7 @@ class MI(Portfolio):
     def update(self,subPortfolio):
         super().update(subPortfolio)
         self.loopSaving()
+       
 
 # #Cette Loop renvoie l'ensemble des variables récusrives pour les produits mixtes
 #     def loopEndowment(self):
@@ -309,7 +312,7 @@ class MI(Portfolio):
 #             pbAcquPP[:,i,:] = (pbAcquPP[:,i-1,:] + pbIncorPP[:,i,:]) * txInteret[:,i,:] * isActive[:,i,:]       
             
             
-              pbCalcPP[:,i,:] = (pmPourPB[:,i,:] * txPbPC[:,i,:] * (firstYear[:,i,:] / 12) / bonConv[:,i,:] ) * allocMonths[:,i,:]
+            # pbCalcPP[:,i,:] = (pmPourPB[:,i,:] * txPbPC[:,i,:] * (firstYear[:,i,:] / 12) / bonConv[:,i,:] ) * allocMonths[:,i,:]
             
             
 
@@ -421,6 +424,107 @@ class MI(Portfolio):
         return
 
 
+
+
+
+
+# =============================================================================
+    ### FONCTIONS ACTUARIELLES
+# =============================================================================       
+    
+
+    def ageInit(self):
+        age = (self.p['Age1AtEntry'].to_numpy()[:,np.newaxis,np.newaxis]*self.one())
+        return age
+    
+    def ageFinal(self):
+        age = ((self.p['Age1AtEntry'] + (self.p['residualTermM'] + self.p['DurationIfInitial'])/12).to_numpy()[:,np.newaxis,np.newaxis]*self.one())
+        return age
+        
+    
+    
+    # Fonction de calcul des Dx
+    # def dx(self, myAge, table=tableHommes):
+    #     myAge = myAge.astype(int)
+    #     txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis]/100
+    #     myDx = self.zero()
+    #     for i in range(0, 375, 25):
+    #         txInt = i / 10000
+    #         mask_txTech = ((txTech == txInt)*self.one()).astype(bool)
+    #         mt = Actuarial(nt=table, i=txInt)
+    #         aDx = pd.DataFrame(mt.Dx).to_numpy()
+    #         myAge = np.where(myAge>=mt.w, mt.w-1, myAge)
+    #         myDx[mask_txTech] = np.take(aDx, myAge[mask_txTech])
+            
+    #         self.dx = myDx
+    #     return
+    
+    
+    
+    
+    
+    def dx(self, myAge, table=tableHommes):
+        
+        myAge = myAge.astype(int)
+        txTech = self.p['PMBTXINT']/100
+        myDx = self.zero()
+
+        mt = Actuarial(nt=table, i=txTech)
+        aDx = pd.DataFrame(mt.Dx).to_numpy()
+        myAge = np.where(myAge>=mt.w, mt.w-1, myAge)
+        myDx = np.take(aDx, myAge)
+        
+        return myDx
+
+
+
+
+
+
+
+   # Fonction de calcul des Mx
+    def mx(self, myAge, table=tableHommes):
+        myAge = myAge.astype(int)
+        txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis]/100
+        myMx = self.zero()
+        for i in range(0, 375, 25):
+            txInt = i / 10000
+            mask_txTech = ((txTech == txInt)*self.one()).astype(bool)
+            mt = Actuarial(nt=table, i=txInt)
+            aMx = pd.DataFrame(mt.Mx).to_numpy()
+            myAge = np.where(myAge>=mt.w, mt.w-1, myAge)
+            myMx[mask_txTech] = np.take(aMx, myAge[mask_txTech])
+        return myMx
+    
+    
+    
+    # Fonction de calcul des Nx
+    def nx(self, myAge, table=tableHommes):
+        myAge = myAge.astype(int)
+        txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis]/100
+        myNx = self.zero()
+        for i in range(0, 375, 25):
+            txInt = i / 10000
+            mask_txTech = ((txTech == txInt)*self.one()).astype(bool)
+            mt = Actuarial(nt=table, i=txInt)
+            aNx = pd.DataFrame(mt.Nx).to_numpy()
+            myAge = np.where(myAge>=mt.w, mt.w-1, myAge)
+            myNx[mask_txTech] = np.take(aNx, myAge[mask_txTech])
+        return myNx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # retourne un vecteur de 1 à 12 selon la duration de la police, si + élevé de 12 mois alors 12
     def firstYear(self):
         dur = self.durationIf()
@@ -521,8 +625,8 @@ pol = MI()
 #pol=MI(run=[4,5])
 
     ###  Mod 2_1 produit F1XT1
-# pol.ids([393305])
-# pol.modHead([2],1)
+# pol.ids([301])
+pol.modHead([2],1)
 
     ### Mod 2_2 F2XT_1
 # pol.ids([2135101])
@@ -534,8 +638,8 @@ pol = MI()
 
     ### Mod 6 F1XT11
 # pol.ids([799003])
-pol.mod([6,7])
-age = pol.age()
+# pol.mod([6,7])
+# age = pol.age()
 
 
 
@@ -579,7 +683,7 @@ z.to_csv(path+'/zJO/check.csv',header=False)
 # aaa=aa[['PMBPOL', 'PMBFRACT','POLSIT','PMBMOD','PMBTXINT']]
 
 
-
+# dx = pol.dx
 # pol.p.to_excel(path+'/zJO/check portefeuille.xlsx', header = True )
 # aa.to_excel("check portefeuille.xlsx", header = True )
 
