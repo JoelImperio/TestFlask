@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import time
 import os, os.path
-from MyPyliferisk import Actuarial
+from MyPyliferisk import Actuarial, AExn
 from MyPyliferisk.mortalitytables import *
 path = os.path.dirname(os.path.abspath(__file__))
 start_time = time.time()
@@ -425,6 +425,17 @@ class MI(Portfolio):
 
 
 
+# Retourne un vecteur de 1 et 0, Met des 1 pour le mois de janvier (là ou la PB est versée)
+    def allocMonths(self):
+
+        calendarMonth=np.arange(start=self.p['DateCalcul'].dt.month.values[0].astype(int),stop=(self.shape[1]+self.p['DateCalcul'].dt.month.values[0].astype(int)))
+        calendarMonth=calendarMonth%12 + 1
+        calendarMonth=calendarMonth[np.newaxis,:,np.newaxis]*self.one()        
+
+        mask = calendarMonth ==1
+        
+        return mask*1
+
 
 
 
@@ -444,46 +455,23 @@ class MI(Portfolio):
     
     
     # Fonction de calcul des Dx
-    # def dx(self, myAge, table=tableHommes):
-    #     myAge = myAge.astype(int)
-    #     txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis]/100
-    #     myDx = self.zero()
-    #     for i in range(0, 375, 25):
-    #         txInt = i / 10000
-    #         mask_txTech = ((txTech == txInt)*self.one()).astype(bool)
-    #         mt = Actuarial(nt=table, i=txInt)
-    #         aDx = pd.DataFrame(mt.Dx).to_numpy()
-    #         myAge = np.where(myAge>=mt.w, mt.w-1, myAge)
-    #         myDx[mask_txTech] = np.take(aDx, myAge[mask_txTech])
-            
-    #         self.dx = myDx
-    #     return
-    
-    
-    
-    
-    
-    def dx(self, myAge, table=tableHommes):
-        
+    def Dx(self, myAge, table=tableHommes):
         myAge = myAge.astype(int)
-        txTech = self.p['PMBTXINT']/100
+        txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis]/100
         myDx = self.zero()
-
-        mt = Actuarial(nt=table, i=txTech)
-        aDx = pd.DataFrame(mt.Dx).to_numpy()
-        myAge = np.where(myAge>=mt.w, mt.w-1, myAge)
-        myDx = np.take(aDx, myAge)
-        
+        for i in range(0, 375, 25):
+            txInt = i / 10000
+            mask_txTech = ((txTech == txInt)*self.one()).astype(bool)
+            mt = Actuarial(nt=table, i=txInt)
+            aDx = pd.DataFrame(mt.Dx).to_numpy()
+            myAge = np.where(myAge>=mt.w, mt.w-1, myAge)
+            myDx[mask_txTech] = np.take(aDx, myAge[mask_txTech])
         return myDx
-
-
-
-
-
-
-
+    
+    
+    
    # Fonction de calcul des Mx
-    def mx(self, myAge, table=tableHommes):
+    def Mx(self, myAge, table=tableHommes):
         myAge = myAge.astype(int)
         txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis]/100
         myMx = self.zero()
@@ -499,7 +487,7 @@ class MI(Portfolio):
     
     
     # Fonction de calcul des Nx
-    def nx(self, myAge, table=tableHommes):
+    def Nx(self, myAge, table=tableHommes):
         myAge = myAge.astype(int)
         txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis]/100
         myNx = self.zero()
@@ -515,21 +503,129 @@ class MI(Portfolio):
 
 
 
+    # Fonction de calcul des Nx
+    def Lx(self, myAge, table=tableHommes):
+        myAge = myAge.astype(int)
+        txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis]/100
+        myLx = self.zero()
+        for i in range(0, 375, 25):
+            txInt = i / 10000
+            mask_txTech = ((txTech == txInt)*self.one()).astype(bool)
+            mt = Actuarial(nt=table, i=txInt)
+            aLx = pd.DataFrame(mt.lx).to_numpy()
+            myAge = np.where(myAge>=mt.w, mt.w-1, myAge)
+            myLx[mask_txTech] = np.take(aLx, myAge[mask_txTech])
+        return myLx
+
+
+
+# Retourne la table de mortalité associé à la police
+    def tbMort(self):
+        
+        table = self.p['POLTBMORT'].astype(str)
+        table = table.str.replace("   ", "")
+
+        table.loc[table == 'GKM1995'] = 'GKM95'
+        table.loc[table == 'GKF1995'] = 'GKF95'
+        table.loc[table == 'EKM1995'] = 'EKM95'
+        table.loc[table == 'EKF1995'] = 'EKF95'
+        
+
+        return table 
+        
+
+
+
+    def Mxx(self, myAge):
+        
+        table = self.tbMort()
+        
+        Mx = self.zero()
+
+        Mx[table =='GKM95'] = self.Mx(myAge, GKM95)[table =='GKM95']
+        Mx[table =='GKF95'] = self.Mx(myAge, GKF95)[table =='GKF95']
+        Mx[table =='EKM95'] = self.Mx(myAge, EKM95)[table =='EKM95']
+        Mx[table =='EKF95'] = self.Mx(myAge, EKF95)[table =='EKF95']
+
+        return Mx
+
+
+
+
+
+    def Nxx(self, myAge):
+        
+        table = self.tbMort()
+        
+        Nx = self.zero()
+
+        Nx[table =='GKM95'] = self.Nx(myAge, GKM95)[table =='GKM95']
+        Nx[table =='GKF95'] = self.Nx(myAge, GKF95)[table =='GKF95']
+        Nx[table =='EKM95'] = self.Nx(myAge, EKM95)[table =='EKM95']
+        Nx[table =='EKF95'] = self.Nx(myAge, EKF95)[table =='EKF95']
+
+        return Nx
+    
+    
+    
+    
+    def Dxx(self, myAge):
+        
+        table = self.tbMort()
+        
+        Dx = self.zero()
+
+        Dx[table =='GKM95'] = self.Dx(myAge, GKM95)[table =='GKM95']
+        Dx[table =='GKF95'] = self.Dx(myAge, GKF95)[table =='GKF95']
+        Dx[table =='EKM95'] = self.Dx(myAge, EKM95)[table =='EKM95']
+        Dx[table =='EKF95'] = self.Dx(myAge, EKF95)[table =='EKF95']
+
+        return Dx
+    
+    
+    
+    def Lxx(self, myAge):
+        
+        table = self.tbMort()
+        
+        Lx = self.zero()
+
+        Lx[table =='GKM95'] = self.Lx(myAge, GKM95)[table =='GKM95']
+        Lx[table =='GKF95'] = self.Lx(myAge, GKF95)[table =='GKF95']
+        Lx[table =='EKM95'] = self.Lx(myAge, EKM95)[table =='EKM95']
+        Lx[table =='EKF95'] = self.Lx(myAge, EKF95)[table =='EKF95']
+
+        return Lx
+    
+    
+# =============================================================================
+# TEST VECTORISATION
+# =============================================================================
+    
+#      def AExnPython( myAge, poldurc, txInt, table = GKM95):
+        
+#         mt = Actuarial(nt=table, i=txInt)
+#         age = myAge
+#         duree = poldurc
+        
+#         return AExn(mt, age, duree)
+    
+    
+    
+# AExnPython(30,35,0.035,GKM95)    
+        
+# myfunc = np.vectorize(AExnPython, excluded=['poldurc', 'txInt', 'table'])
+# agetest = np.minimum(pol.age()[:,:,0].astype(int), 80)
+# check = myfunc(myAge = agetest,poldurc = 35, txInt = 0.035, table = GKM95)
 
 
 
 
 
 
-
-
-
-
-# retourne un vecteur de 1 à 12 selon la duration de la police, si + élevé de 12 mois alors 12
-    def firstYear(self):
-        dur = self.durationIf()
-        dur[dur>12] = 12 
-        return dur
+# =============================================================================
+# --- CALCUL DES PREMIUMS
+# =============================================================================
 
 
 # Prime complémentaire qui va dépendre de la modalité et du tarif
@@ -592,6 +688,42 @@ class MI(Portfolio):
         return prem
 
 
+
+
+
+
+# =============================================================================
+# Calcul des Claims
+# =============================================================================
+
+
+
+# Calcul de la prime unique pure P.U.U.P (Y_ABAR_ALT) yearly alternative Abar Ax:n
+    def puup(self):
+        
+        Mx = self.Mxx(self.age())
+        Mxn = self.Mxx(self.ageFinal())
+        
+        Dx = self.Dxx(self.age())
+        Dxn = self.Dxx(self.ageFinal())
+        
+
+        Axn =(Mx - Mxn + Dxn) / Dx
+        
+        return Axn
+
+
+
+
+# retourne un vecteur de 1 à 12 selon la duration de la police, si + élevé de 12 mois alors 12
+    def firstYear(self):
+        dur = self.durationIf()
+        dur[dur>12] = 12 
+        return dur
+
+
+
+
 #Retourne les claims de la garantie principale (DEATH_OUTGO)
     def claimPrincipal(self):
         return self.zero()
@@ -626,7 +758,7 @@ pol = MI()
 
     ###  Mod 2_1 produit F1XT1
 # pol.ids([301])
-pol.modHead([2],1)
+# pol.modHead([2],1)
 
     ### Mod 2_2 F2XT_1
 # pol.ids([2135101])
@@ -646,6 +778,7 @@ pol.modHead([2],1)
 
 # a = pol.p
 b=pol.nbrPolIf
+check = pol.Lxx(pol.age())
 # c=pol.nbrPolIfSM
 # d=pol.nbrNewMat
 # e=pol.nbrDeath
@@ -672,7 +805,7 @@ p=pol.totalPremium()
 
 print("Class MI--- %s sec" %'%.2f'%  (time.time() - start_time))
 
-monCas=p
+monCas=check
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
@@ -682,8 +815,8 @@ z.to_csv(path+'/zJO/check.csv',header=False)
 
 # aaa=aa[['PMBPOL', 'PMBFRACT','POLSIT','PMBMOD','PMBTXINT']]
 
+AExmTEST = pol.AExn(pol.age(), GKM95)
 
-# dx = pol.dx
 # pol.p.to_excel(path+'/zJO/check portefeuille.xlsx', header = True )
 # aa.to_excel("check portefeuille.xlsx", header = True )
 

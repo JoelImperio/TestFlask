@@ -116,6 +116,7 @@ class Actuarial:
                 self.qx.append(1000)
         if self.lx == []:
             self.lx = [100000.0]
+            # self.lx = [1]
             for val in self.qx:
                 self.lx.append(self.lx[-1] * ( 1 - val))
                 # self.lx.append(self.lx[-1] * ( 1 - val / 1000))
@@ -159,7 +160,7 @@ class Actuarial:
             age = -1
             for l in self.dx:   #[:-1]
                 age += 1
-                C_x = ((1 / (1 + i)) ** (age + 1))*l*((1 + i)**0.5)
+                C_x = ((1 / (1 + i)) ** (age + 1))*l  #*((1 + i)**0.5)
                 self.Cx.append(C_x)
         if self.Mx == []:
             #self.Mx = []
@@ -272,7 +273,7 @@ def Sx(mt, x):
 
 def Cx(mt, x):
     """ Return the Cx """   
-    return ((1 / (1 + mt.i)) ** (x + 1)) * mt.dx[x] * ((1 + mt.i) ** 0.5)
+    return ((1 / (1 + mt.i)) ** (x + 1)) * mt.dx[x] # * ((1 + mt.i) ** 0.5)
 
 def Mx(mt, x):
     """ Return the Mx """
