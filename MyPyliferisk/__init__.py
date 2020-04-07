@@ -72,6 +72,12 @@ class MortalityTable:
                 lx_g = self.lx[g]
                 self.ex.append(0.5 + sum(self.lx[g + 1:-1]) / lx_g) #[g+1:-2] according notes from ucm
 
+    ### try Dx
+        if self.Dx == []:
+            for g in range(0, len(self.lx[:-1])):
+                lx_g = self.lx[g]
+                self.Dx.append(((1 / (1 + self.i)) ** g) * lx_g)
+
     def view(self, start=0, end=10, var='lx'):
         column  = {'qx': self.qx, 'lx': self.lx, 'dx': self.dx, 'ex': self.ex, 'nt': self.nt, \
                    'Dx': self.Dx, 'Nx': self.Nx, 'Cx': self.Cx, 'Mx': self.Mx, 'nEx': self.nEx}
@@ -86,7 +92,11 @@ class MortalityTable:
             index += 1
         print(table_str + 'Total number of rows for {} = {}'.format(var, len(column[var])))
 
-        
+a= MortalityTable(nt=EKM05i,i=2)
+b=a.Dx
+
+
+     
 class Actuarial:
     def __init__(self, l_x=[], q_x=[], nt=None, i=None, perc=100):
         self.lx = l_x
@@ -612,3 +622,5 @@ def annuity(mt, x, n, p, m=1 , *args):
     else:
         #elif incr and deff and wh_l and post:
         return Itax(mt, x, t)
+    
+
