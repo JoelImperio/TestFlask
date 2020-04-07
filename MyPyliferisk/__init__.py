@@ -78,6 +78,23 @@ class MortalityTable:
                 lx_g = self.lx[g]
                 self.Dx.append(((1 / (1 + self.i)) ** g) * lx_g)
 
+    ### try Cx
+        if self.Cx == []:
+            for g in range(0, len(self.lx[:-1])):
+                dx_g = self.dx[g]
+                self.Cx.append(((1 / (1 + self.i)) ** (g + 1)) * dx_g * ((1 + self.i) ** 0.5))
+
+    ### try Mx
+        if self.Mx == []:
+            for g in range(0, len(self.lx[:-1])):
+                n = len(self.Cx)
+                sum1 = 0
+                for j in range(g, n):
+                    k = self.Cx[j]
+                    sum1 += k
+                self.Mx.append(sum1)
+
+
     def view(self, start=0, end=10, var='lx'):
         column  = {'qx': self.qx, 'lx': self.lx, 'dx': self.dx, 'ex': self.ex, 'nt': self.nt, \
                    'Dx': self.Dx, 'Nx': self.Nx, 'Cx': self.Cx, 'Mx': self.Mx, 'nEx': self.nEx}
@@ -93,7 +110,7 @@ class MortalityTable:
         print(table_str + 'Total number of rows for {} = {}'.format(var, len(column[var])))
 
 a= MortalityTable(nt=EKM05i,i=2)
-b=a.Dx
+b=a.Mx
 
 
      
@@ -624,3 +641,5 @@ def annuity(mt, x, n, p, m=1 , *args):
         return Itax(mt, x, t)
     
 
+
+c=AExn(mt=MortalityTable(nt=EKM05i,i=2), x=10, n=20)
