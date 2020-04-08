@@ -19,6 +19,77 @@ from MyPyliferisk.mortalitytables import *
 
 # Mortality table class ----------------
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class MortalityTable:
     def __init__(self, l_x=[], q_x=[], i=[], nt=None, perc=100):
         self.lx = l_x
@@ -48,7 +119,7 @@ class MortalityTable:
                 self.qx.append(1000)
         if self.lx == []:
             self.lx = [100000.0]
-            for val in self.qx:
+            for val in self.qx: # AJOUTER ICI CALCUL DEPENDANT DE L'AGE
                 self.lx.append(self.lx[-1] * (1 - val / 1000))
         if self.lx[-1] != 0.0 : 
             self.lx.append(0.0)
