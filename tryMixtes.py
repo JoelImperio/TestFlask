@@ -537,16 +537,30 @@ class MI(Portfolio):
     def AExn(self):
         
 
-          
-        Dx = pol.actu('Dx', 't')
-        Dxn = pol.actu('Dx', 'N')
-
-         
-
-
-        Dx['ergerg'] = pol.actu('Dx', 't', GKM1995, 'GKM1995')[:,:,0]
+        Mx = self.actu('Mx', 't')
+        Mxn = self.actu('Mx', 'n')
+        Dx = self.actu('Dx', 't')
+        Dxn = self.actu('Dx', 'n')
         
-        pass
+        AExn = (Mx - Mxn + Dxn) / Dx
+
+        return AExn
+    
+
+    def AExnInit(self):
+        
+
+        Mx = self.actu('Mx', 'x')
+        Mxn = self.actu('Mx', 'n')
+        Dx = self.actu('Dx', 'x')
+        Dxn = self.actu('Dx', 'n')
+        
+        AExn = (Mx - Mxn + Dxn) / Dx
+
+        return AExn
+    
+
+
 
    
 
@@ -740,7 +754,9 @@ pol = MI()
 
     ###  Mod 2_1 produit F1XT1
 # pol.ids([106907])
-# pol.ids([301])
+
+# pol.ids([106903])
+pol.ids([301])
 # pol.modHead([2],1)
 
     ### Mod 2_2 F2XT_1
@@ -807,10 +823,12 @@ z.to_csv(path+'/zJO/check.csv',header=False)
 #Visualiser une dimension d'un numpy qui n'apparait pas
 #data=pol.lapse()
 #a=pd.DataFrame(data[:,:,4])
+AExn = pol.AExn()
 
+AExnInit = pol.AExnInit()
 a = pol.p
 Nx = pol.actu('Nx', 't')
 Nxn = pol.actu('Nx', 'n')
 Dx = pol.actu('Dx', 't')
-
+Mx = pol.actu('Mx', 't')
 axn = (Nx - Nxn) / Dx
