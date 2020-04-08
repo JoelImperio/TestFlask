@@ -144,71 +144,36 @@ class VE(Portfolio):
         age = ((self.p['Age1AtEntry'] + (self.p['residualTermM'] + self.p['DurationIfInitial'])/12).to_numpy()[:,np.newaxis,np.newaxis]*self.one())
         return age
 
-    # Fonction de calcul des Dx
-    def Dx(self, x, table, tablestring):
-        
-         if x == 'x':
-             myAge = self.ageInit().astype(int)
-         elif x == 't':
-             myAge = self.age().astype(int)
-         elif x == 'n':
-             myAge = self.ageFinal().astype(int)
 
-         txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis]/100
-         # testech = self.p['PMBTXINT'].to_numpy()
-         txTechLoop = np.unique(self.p['PMBTXINT'].to_numpy())
-         
-         tableMort = self.p['POLTBMORT'].to_numpy()[:,np.newaxis,np.newaxis]
-         mask_tableMort = ((tableMort == tablestring)*self.one()).astype(bool)
-
-         myDx = self.zero()
-         for i in np.nditer(txTechLoop):
-             txInt = i / 10000
-             mask_txTech = ((txTech == txInt)*self.one()).astype(bool)
-             mt = Actuarial(nt=table, i=txInt)
-             aDx = pd.DataFrame(mt.Dx).to_numpy()
-             myAge = np.where(myAge>=mt.w, mt.w-1, myAge)
-             myDx[mask_txTech] = np.take(aDx, myAge[mask_txTech])
-         return myDx
-
-
-    # Fonction de calcul des Mx
-    def Mx(self, myAge, table, tablestring):
-         if x == 'x':
-             myAge = self.ageInit().astype(int)
-         elif x == 't':
-             myAge = self.age().astype(int)
-         elif x == 'n':
-             myAge = myAge.astype(int)
-         txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis]/100
-         myMx = self.zero()
-         for i in range(0, 375, 25):
-             txInt = i / 10000
-             mask_txTech = ((txTech == txInt)*self.one()).astype(bool)
-             mt = Actuarial(nt=table, i=txInt)
-             aMx = pd.DataFrame(mt.Mx).to_numpy()
-             myAge = np.where(myAge>=mt.w, mt.w-1, myAge)
-             myMx[mask_txTech] = np.take(aMx, myAge[mask_txTech])
-         return myMx
-    
-    # Fonction de calcul des Nx
-    def Nx(self, myAge, table, tablestring):
-         if x == 'x':
-             myAge = self.ageInit().astype(int)
-         elif x == 't':
-             myAge = self.age().astype(int)
-         elif x == 'n':
-             myAge = myAge.astype(int)
-         txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis]/100
-         myNx = self.zero()
-         for i in range(0, 375, 25):
-             txInt = i / 10000
-             mask_txTech = ((txTech == txInt)*self.one()).astype(bool)
-             mt = Actuarial(nt=table, i=txInt)
-             aNx = pd.DataFrame(mt.Nx).to_numpy()
-             myAge = np.where(myAge>=mt.w, mt.w-1, myAge)
-             myNx[mask_txTech] = np.take(aNx, myAge[mask_txTech])
-         return myNx
+    # Fonction générique actuarielle
+    def actu(self, var, x, table, tablestring):
+        pol.p['POLTBMORT'] = pol.p['POLTBMORT'].str.strip()        
+        if x == 'x':
+            myAge = self.ageInit().astype(int)
+        elif x == 't':
+            myAge = self.age().astype(int)
+        elif x == 'n':
+            myAge = self.ageFinal().astype(int)   
+        txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis]/100
+        txTechLoop = np.unique(self.p['PMBTXINT'].to_numpy())
+        tableMort = self.p['POLTBMORT'].to_numpy()[:,np.newaxis,np.newaxis]
+        mask_tableMort = ((tableMort == tablestring)*self.one()).astype(bool)
+        myVarx = self.zero()
+        for i in np.nditer(txTechLoop):
+            txInt = i / 10000
+            mask_txTech = ((txTech == txInt)*self.one()).astype(bool)
+            mt = Actuarial(nt=table, i=txInt)
+            if var == 'Mx':
+                aVARx = pd.DataFrame(mt.Mx).to_numpy()
+            elif var == 'Nx':
+                aVARx = pd.DataFrame(mt.Nx).to_numpy()
+            elif var == 'Cx':
+                aVARx = pd.DataFrame(mt.Cx).to_numpy() 
+            elif var == 'Dx':
+                aVARx = pd.DataFrame(mt.Dx).to_numpy()  
+            myAge = np.where(myAge>=mt.w, mt.w-1, myAge)
+            myVarx[mask_txTech & mask_tableMort] = np.take(aVARx, myAge[mask_txTech & mask_tableMort])
+        return myVarx
 
 # =============================================================================
     ### CALCUL DES SURRENDER
@@ -587,48 +552,7 @@ pol = VE()
 
 
 
-
-# dx = pol.Dx('t', EKF05I1, 'EKF05I1')
-
-
-
-
-
-x = 't' 
-table = EKF05I1 
-tablestring = 'EKF05I1'
-pol.p['POLTBMORT'] = pol.p['POLTBMORT'].str.strip()
-        
-if x == 'x':
-    myAge = pol.ageInit().astype(int)
-elif x == 't':
-    myAge = pol.age().astype(int)
-elif x == 'n':
-    myAge = pol.ageFinal().astype(int)
-
-txTech = pol.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis]/100
-# testech = pol.p['PMBTXINT'].to_numpy()
-txTechLoop = np.unique(pol.p['PMBTXINT'].to_numpy())
-
-tableMort = pol.p['POLTBMORT'].to_numpy()[:,np.newaxis,np.newaxis]
-mask_tableMort = ((tableMort == tablestring)*pol.one()).astype(bool)
-
-myDx = pol.zero()
-for i in np.nditer(txTechLoop):
-    txInt = i / 10000
-    mask_txTech = ((txTech == txInt)*pol.one()).astype(bool)
-    mt = Actuarial(nt=table, i=txInt)
-    aDx = pd.DataFrame(mt.Dx).to_numpy()
-    myAge = np.where(myAge>=mt.w, mt.w-1, myAge)
-    myDx[mask_txTech & mask_tableMort] = np.take(aDx, myAge[mask_txTech & mask_tableMort])
-
-
-
-
-
-
-
-
+dx = pol.actu('Dx', 't', EKF05I1, 'EKF05I1')
 
 
 
