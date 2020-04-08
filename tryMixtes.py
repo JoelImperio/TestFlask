@@ -24,7 +24,7 @@ class MI(Portfolio):
     # age limite pour la garantie complémentaire CPL1
     ageLimiteCPL1 = 60
     ageLimiteCPL2 = 65
-    tableHommes = EKM95
+    tableHommes = EKM1995
     def __init__(self,run=allRuns,\
                  PortfolioNew=True, SinistralityNew=True,LapseNew=True,CostNew=True,RateNew=True ):
         super().__init__(runs=run,\
@@ -483,10 +483,12 @@ class MI(Portfolio):
     
     
  # Fonction générique actuarielle
-    def actu(self, var, x, table, tablestring):
+    def actu(self, var, x):
         
-        tb = self.p['POLTBMORT'] 
-        tb = tb.str.strip()        
+        table = self.p['POLTBMORT'].unique()
+        
+        tbMort = self.p['POLTBMORT']
+               
         if x == 'x':
             myAge = self.ageInit().astype(int)
         elif x == 't':
@@ -496,31 +498,36 @@ class MI(Portfolio):
             
         txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis]/100
         txTechLoop = np.unique(self.p['PMBTXINT'].to_numpy())
-        tableMort = tb.to_numpy()[:,np.newaxis,np.newaxis]
-        mask_tableMort = ((tableMort == tablestring)*self.one()).astype(bool)
+        tbMort = tbMort[:,np.newaxis,np.newaxis]
         myVarx = self.zero()
         
-        for i in np.nditer(txTechLoop):
-            
-            txInt = i / 100
-            mask_txTech = ((txTech == txInt)*self.one()).astype(bool)
-            mt = Actuarial(nt=table, i=txInt)
-            
-            if var == 'Mx':
-                aVARx = pd.DataFrame(mt.Mx).to_numpy()
+        for tb in table:
+             
+            mask_tableMort = ((tbMort == tb)*self.one()).astype(bool)
+        
+            for i in np.nditer(txTechLoop):
                 
-            elif var == 'Nx':
-                aVARx = pd.DataFrame(mt.Nx).to_numpy()
+                txInt = i / 100
+                mask_txTech = ((txTech == txInt)*self.one()).astype(bool)
+                mt = Actuarial(nt=eval(tb), i=txInt)
                 
-            elif var == 'Cx':
-                aVARx = pd.DataFrame(mt.Cx).to_numpy() 
+                if var == 'Mx':
+                    aVARx = pd.DataFrame(mt.Mx).to_numpy()
+                    
+                elif var == 'Nx':
+                    aVARx = pd.DataFrame(mt.Nx).to_numpy()
+                    
+                elif var == 'Cx':
+                    aVARx = pd.DataFrame(mt.Cx).to_numpy() 
+                    
+                elif var == 'Dx':
+                    aVARx = pd.DataFrame(mt.Dx).to_numpy() 
+     
+                    
+                myAge = np.where(myAge>=mt.w, mt.w-1, myAge)
+                myVarx[mask_txTech & mask_tableMort] = np.take(aVARx, myAge[mask_txTech & mask_tableMort])
                 
-            elif var == 'Dx':
-                aVARx = pd.DataFrame(mt.Dx).to_numpy() 
- 
                 
-            myAge = np.where(myAge>=mt.w, mt.w-1, myAge)
-            myVarx[mask_txTech & mask_tableMort] = np.take(aVARx, myAge[mask_txTech & mask_tableMort])
             
         return myVarx
 
@@ -529,10 +536,17 @@ class MI(Portfolio):
 # AExn Endowment insurance
     def AExn(self):
         
-        tbMort = self.p['POLTBMORT']
+
+          
+        Dx = pol.actu('Dx', 't')
+        Dxn = pol.actu('Dx', 'N')
+
+         
+
+
+        Dx['ergerg'] = pol.actu('Dx', 't', GKM1995, 'GKM1995')[:,:,0]
         
-        
-        Dx = act
+        pass
 
    
 
@@ -725,6 +739,7 @@ pol = MI()
 #pol=MI(run=[4,5])
 
     ###  Mod 2_1 produit F1XT1
+# pol.ids([106907])
 # pol.ids([301])
 # pol.modHead([2],1)
 
@@ -794,8 +809,8 @@ z.to_csv(path+'/zJO/check.csv',header=False)
 #a=pd.DataFrame(data[:,:,4])
 
 a = pol.p
-Nx = pol.actu('Nx', 't', GKM1995, 'GKM1995')
-Nxn = pol.actu('Nx', 'n', GKM1995, 'GKM1995')
-Dx = pol.actu('Dx', 't', GKM1995, 'GKM1995')
+Nx = pol.actu('Nx', 't')
+Nxn = pol.actu('Nx', 'n')
+Dx = pol.actu('Dx', 't')
 
 axn = (Nx - Nxn) / Dx
