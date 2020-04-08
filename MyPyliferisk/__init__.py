@@ -143,6 +143,29 @@ class MortalityTable:
                 lx_g = self.lx[g]
                 self.ex.append(0.5 + sum(self.lx[g + 1:-1]) / lx_g) #[g+1:-2] according notes from ucm
 
+    # ### try Dx
+    #     if self.Dx == []:
+    #         for g in range(0, len(self.lx[:-1])):
+    #             lx_g = self.lx[g]
+    #             self.Dx.append(((1 / (1 + self.i)) ** g) * lx_g)
+
+    # ### try Cx
+    #     if self.Cx == []:
+    #         for g in range(0, len(self.lx[:-1])):
+    #             dx_g = self.dx[g]
+    #             self.Cx.append(((1 / (1 + self.i)) ** (g + 1)) * dx_g ))
+
+    # ### try Mx
+    #     if self.Mx == []:
+    #         for g in range(0, len(self.lx[:-1])):
+    #             n = len(self.Cx)
+    #             sum1 = 0
+    #             for j in range(g, n):
+    #                 k = self.Cx[j]
+    #                 sum1 += k
+    #             self.Mx.append(sum1)
+
+
     def view(self, start=0, end=10, var='lx'):
         column  = {'qx': self.qx, 'lx': self.lx, 'dx': self.dx, 'ex': self.ex, 'nt': self.nt, \
                    'Dx': self.Dx, 'Nx': self.Nx, 'Cx': self.Cx, 'Mx': self.Mx, 'nEx': self.nEx}
@@ -157,7 +180,24 @@ class MortalityTable:
             index += 1
         print(table_str + 'Total number of rows for {} = {}'.format(var, len(column[var])))
 
+
+
+    # # Endowment insurance ---
+    # def AExn(self, x=[],n=[]):
+    #     """ AExn : Returns the EPV of a endowment insurance. 
+    #     An endowment insurance provides a combination of a term insurance and a pure endowment 
+    #     """
+    #     aexn=pd.DataFrame()
+    #     for j in range(len(x)):
+    #         xn=x[j]+n[j]
+    #         a=(self.Mx[x[j]] - self.Mx[xn) / self.Dx[x[j]] + self.Dx[xn] / self.Dx[x[j]]
+    #         aexn=aexn.append(a)
         
+    #     return aexn
+
+
+
+     
 class Actuarial:
     def __init__(self, l_x=[], q_x=[], nt=None, i=None, perc=100):
         self.lx = l_x
@@ -684,3 +724,6 @@ def annuity(mt, x, n, p, m=1 , *args):
     else:
         #elif incr and deff and wh_l and post:
         return Itax(mt, x, t)
+    
+
+
