@@ -72,27 +72,27 @@ class MortalityTable:
                 lx_g = self.lx[g]
                 self.ex.append(0.5 + sum(self.lx[g + 1:-1]) / lx_g) #[g+1:-2] according notes from ucm
 
-    ### try Dx
-        if self.Dx == []:
-            for g in range(0, len(self.lx[:-1])):
-                lx_g = self.lx[g]
-                self.Dx.append(((1 / (1 + self.i)) ** g) * lx_g)
+    # ### try Dx
+    #     if self.Dx == []:
+    #         for g in range(0, len(self.lx[:-1])):
+    #             lx_g = self.lx[g]
+    #             self.Dx.append(((1 / (1 + self.i)) ** g) * lx_g)
 
-    ### try Cx
-        if self.Cx == []:
-            for g in range(0, len(self.lx[:-1])):
-                dx_g = self.dx[g]
-                self.Cx.append(((1 / (1 + self.i)) ** (g + 1)) * dx_g * ((1 + self.i) ** 0.5))
+    # ### try Cx
+    #     if self.Cx == []:
+    #         for g in range(0, len(self.lx[:-1])):
+    #             dx_g = self.dx[g]
+    #             self.Cx.append(((1 / (1 + self.i)) ** (g + 1)) * dx_g ))
 
-    ### try Mx
-        if self.Mx == []:
-            for g in range(0, len(self.lx[:-1])):
-                n = len(self.Cx)
-                sum1 = 0
-                for j in range(g, n):
-                    k = self.Cx[j]
-                    sum1 += k
-                self.Mx.append(sum1)
+    # ### try Mx
+    #     if self.Mx == []:
+    #         for g in range(0, len(self.lx[:-1])):
+    #             n = len(self.Cx)
+    #             sum1 = 0
+    #             for j in range(g, n):
+    #                 k = self.Cx[j]
+    #                 sum1 += k
+    #             self.Mx.append(sum1)
 
 
     def view(self, start=0, end=10, var='lx'):
@@ -109,8 +109,21 @@ class MortalityTable:
             index += 1
         print(table_str + 'Total number of rows for {} = {}'.format(var, len(column[var])))
 
-a= MortalityTable(nt=EKM05i,i=2)
-b=a.Mx
+
+
+    # # Endowment insurance ---
+    # def AExn(self, x=[],n=[]):
+    #     """ AExn : Returns the EPV of a endowment insurance. 
+    #     An endowment insurance provides a combination of a term insurance and a pure endowment 
+    #     """
+    #     aexn=pd.DataFrame()
+    #     for j in range(len(x)):
+    #         xn=x[j]+n[j]
+    #         a=(self.Mx[x[j]] - self.Mx[xn) / self.Dx[x[j]] + self.Dx[xn] / self.Dx[x[j]]
+    #         aexn=aexn.append(a)
+        
+    #     return aexn
+
 
 
      
@@ -642,4 +655,3 @@ def annuity(mt, x, n, p, m=1 , *args):
     
 
 
-c=AExn(mt=MortalityTable(nt=EKM05i,i=2), x=10, n=20)
