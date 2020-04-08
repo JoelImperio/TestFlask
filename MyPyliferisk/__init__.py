@@ -145,27 +145,27 @@ class MortalityTable:
 
 
 
-    ### try Dx
-        if self.Dx == []:
-            for g in range(0, len(self.lx[:-1])):
-                lx_g = self.lx[g]
-                self.Dx.append(((1 / (1 + self.i)) ** g) * lx_g)
+    # ### try Dx
+    #     if self.Dx == []:
+    #         for g in range(0, len(self.lx[:-1])):
+    #             lx_g = self.lx[g]
+    #             self.Dx.append(((1 / (1 + self.i)) ** g) * lx_g)
 
-    ### try Cx
-        if self.Cx == []:
-            for g in range(0, len(self.lx[:-1])):
-                dx_g = self.dx[g]
-                self.Cx.append(((1 / (1 + self.i)) ** (g + 1)) * dx_g )
+    # ### try Cx
+    #     if self.Cx == []:
+    #         for g in range(0, len(self.lx[:-1])):
+    #             dx_g = self.dx[g]
+    #             self.Cx.append(((1 / (1 + self.i)) ** (g + 1)) * dx_g )
 
-    ### try Mx
-        if self.Mx == []:
-            for g in range(0, len(self.lx[:-1])):
-                n = len(self.Cx)
-                sum1 = 0
-                for j in range(g, n):
-                    k = self.Cx[j]
-                    sum1 += k
-                self.Mx.append(sum1)
+    # ### try Mx
+    #     if self.Mx == []:
+    #         for g in range(0, len(self.lx[:-1])):
+    #             n = len(self.Cx)
+    #             sum1 = 0
+    #             for j in range(g, n):
+    #                 k = self.Cx[j]
+    #                 sum1 += k
+    #             self.Mx.append(sum1)
 
 
     def view(self, start=0, end=10, var='lx'):
