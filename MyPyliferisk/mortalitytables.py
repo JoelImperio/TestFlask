@@ -20,7 +20,9 @@ def getMT(mt):
 
 #Voici la liste des tables de mortalité qui se trouve dans le fichier excel 'TableMortalite.xlsx'
 
+EKM05I1=getMT(df['EKM05i'])
 EKM05i=getMT(df['EKM05i'])
+EKF05I1=getMT(df['EKM05i'])
 EKF05_2ordre=getMT(df['EKF05_2ordre'])
 EKM05_2ordre=getMT(df['EKM05_2ordre'])
 EKF95=getMT(df['EKF95'])
