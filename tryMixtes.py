@@ -322,7 +322,7 @@ class MI(Portfolio):
             
             
             
-            pbCalcPP[:,i,:] = (pmPourPB[:,i,:] * txPartPB[:,i,:] * (firstYear[:,i,:] / 12) / AExn[:,i,:] ) * allocMonths[:,i,:]
+            # pbCalcPP[:,i,:] = (pmPourPB[:,i,:] * txPartPB[:,i,:] * (firstYear[:,i,:] / 12) / AExn[:,i,:] ) * allocMonths[:,i,:]
             
             
 
@@ -487,8 +487,9 @@ class MI(Portfolio):
 # Calcul des primes pures
     def purePremium(self):
         
-        premInc=((self.p['POLPRVIEHT'] - self.p['POLPRCPLA'])[:,np.newaxis,np.newaxis])/self.frac()
-        premCompl = self.annRider() / self.frac()
+         loading = pol.p['POLTARIF']
+        
+        return res
         
         
 
@@ -496,7 +497,7 @@ class MI(Portfolio):
 # Valeur actualisée des primes nettes
     def valNetPrem(self):
         
-        
+        pass
 
 
 
@@ -582,6 +583,31 @@ class MI(Portfolio):
         
         return resultat
     
+    
+    
+# äxn annuity endowment insurance
+    def axn(self):
+        
+        Nxn = self.actu('Nx', 'n')
+        Nx = self.actu('Nx', 't')
+        Dx = self.actu('Dx', 't')
+        
+        axn = (Nx - Nxn) / Dx
+        axn = np.roll(axn, -1, axis = 1)
+        
+        NxDec = self.actu('Nx', 't+1')
+        DxDec = self.actu('Dx', 't+1')
+        
+        axnDec = (NxDec - Nxn) / DxDec
+        axnDec = np.roll(axnDec, -1, axis = 1)
+        
+        resultat = self.interp(axn, axnDec)
+        
+        return resultat
+    
+    
+    
+    
 
     def AExnInit(self):
         
@@ -602,32 +628,20 @@ class MI(Portfolio):
 
 
 # Créer un vecteur permettant d'interpolé les vecteur en fonction de la date début de la police
-    def interp(self, var, varMoins1):
+    def interp(self, var, varDec):
         
-        dur = pol.durationIf()
+        dur = self.durationIf()
         interp = np.int16(dur/12) + 1-(dur/12)
         
-        resultat = (var * interp) + ((1-interp) * varMoins1)
+        resultat = (var * interp) + ((1-interp) * varDec)
         
         return resultat * self.isActive()
     
     
     
     
-# retourne les valeur actuarielles interpolée mensuellement
-    def lxM(self):
 
-        lx = self.actu('lx', 't') 
-        lxDec = self.actu('lx', 't', 1) 
-        
-        lxFinal = self.interp(lx, lxDec)
-        
-        
-        return lxFinal
     
-    
-# retourne le Mx interpolé
-
 
 
 
@@ -794,6 +808,7 @@ pol.ids([301])
 
 
 check = pol.AExn()
+pureprem = pol.purePremium()
 
 # a = pol.p
 b=pol.nbrPolIf
@@ -843,27 +858,10 @@ z.to_csv(path+'/zJO/check.csv',header=False)
 #Visualiser une dimension d'un numpy qui n'apparait pas
 #data=pol.lapse()
 #a=pd.DataFrame(data[:,:,4])
-AExn = pol.AExn()
+# AExn = pol.AExn()
 
 
-# Mx = pol.actu('Mx', 't')
-# Mxn = pol.actu('Mx', 'n')
-# Dx = pol.actu('Dx', 't')
-# Dxn = pol.actu('Dx', 'n')
-
-# AExn = (Mx - Mxn + Dxn) / Dx
-# AExn = np.roll(AExn, -1, axis = 1)
 
 
-# MxDec = pol.actu('Mx', 't', -1)
-# MxnDec = pol.actu('Mx', 'n')
-# DxDec = pol.actu('Dx', 't', -1)
-# DxnDec = pol.actu('Dx', 'n')
-
-# AExnDec = (MxDec - MxnDec + DxnDec) / DxDec
-# AExnDec = np.roll(AExnDec, -1, axis = 1)
-
-
-lxM = pol.lxM()
 
 # interp = pol.interp()

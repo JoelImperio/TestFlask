@@ -136,16 +136,41 @@ def premiumAquisitionLoading(p):
     
     
     
-    # Mixtes 1 tête
+    # Mixtes 1 tête mod2
+    mask = (p['PMBMOD'].isin([2]))
     maskTete = p['POLNBTETE'] == 1
     
         # Tarif A
-    maskTarif = p['POLTARIF']isin(['A', 'B','C','D')
-    p.loc[maskTete & maskTarif,'aquisitionLoading'] = 0.07
+    maskTarif = p['POLTARIF'].isin(['A', 'B','C','D'])
+    p.loc[maskTete & maskTarif & mask,'aquisitionLoading'] = 0.11
+    
+    maskTarif = p['POLTARIF'].isin(['E', 'F','G' ])
+    p.loc[maskTete & maskTarif & mask,'aquisitionLoading'] = 0.09
+    
+    maskTarif = p['POLTARIF'].isin(['H', 'I','J', 'L', 'K' ])
+    p.loc[maskTete & maskTarif & mask,'aquisitionLoading'] = 0.07
+    
+    # Mixtes 2 têtes mod2
+    maskTete = p['POLNBTETE'] == 2
+    maskTarif = p['POLTARIF'].isin(['A', 'B','C'])
+    p.loc[maskTete & maskTarif & mask,'aquisitionLoading'] = 0.11
     
     
-    
+    # Mixte mod10
+    mask = (p['PMBMOD'].isin([10]))
 
+    maskTarif = p['POLTARIF'].isin(['A','C', 'D'])
+    p.loc[maskTarif & mask,'aquisitionLoading'] = 0.07
+    
+    # Mixte mod 6
+    mask = (p['PMBMOD'].isin([6]))
+    
+    maskTarif = p['POLTARIF'].isin(['A', 'L1', 'L2', 'M1', 'M2', 'M3'])
+    p.loc[maskTarif & mask,'aquisitionLoading'] = 0.05
+    
+    maskTarif = p['POLTARIF'].isin(['J3'])
+    p.loc[maskTarif & mask,'aquisitionLoading'] = 0
+    
 
     p['aquisitionLoading'].fillna(0,inplace=True)
     p['aquisitionLoadingYear2'].fillna(0,inplace=True)
