@@ -205,6 +205,43 @@ def premiumGestionLoading(p):
     p.loc[(p['Age1AtEntry'] >= 70) & (mask), 'gestionLoading'] = 0.021
    
 
+
+
+
+# =============================================================================
+# Frais de gestion en % de la somme assurée sur la durée du contrat
+# =============================================================================
+
+def fraisGestionSumAss(p):
+    
+    # mod2
+    mask=(p['PMBMOD'].isin([2]))
+    
+    # 1 tete
+    maskTete = p['POLNBTETE'] == 1
+    
+    
+    maskTarif = p['POLTARIF'].isin(['A', 'B', 'C', 'D', 'K'])
+    p.loc[maskTete & maskTarif & mask,'gestionLoadingSA'] = 0.00425
+    
+    maskTarif = p['POLTARIF'].isin(['E', 'F', 'G'])
+    p.loc[maskTete & maskTarif & mask,'gestionLoadingSA'] = 0.00325
+
+    maskTarif = p['POLTARIF'].isin(['H', 'I', 'J', 'L'])
+    p.loc[maskTete & maskTarif & mask,'gestionLoadingSA'] = 0.0039
+
+
+    # 2tetes
+    maskTete = p['POLNBTETE'] == 2
+    
+    maskTarif = p['POLTARIF'].isin(['A', 'B', 'C'])
+    p.loc[maskTete & maskTarif & mask,'gestionLoadingSA'] = 0.00425
+    
+    maskTarif = p['POLTARIF'].isin(['J'])
+    p.loc[maskTete & maskTarif & mask,'gestionLoadingSA'] = 0.0039
+    
+    
+    
 ##############################################################################################################################
 #Permet d'ajouter une colonne contenant les frais de fractionnement
 ##############################################################################################################################
@@ -223,12 +260,12 @@ def fraisFractionnement(p):
     p.loc[mask2 & maskAX,'fraisFract']=1.04
     
     
-    maskPRECI=(p['PMBMOD']==25)|(p['PMBMOD']==26)
+    mask=(p['PMBMOD'].isin([25, 26, 2, 6, 10]))
     
-    p.loc[mask12 & maskPRECI,'fraisFract']=1.05
-    p.loc[mask6 & maskPRECI,'fraisFract']=1.04
-    p.loc[mask4 & maskPRECI,'fraisFract']=1.03
-    p.loc[mask2 & maskPRECI,'fraisFract']=1.02
+    p.loc[mask12 & mask,'fraisFract']=1.05
+    p.loc[mask6 & mask,'fraisFract']=1.04
+    p.loc[mask4 & mask,'fraisFract']=1.03
+    p.loc[mask2 & mask,'fraisFract']=1.02
     
     
     p.loc[:,'fraisFract']=p.loc[:,'fraisFract'].fillna(1)
@@ -583,11 +620,16 @@ def portfolioPreProcessing(p):
     # Ajout de la colonne contenant les chargements de gestion
     premiumGestionLoading(p)
     
+    #Ajout de la colonne contenant les chargement de gestions en % de la somme assurée
+    fraisGestionSumAss(p)
+    
     #Ajout d'une colonne contenant les frais de fractionnement
     fraisFractionnement(p)
     
     # Ajustement des fractionnements pour des polices avec frac = 0 (réduites)
     adjustedFracAndPremium(p)
+    
+
     
     
 

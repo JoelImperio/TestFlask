@@ -469,36 +469,6 @@ class MI(Portfolio):
         return rate
     
 
-# Provision zillmérisée cumulée entre 2 calcul de PB (PMZ_ZILL_CUM)
-    def pmZillCum(self):
-        
-        pass
-    
-
-# Provision technique zillmérisée (PMT_ZILL_PP)
-    def pmZill(self):
-        
-        pm = self.pmTech() - valZill(self)
-        
-        return pm
-
-
-
-# Calcul des primes pures
-    def purePremium(self):
-        
-         loading = pol.p['POLTARIF']
-        
-        return res
-        
-        
-
-
-# Valeur actualisée des primes nettes
-    def valNetPrem(self):
-        
-        pass
-
 
 
 # =============================================================================
@@ -719,12 +689,123 @@ class MI(Portfolio):
 # Calcul des Claims
 # =============================================================================
 
-# Définition de la somme assurée 
+# retourne la somme assurée avec le bon format
     def sumAss(self):
         
-        sumAss = self.p['PMBCAPIT'][:,np.newaxis,np.newaxis] * self.one()
-        
+        sumAss = self.p['PMBCAPIT'][np.newaxis,:,np.newaxis]*self.one()   
         return sumAss
+
+
+# Provision zillmérisée cumulée entre 2 calcul de PB (PMZ_ZILL_CUM)
+    def pmZillCum(self):
+        
+        pass
+    
+
+# Provision technique zillmérisée (PMT_ZILL_PP)
+    def pmZill(self):
+        
+        pm = self.pmTech() - valZill(self)
+        
+        return pm
+
+
+
+# Calcul des primes d'inventaire
+    def prInventaire(self):
+        
+        loading = self.p['aquisitionLoading'][np.newaxis,:,np.newaxis]*self.one()   
+        fraisFract = self.p['fraisFract'][np.newaxis,:,np.newaxis]*self.one()   
+        
+        premInc=((self.p['POLPRVIEHT'] - self.p['POLPRCPLA'])[:,np.newaxis,np.newaxis])
+        premInc = premInc * self.indexation()
+        
+        prInventaire = premInc * (1-loading) / fraisFract
+        
+        return prInventaire
+        
+  
+    
+# Calcul des primes pures PR PURE PP
+    def prPure(self):
+        
+        gestLoading = self.p['gestionLoadingSA'][np.newaxis,:,np.newaxis]*self.one() 
+        capital = self.p['PMBCAPIT'][np.newaxis,:,np.newaxis]*self.one()  
+        prInvent = self.prInventaire()
+        
+        ppure = prInvent - gestLoading * capital
+        
+        return ppure
+        
+
+# Valeur actualisée des primes nettes
+    def valNetPrem(self):
+        
+        premNet = self.prPure()
+        axn = self.axn()
+        
+        valNetPrem = premNet * axn
+        
+        return valNetPrem
+
+# Valeur actualisé SA (Net single premium value) AExn * capital
+    def valSaPP(self):
+        
+        # mask ici car au moment de l'échéance de la police, le net Single premium = 0 et non Capital
+        mask = self.polTermM() > self.durationIf() 
+        valSaPP = self.zero()
+        valSaPP[mask] = self.AExn()[mask] * self.sumAss()[mask]
+        
+        return valSaPP
+
+
+
+
+
+#Retourne les primes totales sans inforce ni fractionnement
+    def annPremPP(self):
+        premInc=((self.p['POLPRVIEHT'] - self.p['POLPRCPLA'])[:,np.newaxis,np.newaxis])
+        premInc=premInc*self.indexation()
+        
+        premCompl = self.annRider() 
+
+        return premInc + premCompl
+
+
+
+
+
+
+#Retourne les provisions pour risque en cours
+    def precPP(self):
+   
+        annPremPP = self.annPremPP()
+        fraisFract = self.p['fraisFract'][np.newaxis,:,np.newaxis]*self.one() 
+        loading = self.p['aquisitionLoading'][np.newaxis,:,np.newaxis]*self.one()  
+        frek = self.frac()
+        
+        premPure = annPremPP / fraisFract / (1+loading)
+        precPP = premPure * self.timeBeforeNextPay()/self.frac()
+  
+        return precPP * self.isActive()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -807,8 +888,8 @@ pol.ids([301])
 # age = pol.age()
 
 
-check = pol.AExn()
-pureprem = pol.purePremium()
+check = pol.adjustedReserve()
+# pureprem = pol.purePremium()
 
 # a = pol.p
 b=pol.nbrPolIf
