@@ -218,6 +218,9 @@ class MI(Portfolio):
         pbSortMatsPUP = self.zero()
         # allocMonths = self.allocMonths()
         
+        # Variable existante
+        pmFirstYear = self.pmFirstYear()
+    
    
         # Taux annualisé
         txIntPC = self.txInt()**(12) - 1
@@ -238,6 +241,11 @@ class MI(Portfolio):
         
         pbCalcPPdths = self.zero()
         pbCalcPUPdths = self.zero()
+        
+     
+        # nouvelles variables
+        pmPourPB = self.zero()
+     
         
      
 #Variables biométriques et génériques
@@ -320,7 +328,7 @@ class MI(Portfolio):
 #             pbAcquPP[:,i,:] = (pbAcquPP[:,i-1,:] + pbIncorPP[:,i,:]) * txInteret[:,i,:] * isActive[:,i,:]       
             
             
-            
+            # pmPourPB[:,i,:] = (pmZillCum[:,i,:]/12) * pmFirstYear[:,i,:]
             
             # pbCalcPP[:,i,:] = (pmPourPB[:,i,:] * txPartPB[:,i,:] * (firstYear[:,i,:] / 12) / AExn[:,i,:] ) * allocMonths[:,i,:]
             
@@ -442,6 +450,12 @@ class MI(Portfolio):
         mask = moisRestant >= increment
         return mask
 
+
+# Met un vecteur de 1 et 0 (1 si la police possède moins de 12 mois)
+    def pmFirstYear(self):
+        
+        mask = self.durationIf() >= 12
+        return mask*1
 
 
 
@@ -782,10 +796,10 @@ class MI(Portfolio):
         annPremPP = self.annPremPP()
         fraisFract = self.p['fraisFract'][np.newaxis,:,np.newaxis]*self.one() 
         loading = self.p['aquisitionLoading'][np.newaxis,:,np.newaxis]*self.one()  
-        frek = self.frac()
         
-        premPure = annPremPP / fraisFract / (1+loading)
-        precPP = premPure * self.timeBeforeNextPay()/self.frac()
+        
+        premForREC = annPremPP / fraisFract / (1+loading)
+        precPP = premForREC * self.timeBeforeNextPay()/self.frac()
   
         return precPP * self.isActive()
 
