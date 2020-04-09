@@ -264,6 +264,13 @@ class MI(Portfolio):
         txInteret = self.txInt()
         # prEncInv = self.premiumInvested()
 
+        
+        # Variable actuarielle
+        AExn = self.AExn()
+
+
+
+
         #Définition du vecteur des maturités (bool)        
         matRate[polTermM+1 ==self.durationIf()]=1 
             
@@ -315,7 +322,7 @@ class MI(Portfolio):
             
             
             
-            # pbCalcPP[:,i,:] = (pmPourPB[:,i,:] * txPbPC[:,i,:] * (firstYear[:,i,:] / 12) / bonConv[:,i,:] ) * allocMonths[:,i,:]
+            pbCalcPP[:,i,:] = (pmPourPB[:,i,:] * txPartPB[:,i,:] * (firstYear[:,i,:] / 12) / AExn[:,i,:] ) * allocMonths[:,i,:]
             
             
 
@@ -427,6 +434,15 @@ class MI(Portfolio):
         return
 
 
+# Vecteur de 1 et 0 permettant de savoir si police toujours active ou non
+    def isActive(self):
+        
+        moisRestant = self.p['residualTermM'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
+        increment = np.cumsum(self.one(), axis = 1)-1
+        mask = moisRestant >= increment
+        return mask
+
+
 
 
 # Retourne un vecteur de 1 et 0, Met des 1 pour le mois de janvier (là ou la PB est versée)
@@ -468,6 +484,21 @@ class MI(Portfolio):
 
 
 
+# Calcul des primes pures
+    def purePremium(self):
+        
+        premInc=((self.p['POLPRVIEHT'] - self.p['POLPRCPLA'])[:,np.newaxis,np.newaxis])/self.frac()
+        premCompl = self.annRider() / self.frac()
+        
+        
+
+
+# Valeur actualisée des primes nettes
+    def valNetPrem(self):
+        
+        
+
+
 
 # =============================================================================
     ### FONCTIONS ACTUARIELLES
@@ -485,7 +516,7 @@ class MI(Portfolio):
     
     
  # Fonction générique actuarielle
-    def actu(self, var, x, decallage=0):
+    def actu(self, var, x):
         
         table = self.p['POLTBMORT'].unique()
         
@@ -494,7 +525,11 @@ class MI(Portfolio):
         if x == 'x':
             myAge = self.ageInit().astype(int)
         elif x == 't':
-            myAge = self.age().astype(int) - decallage
+            myAge = self.age().astype(int) 
+        
+        elif x == 't+1':
+            myAge = self.age().astype(int) + 1
+        
         elif x == 'n':
             myAge = self.ageFinal().astype(int) 
             
@@ -532,8 +567,20 @@ class MI(Portfolio):
         Dxn = self.actu('Dx', 'n')
         
         AExn = (Mx - Mxn + Dxn) / Dx
+        AExn = np.roll(AExn, -1, axis = 1)
 
-        return AExn
+        
+        MxDec = self.actu('Mx', 't+1')
+        MxnDec = self.actu('Mx', 'n')
+        DxDec = self.actu('Dx', 't+1')
+        DxnDec = self.actu('Dx', 'n')
+        
+        AExnDec = (MxDec - MxnDec + DxnDec) / DxDec
+        AExnDec = np.roll(AExnDec, -1, axis = 1)
+        
+        resultat = self.interp(AExn, AExnDec)
+        
+        return resultat
     
 
     def AExnInit(self):
@@ -554,31 +601,15 @@ class MI(Portfolio):
    
 
 
-# Retourne la table de mortalité associé à la police
-    def tbMort(self):
-        
-        table = self.p['POLTBMORT'].astype(str)
-        table = table.str.replace("   ", "")
-
-        table.loc[table == 'GKM1995'] = 'GKM95'
-        table.loc[table == 'GKF1995'] = 'GKF95'
-        table.loc[table == 'EKM1995'] = 'EKM95'
-        table.loc[table == 'EKF1995'] = 'EKF95'
-        
-
-        return table 
-        
-
-
 # Créer un vecteur permettant d'interpolé les vecteur en fonction de la date début de la police
     def interp(self, var, varMoins1):
         
-        dur = self.durationIf()
+        dur = pol.durationIf()
         interp = np.int16(dur/12) + 1-(dur/12)
         
-        resultat = var * interp + (1-interp) * varMoins1
+        resultat = (var * interp) + ((1-interp) * varMoins1)
         
-        return resultat
+        return resultat * self.isActive()
     
     
     
@@ -586,10 +617,10 @@ class MI(Portfolio):
 # retourne les valeur actuarielles interpolée mensuellement
     def lxM(self):
 
-        lx = pol.actu('lx', 't') 
-        lxDec = pol.actu('lx', 't', 1) 
+        lx = self.actu('lx', 't') 
+        lxDec = self.actu('lx', 't', 1) 
         
-        lxFinal = pol.interp(lx, lxDec)
+        lxFinal = self.interp(lx, lxDec)
         
         
         return lxFinal
@@ -744,8 +775,8 @@ pol = MI()
     ###  Mod 2_1 produit F1XT1
 # pol.ids([106907])
 
-pol.ids([106903])
-# pol.ids([301])
+# pol.ids([106903])
+pol.ids([301])
 # pol.modHead([2],1)
 
     ### Mod 2_2 F2XT_1
@@ -762,7 +793,7 @@ pol.ids([106903])
 # age = pol.age()
 
 
-check = pol.txPartPB()
+check = pol.AExn()
 
 # a = pol.p
 b=pol.nbrPolIf
@@ -814,17 +845,23 @@ z.to_csv(path+'/zJO/check.csv',header=False)
 #a=pd.DataFrame(data[:,:,4])
 AExn = pol.AExn()
 
-AExnInit = pol.AExnInit()
-a = pol.p
-Nx = pol.actu('Nx', 't')
-Nxn = pol.actu('Nx', 'n')
-Dx = pol.actu('Dx', 't')
-Mx = pol.actu('Mx', 't')
-axn = (Nx - Nxn) / Dx
 
-nVal = (Nx - Nxn)
-dVal = Dx
-testaxn = nVal / dVal
+# Mx = pol.actu('Mx', 't')
+# Mxn = pol.actu('Mx', 'n')
+# Dx = pol.actu('Dx', 't')
+# Dxn = pol.actu('Dx', 'n')
+
+# AExn = (Mx - Mxn + Dxn) / Dx
+# AExn = np.roll(AExn, -1, axis = 1)
+
+
+# MxDec = pol.actu('Mx', 't', -1)
+# MxnDec = pol.actu('Mx', 'n')
+# DxDec = pol.actu('Dx', 't', -1)
+# DxnDec = pol.actu('Dx', 'n')
+
+# AExnDec = (MxDec - MxnDec + DxnDec) / DxDec
+# AExnDec = np.roll(AExnDec, -1, axis = 1)
 
 
 lxM = pol.lxM()

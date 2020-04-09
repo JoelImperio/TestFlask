@@ -273,8 +273,8 @@ class Actuarial:
             age = -1
             for l in self.dx:   #[:-1]
                 age += 1
-                # C_x = ((1 / (1 + i)) ** (age + 1))*l *((1 + i)**0.5)
-                C_x = ((1 / (1 + i)) ** (age + 1))*l
+                C_x = ((1 / (1 + i)) ** (age + 1))*l *((1 + i)**0.5)
+                # C_x = ((1 / (1 + i)) ** (age + 1))*l
                 self.Cx.append(C_x)
         if self.Mx == []:
             #self.Mx = []

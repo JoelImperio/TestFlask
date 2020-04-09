@@ -133,6 +133,18 @@ def premiumAquisitionLoading(p):
     p.loc[mask,'aquisitionLoading']=0    
     p.loc[mask,'aquisitionLoadingYear2']= 0
     p.loc[mask,'aquisitionLoadingYear3']= 0
+    
+    
+    
+    # Mixtes 1 tête
+    maskTete = p['POLNBTETE'] == 1
+    
+        # Tarif A
+    maskTarif = p['POLTARIF']isin(['A', 'B','C','D')
+    p.loc[maskTete & maskTarif,'aquisitionLoading'] = 0.07
+    
+    
+    
 
 
     p['aquisitionLoading'].fillna(0,inplace=True)
