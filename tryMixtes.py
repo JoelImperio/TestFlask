@@ -438,6 +438,8 @@ class MI(Portfolio):
         mask = calendarMonth ==1
         
         return mask*1
+    
+    
 
 
 
@@ -483,7 +485,7 @@ class MI(Portfolio):
     
     
  # Fonction générique actuarielle
-    def actu(self, var, x):
+    def actu(self, var, x, decallage=0):
         
         table = self.p['POLTBMORT'].unique()
         
@@ -492,7 +494,7 @@ class MI(Portfolio):
         if x == 'x':
             myAge = self.ageInit().astype(int)
         elif x == 't':
-            myAge = self.age().astype(int)
+            myAge = self.age().astype(int) - decallage
         elif x == 'n':
             myAge = self.ageFinal().astype(int) 
             
@@ -511,25 +513,12 @@ class MI(Portfolio):
                 mask_txTech = ((txTech == txInt)*self.one()).astype(bool)
                 mt = Actuarial(nt=eval(tb), i=txInt)
                 
-                if var == 'Mx':
-                    aVARx = pd.DataFrame(mt.Mx).to_numpy()
-                    
-                elif var == 'Nx':
-                    aVARx = pd.DataFrame(mt.Nx).to_numpy()
-                    
-                elif var == 'Cx':
-                    aVARx = pd.DataFrame(mt.Cx).to_numpy() 
-                    
-                elif var == 'Dx':
-                    aVARx = pd.DataFrame(mt.Dx).to_numpy() 
-     
+                aVARx = pd.DataFrame(getattr(mt, var)).to_numpy()
                     
                 myAge = np.where(myAge>=mt.w, mt.w-1, myAge)
                 myVarx[mask_txTech & mask_tableMort] = np.take(aVARx, myAge[mask_txTech & mask_tableMort])
                 
-                
-            
-        return myVarx
+        return myVarx 
 
 
    
@@ -581,32 +570,32 @@ class MI(Portfolio):
         
 
 
-
-
-
-
-    
-    
-# =============================================================================
-# TEST VECTORISATION
-# =============================================================================
-    
-#      def AExnPython( myAge, poldurc, txInt, table = GKM95):
+# Créer un vecteur permettant d'interpolé les vecteur en fonction de la date début de la police
+    def interp(self, var, varMoins1):
         
-#         mt = Actuarial(nt=table, i=txInt)
-#         age = myAge
-#         duree = poldurc
+        dur = self.durationIf()
+        interp = np.int16(dur/12) + 1-(dur/12)
         
-#         return AExn(mt, age, duree)
-    
-    
-    
-# AExnPython(30,35,0.035,GKM95)    
+        resultat = var * interp + (1-interp) * varMoins1
         
-# myfunc = np.vectorize(AExnPython, excluded=['poldurc', 'txInt', 'table'])
-# agetest = np.minimum(pol.age()[:,:,0].astype(int), 80)
-# check = myfunc(myAge = agetest,poldurc = 35, txInt = 0.035, table = GKM95)
+        return resultat
+    
+    
+    
+    
+# retourne les valeur actuarielles interpolée mensuellement
+    def lxM(self):
 
+        lx = pol.actu('lx', 't') 
+        lxDec = pol.actu('lx', 't', 1) 
+        
+        lxFinal = pol.interp(lx, lxDec)
+        
+        
+        return lxFinal
+    
+    
+# retourne le Mx interpolé
 
 
 
@@ -755,8 +744,8 @@ pol = MI()
     ###  Mod 2_1 produit F1XT1
 # pol.ids([106907])
 
-# pol.ids([106903])
-pol.ids([301])
+pol.ids([106903])
+# pol.ids([301])
 # pol.modHead([2],1)
 
     ### Mod 2_2 F2XT_1
@@ -832,3 +821,12 @@ Nxn = pol.actu('Nx', 'n')
 Dx = pol.actu('Dx', 't')
 Mx = pol.actu('Mx', 't')
 axn = (Nx - Nxn) / Dx
+
+nVal = (Nx - Nxn)
+dVal = Dx
+testaxn = nVal / dVal
+
+
+lxM = pol.lxM()
+
+# interp = pol.interp()
