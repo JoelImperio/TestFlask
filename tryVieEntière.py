@@ -37,6 +37,7 @@ class VE(Portfolio):
         self.loopVE()
         self.lapse()
         self.reserveForExp()
+        self.isActive()
     
     # Fonction pour savoir si une police lapse, voir pourquoi elle est là
     def isLapse(self):
@@ -130,6 +131,24 @@ class VE(Portfolio):
         self.nbrDeath=nbrDeath
         #Nombre d'annulation de contrat
         self.nbrSurrender=nbrSurrender
+        
+    def isActive(self):
+        
+        moisRestant = self.p['residualTermM'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
+        increment = np.cumsum(self.one(), axis = 1)-1
+        mask = moisRestant >= increment
+        
+        return mask
+    
+    def policeActive(self):
+        situation = self.p['POLSIT'][:,np.newaxis,np.newaxis] * self.one()
+            
+        conditions = [(situation != 4) & (situation != 8) & (situation != 9)]
+        result =[(1)]
+        sinon = 0
+        policeActive = np.select(conditions,result,sinon)
+        return policeActive
+        
     
 # =============================================================================
     ### FONCTIONS ACTUARIELLES
@@ -143,46 +162,133 @@ class VE(Portfolio):
     def ageFinal(self):
         age = ((self.p['Age1AtEntry'] + (self.p['residualTermM'] + self.p['DurationIfInitial'])/12).to_numpy()[:,np.newaxis,np.newaxis]*self.one())
         return age
-
-
-    # Fonction générique actuarielle
-    def actu(self, var, x, table, tablestring):
-        pol.p['POLTBMORT'] = pol.p['POLTBMORT'].str.strip()        
+        
+    
+    
+ # Fonction générique actuarielle
+    def actu(self, var, x):
+        
+        table = self.p['POLTBMORT'].unique()
+        
+        tbMort = self.p['POLTBMORT']
+               
         if x == 'x':
             myAge = self.ageInit().astype(int)
         elif x == 't':
-            myAge = self.age().astype(int)
+            myAge = self.age().astype(int) 
+        
+        elif x == 't+1':
+            myAge = self.age().astype(int) + 1
+        
         elif x == 'n':
-            myAge = self.ageFinal().astype(int)   
+            myAge = self.ageFinal().astype(int)
+
+            
         txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis]/100
         txTechLoop = np.unique(self.p['PMBTXINT'].to_numpy())
-        tableMort = self.p['POLTBMORT'].to_numpy()[:,np.newaxis,np.newaxis]
-        mask_tableMort = ((tableMort == tablestring)*self.one()).astype(bool)
+        tbMort = tbMort[:,np.newaxis,np.newaxis]
         myVarx = self.zero()
-        for i in np.nditer(txTechLoop):
-            txInt = i / 10000
-            mask_txTech = ((txTech == txInt)*self.one()).astype(bool)
-            mt = Actuarial(nt=table, i=txInt)
-            if var == 'Mx':
-                aVARx = pd.DataFrame(mt.Mx).to_numpy()
-            elif var == 'Nx':
-                aVARx = pd.DataFrame(mt.Nx).to_numpy()
-            elif var == 'Cx':
-                aVARx = pd.DataFrame(mt.Cx).to_numpy() 
-            elif var == 'Dx':
-                aVARx = pd.DataFrame(mt.Dx).to_numpy()  
-            myAge = np.where(myAge>=mt.w, mt.w-1, myAge)
-            myVarx[mask_txTech & mask_tableMort] = np.take(aVARx, myAge[mask_txTech & mask_tableMort])
-        return myVarx
+        
+        for tb in table:
+             
+            mask_tableMort = ((tbMort == tb)*self.one()).astype(bool)
+        
+            for i in np.nditer(txTechLoop):
+                
+                txInt = i / 100
+                mask_txTech = ((txTech == txInt)*self.one()).astype(bool)
+                mt = Actuarial(nt=eval(tb), i=txInt)
+                
+                aVARx = pd.DataFrame(getattr(mt, var)).to_numpy()
+                    
+                # myAge = np.where(myAge>=mt.w, mt.w-1, myAge)
+                myAge = np.where(myAge>=mt.w, mt.w, myAge)
+                myVarx[mask_txTech & mask_tableMort] = np.take(aVARx, myAge[mask_txTech & mask_tableMort])
+                
+        return myVarx 
+
+   
+    def ax(self):
+        Nx = self.actu('Nx', 't')
+        Dx = self.actu('Dx', 't')
+        ax = Nx / Dx
+        ax = np.roll(ax, -1, axis = 1)
+        NxDec = self.actu('Nx', 't+1')
+        DxDec = self.actu('Dx', 't+1')
+        axDec = NxDec / DxDec
+        axDec = np.roll(axDec, -1, axis = 1)
+        resultat = self.interp(ax, axDec)
+        return resultat
+    
+    def axn(self):
+        Nx = self.actu('Nx', 't')
+        Nxp = self.actu('Nx', 't')
+        Dx = self.actu('Dx', 't')
+        
+        ax = Nx / Dx
+        ax = np.roll(ax, -1, axis = 1)
+        NxDec = self.actu('Nx', 't+1')
+        DxDec = self.actu('Dx', 't+1')
+        axDec = NxDec / DxDec
+        axDec = np.roll(axDec, -1, axis = 1)
+        resultat = self.interp(ax, axDec)
+        return resultat
+    
+    def axInit(self):
+        Nx = self.actu('Nx', 'x')
+        Mx = self.actu('Mx', 'x')
+        ax = Nx / Mx
+        return ax
+    
+    def Ax(self):
+        Dx = self.actu('Dx', 't')
+        Mx = self.actu('Mx', 't')
+        ax = Mx / Dx
+        ax = np.roll(ax, -1, axis = 1)
+        DxDec = self.actu('Dx', 't+1')
+        MxDec = self.actu('Mx', 't+1')   
+        axDec = MxDec / DxDec
+        axDec = np.roll(axDec, -1, axis = 1)
+        abar = self.interp(ax, axDec)
+        return abar
+        
+    def AxInit(self):
+        Dx = self.actu('Dx', 'x')
+        Mx = self.actu('Mx', 'x')
+        abarInit = Mx / Dx
+        return abarInit
+    
+    def AxFinal(self):
+        Dx = self.actu('Dx', 'n')
+        Mx = self.actu('Mx', 'n')
+        abarInit = Mx / Dx
+        return abarInit
+
+
+# Créer un vecteur permettant d'interpolé les vecteur en fonction de la date début de la police
+    def interp(self, var, varDec):
+        
+        dur = self.durationIf()
+        interp = np.int16(dur/12) + 1-(dur/12)
+        
+        resultat = (var * interp) + ((1-interp) * varDec)
+        
+        return resultat * self.isActive()
+        # return resultat 
 
 # =============================================================================
     ### CALCUL DES SURRENDER
 # =============================================================================
 
-    # VAL_SA_PP - capital de la police
+    # SUM_ASSD_PP - capital de la police
     def insuredSum(self):
         sumAssdPp = self.p['PMBCAPIT'].to_numpy()[:,np.newaxis,np.newaxis]*self.one()
         return sumAssdPp
+    
+    # VAL_SUM_ASSD
+    def valSumAssd(self):
+        valSaPP = self.p['PMBCAPIT'].to_numpy()[:,np.newaxis,np.newaxis]*self.one() * self.Ax()
+        return valSaPP
     
     # VAL_ACCRB_PP - valeur de la PB acquise en début de projection               
     def valAccrbPP(self):
@@ -209,24 +315,42 @@ class VE(Portfolio):
     
     # VAL_PREC_PP - risque en cours
     def valPrecPP(self):
-        situation = self.p['POLSIT'][:,np.newaxis,np.newaxis]
         agelimite=(self.age()<=85)
+        primecompl = (self.p['POLPRCPL3'])[:,np.newaxis,np.newaxis] / self.frac()
+        riderIncPP = self.zero()
+        riderIncPP2 = self.zero()
+        primeTotaleMensuelle = self.primeTotaleMensuelle()
+        isPremPay = self.isPremPay()
+        
         # Calcul du risque en cours
-        riderIncPP=self.primeTotaleMensuelle()*self.isPremPay()*agelimite
-        riderIncPP2=self.primeTotaleMensuelle()*agelimite
+        riderIncPP = primecompl * self.isPremPay() * agelimite
+        riderIncPP2 = primecompl * agelimite
+        
+        
+        riderIncPP[(self.mask([11]))] = primeTotaleMensuelle[(self.mask([11]))] * isPremPay[(self.mask([11]))] * agelimite[(self.mask([11]))] 
+        riderIncPP2[(self.mask([11]))] = primeTotaleMensuelle[(self.mask([11]))] * agelimite[(self.mask([11]))] 
+        
+        
         precPPbis=self.zero()
         frek=self.frac()
         for i in range(1,self.shape[1]):
-            precPPbis[:,i,:]=precPPbis[:,i-1,:]+riderIncPP[:,i,:] - ((frek[:,i,:]/12)*riderIncPP2[:,i,:])
-        conditions = [(situation != 4) & (situation != 8) & (situation != 9)]
-        result =[(precPPbis)]
-        sinon = 0
-        precPP = np.select(conditions,result,sinon)
+            precPPbis[:,i,:] = precPPbis[:,i-1,:] + riderIncPP[:,i,:] - ((frek[:,i,:] / 12) * riderIncPP2[:,i,:])
+        
+        precPP = precPPbis * self.isActive()
         return precPP
     
+    # def valSaFac(self):
+    #     valSaFac = self.abar()
+    #     return valSaFac
+        
+        
     # PR_PURE_PP - Prime pure calcul éronné pour la mod11
     def purePremium(self):
-        purePremium =  self.insuredSum() / 99
+        purePremium = self.insuredSum() / self.axInit() * self.policeActive()
+        
+        # calcul erronnée pour la modalité 11, à enlever une fois PGG répliquée:
+        insuredSum = self.insuredSum()
+        purePremium[(self.mask([11]))] =  insuredSum[(self.mask([11]))] / 99
         return purePremium
    
     # Primes mensuelles (ne dépend pas de isprempay)
@@ -237,6 +361,7 @@ class VE(Portfolio):
 
     # VAL_NETP_PP valeur des primes nettes
     def valNetpPP(self):
+        
         ValNetpPp = self.purePremium() * self.valNetpFac()
         return ValNetpPp
     
@@ -252,16 +377,38 @@ class VE(Portfolio):
       
     # VAL_NETP_FAC - durée restante mensuelle, à 0 si pas de paiement des primes
     def valNetpFac(self):
-        situation = self.p['POLSIT'][:,np.newaxis,np.newaxis]
-        conditions = [(situation != 4) & (situation != 8) & (situation != 9)]
-        result = [(99 - (self.durationIf()/12))]
-        sinon = 0
-        valNetpFac = np.select(conditions,result,sinon)
+        # situation = self.p['POLSIT'][:,np.newaxis,np.newaxis]
+        # conditions = [(situation != 4) & (situation != 8) & (situation != 9)]
+        # result = [(99 - (self.durationIf()/12))]
+        # sinon = 0
+        # valNetpFac = np.select(conditions,result,sinon)
+        dureePayPrimes = self.p['POLDURP'][:,np.newaxis,np.newaxis] * self.one()
+        maskDureeEq99 = dureePayPrimes == 99 
+        masDureeNotEq99 = dureePayPrimes != 99
+        
+        ax = self.ax()
+        policeActive = self.policeActive()
+        
+        # valNetpFac = self.ax() * self.policeActive()
+        valNetpFac[maskDureeEq99] = ax[maskDureeEq99] * policeActive[maskDureeEq99]
+        valNetpFac[masDureeNotEq99] = axn[masDureeNotEq99] * policeActive[masDureeNotEq99]
+        
+        # calcul erronnée pour la modalité 11, à enlever une fois PGG répliquée:
+        durationIf = self.durationIf()
+        policeActive = self.policeActive()
+        valNetpFac[(self.mask([11]))] = (99 - (durationIf[(self.mask([11]))]/12))*policeActive[(self.mask([11]))]
+
         return valNetpFac
     
     # VAL_POL_FAC - durée restante mensuelle, ne dépend pas des primes
     def valPolFac(self):
-        valPolFac = 99 - (self.durationIf()/12)
+        
+        valPolFac = self.ax()
+        
+        # calcul erronnée pour la modalité 11, à enlever une fois PGG répliquée:
+        durationIf = self.durationIf()
+        policeActive = self.policeActive()
+        valPolFac[(self.mask([11]))] = (99 - (durationIf[(self.mask([11]))]/12))
         return valPolFac
     
     # VAL_ZILL_PP - valeur de zillmérisation    
@@ -277,7 +424,7 @@ class VE(Portfolio):
         # mathResBa = np.maximum(self.insuredSum() + self.valAccrbPP() + self.provGestPP() + self.valPrecPP() - self.valNetpPP() - self.valZillPP(), 0)
         
         # pour la 01:
-        mathResBa = np.maximum(self.insuredSum()  + self.valPrecPP() - self.valNetpPP() - self.valZillPP(), 0)
+        mathResBa = np.maximum(self.valSumAssd()  + self.valPrecPP() - self.valNetpPP() + self.provGestPP() - self.valZillPP(), 0)
         
         
         return mathResBa
@@ -362,7 +509,7 @@ class VE(Portfolio):
         calendarMonth=np.arange(start=self.p['DateCalcul'].dt.month.values[0].astype(int),stop=(self.shape[1]+self.p['DateCalcul'].dt.month.values[0].astype(int)))
         calendarMonth=calendarMonth%12 + 1
         calendarMonth=calendarMonth[np.newaxis,:,np.newaxis]*self.one()        
-        mask = calendarMonth ==1
+        mask = calendarMonth == 1
         return mask*1
     
     def unitExpense(self):
@@ -547,24 +694,47 @@ class VE(Portfolio):
     
     #     return bel
 
-    
+# définition de pol
 pol = VE()
 
+# police force 3
+# pol.ids([731902]) okay
+# pol.ids([818202]) okay
+# pol.ids([2211301]) okay
+# pol.ids([1132602]) okay
+# pol.ids([1132701]) okay
+# pol.ids([889603]) okay
+# pol.ids([732001])
 
 
-dx = pol.actu('Dx', 't', EKF05I1, 'EKF05I1')
+# police unique
+# pol.ids([2178001])
 
 
+# échantillon force F1VE01
+# pol.ids([71601, 71801, 236605, 294101, 350001, 375801, 399202, 743801, 1847802, 1847803])
 
+# échantillon force F1VE02
+# pol.ids([101203, 895602, 2055601, 2056801, 2085801, 2085901])
+
+# échantillon force F1VE03
+pol.ids([2168202, 2172401, 2178001])
+
+# échantillon force F1VE04
+# pol.ids([572405, 572503, 731902, 732001, 818202, 889603, 1132602, 1132701, 2211301])
+
+# selection de la modalité
+# pol.mod([1])
+
+
+    
 
 
 
  
 x = pol.p
-
 x.to_excel(path+'/zFT/ptf.xlsx')
-
-monCas = pol.qx()
+monCas = pol.ax()
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])

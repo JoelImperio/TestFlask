@@ -31,3 +31,8 @@ EKF95_2ordre=getMT(df['EKF95_2ordre'])
 EKM95_2ordre=getMT(df['EKM95_2ordre'])
 GKF95=getMT(df['GKF95'])
 GKM95=getMT(df['GKM95'])
+
+EKF1995=getMT(df['EKF95'])
+EKM1995=getMT(df['EKM95'])
+GKF1995=getMT(df['GKF95'])
+GKM1995=getMT(df['GKM95'])

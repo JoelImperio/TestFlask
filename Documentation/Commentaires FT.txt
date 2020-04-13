@@ -5,7 +5,8 @@ VE:
 
 Modalité 11:
 - La prime pure c'est le capital divisé par 99. Ca devrait être le capital * Mx/Nx
-
+- Les polices lapsent mensuellement quelque soit le fractionnement
+- L'annual rider pp est faux, car il prendre la prime totale et non juste la complémentaire
 
 
 Modalité 01:
