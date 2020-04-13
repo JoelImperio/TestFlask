@@ -162,6 +162,10 @@ class VE(Portfolio):
     def ageFinal(self):
         age = ((self.p['Age1AtEntry'] + (self.p['residualTermM'] + self.p['DurationIfInitial'])/12).to_numpy()[:,np.newaxis,np.newaxis]*self.one())
         return age
+    
+    def agePrimes(self):
+        age = ((self.p['Age1AtEntry'].to_numpy() + self.p['POLDURP'].to_numpy())[:,np.newaxis,np.newaxis]*self.one())
+        return age
         
     
     
@@ -169,19 +173,18 @@ class VE(Portfolio):
     def actu(self, var, x):
         
         table = self.p['POLTBMORT'].unique()
-        
         tbMort = self.p['POLTBMORT']
                
         if x == 'x':
             myAge = self.ageInit().astype(int)
         elif x == 't':
             myAge = self.age().astype(int) 
-        
         elif x == 't+1':
             myAge = self.age().astype(int) + 1
-        
         elif x == 'n':
-            myAge = self.ageFinal().astype(int)
+            myAge = self.ageFinal().astype(int) 
+        elif x == 'p':
+            myAge = self.agePrimes().astype(int)
 
             
         txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis]/100
@@ -220,18 +223,18 @@ class VE(Portfolio):
         resultat = self.interp(ax, axDec)
         return resultat
     
-    def axn(self):
+# äxn annuity endowment insurance
+    def axp(self):
+        Nxn = self.actu('Nx', 'p')
         Nx = self.actu('Nx', 't')
-        Nxp = self.actu('Nx', 't')
         Dx = self.actu('Dx', 't')
-        
-        ax = Nx / Dx
-        ax = np.roll(ax, -1, axis = 1)
+        axn = (Nx - Nxn) / Dx
+        axn = np.roll(axn, -1, axis = 1)
         NxDec = self.actu('Nx', 't+1')
         DxDec = self.actu('Dx', 't+1')
-        axDec = NxDec / DxDec
-        axDec = np.roll(axDec, -1, axis = 1)
-        resultat = self.interp(ax, axDec)
+        axnDec = (NxDec - Nxn) / DxDec
+        axnDec = np.roll(axnDec, -1, axis = 1)
+        resultat = self.interp(axn, axnDec)
         return resultat
     
     def axInit(self):
@@ -239,6 +242,13 @@ class VE(Portfolio):
         Mx = self.actu('Mx', 'x')
         ax = Nx / Mx
         return ax
+    
+    def axInitPrimes(self):
+        Nxp = self.actu('Nx', 'p')
+        Nx = self.actu('Nx', 'x')
+        Mx = self.actu('Mx', 'x')
+        axn = (Nx - Nxp) / Mx
+        return axn
     
     def Ax(self):
         Dx = self.actu('Dx', 't')
@@ -346,7 +356,8 @@ class VE(Portfolio):
         
     # PR_PURE_PP - Prime pure calcul éronné pour la mod11
     def purePremium(self):
-        purePremium = self.insuredSum() / self.axInit() * self.policeActive()
+        # purePremium = self.insuredSum() / self.axInit() * self.policeActive()
+        purePremium = self.insuredSum() / self.axInitPrimes() * self.policeActive()
         
         # calcul erronnée pour la modalité 11, à enlever une fois PGG répliquée:
         insuredSum = self.insuredSum()
@@ -387,11 +398,13 @@ class VE(Portfolio):
         masDureeNotEq99 = dureePayPrimes != 99
         
         ax = self.ax()
+        axp = self.axp()
         policeActive = self.policeActive()
         
+        valNetpFac = self.zero()
         # valNetpFac = self.ax() * self.policeActive()
-        valNetpFac[maskDureeEq99] = ax[maskDureeEq99] * policeActive[maskDureeEq99]
-        valNetpFac[masDureeNotEq99] = axn[masDureeNotEq99] * policeActive[masDureeNotEq99]
+        valNetpFac[maskDureeEq99] = np.maximum(ax[maskDureeEq99] * policeActive[maskDureeEq99],0)
+        valNetpFac[masDureeNotEq99] = np.maximum(axp[masDureeNotEq99] * policeActive[masDureeNotEq99],0)
         
         # calcul erronnée pour la modalité 11, à enlever une fois PGG répliquée:
         durationIf = self.durationIf()
@@ -403,11 +416,22 @@ class VE(Portfolio):
     # VAL_POL_FAC - durée restante mensuelle, ne dépend pas des primes
     def valPolFac(self):
         
-        valPolFac = self.ax()
+        # valPolFac = self.ax()
+        
+        dureePayPrimes = self.p['POLDURP'][:,np.newaxis,np.newaxis] * self.one()
+        maskDureeEq99 = dureePayPrimes == 99 
+        masDureeNotEq99 = dureePayPrimes != 99
+        
+        ax = self.ax()
+        axp = self.axp()
+ 
+        valPolFac = self.zero()
+        # valNetpFac = self.ax() * self.policeActive()
+        valPolFac[maskDureeEq99] = ax[maskDureeEq99] 
+        valPolFac[masDureeNotEq99] = axp[masDureeNotEq99]
         
         # calcul erronnée pour la modalité 11, à enlever une fois PGG répliquée:
         durationIf = self.durationIf()
-        policeActive = self.policeActive()
         valPolFac[(self.mask([11]))] = (99 - (durationIf[(self.mask([11]))]/12))
         return valPolFac
     
@@ -708,7 +732,7 @@ pol = VE()
 
 
 # police unique
-# pol.ids([2178001])
+pol.ids([2172401])
 
 
 # échantillon force F1VE01
@@ -718,7 +742,7 @@ pol = VE()
 # pol.ids([101203, 895602, 2055601, 2056801, 2085801, 2085901])
 
 # échantillon force F1VE03
-pol.ids([2168202, 2172401, 2178001])
+# pol.ids([2168202, 2172401, 2178001])
 
 # échantillon force F1VE04
 # pol.ids([572405, 572503, 731902, 732001, 818202, 889603, 1132602, 1132701, 2211301])
@@ -734,7 +758,7 @@ pol.ids([2168202, 2172401, 2178001])
  
 x = pol.p
 x.to_excel(path+'/zFT/ptf.xlsx')
-monCas = pol.ax()
+monCas = pol.isActive()
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
