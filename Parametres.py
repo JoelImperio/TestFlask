@@ -242,6 +242,21 @@ def fraisGestionSumAss(p):
     
     
     
+def tauxZill(p):
+    
+    # mod2
+    mask=(p['PMBMOD'].isin([2]))
+    
+
+    maskTarif = p['POLTARIF'].isin(['H', 'I', 'J', 'L'])
+    p.loc[maskTarif & mask,'tauxZill'] = 0.05
+    
+    maskTarif = p['POLTARIF'].isin(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'K'])
+    p.loc[ maskTarif & mask,'tauxZill'] = 0.08
+    
+
+    
+    
 ##############################################################################################################################
 #Permet d'ajouter une colonne contenant les frais de fractionnement
 ##############################################################################################################################
@@ -628,6 +643,9 @@ def portfolioPreProcessing(p):
     
     # Ajustement des fractionnements pour des polices avec frac = 0 (réduites)
     adjustedFracAndPremium(p)
+    
+    # Ajout des taux de zillmérisations en fonction du tarif
+    tauxZill(p)
     
 
     

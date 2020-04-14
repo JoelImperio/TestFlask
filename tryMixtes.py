@@ -710,6 +710,12 @@ class MI(Portfolio):
         return sumAss
 
 
+
+
+
+
+
+
 # Provision zillmérisée cumulée entre 2 calcul de PB (PMZ_ZILL_CUM)
     def pmZillCum(self):
         
@@ -725,7 +731,7 @@ class MI(Portfolio):
 
 
 
-# Calcul des primes d'inventaire
+# Calcul des primes d'inventaire annuelle (PA'')
     def prInventaire(self):
         
         loading = self.p['aquisitionLoading'][np.newaxis,:,np.newaxis]*self.one()   
@@ -806,7 +812,13 @@ class MI(Portfolio):
 
 
 
-
+# Retourne la zillmérisation VAL_ZILLMER
+    def zillmer(self):
+        
+        PA = self.prInventaire()
+        
+        # taux de zillmérisation
+        alpha = 
 
 
 
@@ -902,7 +914,7 @@ pol.ids([301])
 # age = pol.age()
 
 
-# check = pol.adjustedReserve()
+check = pol.prInventaire()
 # pureprem = pol.purePremium()
 
 # a = pol.p
