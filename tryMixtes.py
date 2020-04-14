@@ -36,7 +36,56 @@ class MI(Portfolio):
     def update(self,subPortfolio):
         super().update(subPortfolio)
         self.loopSaving()
-       
+        self.commutations()
+  
+        
+  
+  
+# Fonction présent dans l'update permettant de chargé une fois tous les symboles de commutation
+    def commutations(self):
+        
+        Nx = self.actu('Nx', 'x')
+        Nxn = self.actu('Nx', 'n')
+        Nxt = self.actu('Nx', 't')
+        # Nxp = self.actu('Nx', 'p')
+        NxDec = self.actu('Nx', 't+1')
+        
+        Dx = self.actu('Dx', 'x')
+        Dxn = self.actu('Dx', 'n')
+        Dxt = self.actu('Dx', 't')
+        # Dxp = self.actu('Dx', 'p')
+        DxDec = self.actu('Dx', 't+1')
+        
+        Mx = self.actu('Mx', 'x')
+        Mxn = self.actu('Mx', 'n')
+        Mxt = self.actu('Mx', 't')
+        # Mxp = self.actu('Mx', 'p')
+        MxDec = self.actu('Mx', 't+1')
+        
+        
+        
+        
+        self.Nx = Nx
+        self.Nxn = Nxn
+        self.Nxt = Nxt
+        self.NxDec = NxDec
+        # self.Nxp = Nxp
+        
+        self.Dx = Dx
+        self.Dxn = Dxn
+        self.Dxt = Dxt
+        self.DxDec = DxDec
+        # self.Dxp = Dxp
+        
+        self.Mx = Mx
+        self.Mxn = Mxn
+        self.Mxt = Mxt
+        self.MxDec = MxDec
+        # self.Mxp = Mxp
+          
+  
+    
+  
 
 # #Cette Loop renvoie l'ensemble des variables récusrives pour les produits mixtes
 #     def loopEndowment(self):
@@ -541,24 +590,28 @@ class MI(Portfolio):
         return myVarx 
 
 
+
+
+
+
    
 # AExn Endowment insurance
     def AExn(self):
         
 
-        Mx = self.actu('Mx', 't')
-        Mxn = self.actu('Mx', 'n')
-        Dx = self.actu('Dx', 't')
-        Dxn = self.actu('Dx', 'n')
+        Mx = self.Mxt
+        Mxn = self.Mxn
+        Dx = self.Dxt
+        Dxn = self.Dxn
         
         AExn = (Mx - Mxn + Dxn) / Dx
         AExn = np.roll(AExn, -1, axis = 1)
 
         
-        MxDec = self.actu('Mx', 't+1')
-        MxnDec = self.actu('Mx', 'n')
-        DxDec = self.actu('Dx', 't+1')
-        DxnDec = self.actu('Dx', 'n')
+        MxDec = self.MxDec
+        MxnDec = self.Mxn
+        DxDec = self.DxDec
+        DxnDec = self.Dxn
         
         AExnDec = (MxDec - MxnDec + DxnDec) / DxDec
         AExnDec = np.roll(AExnDec, -1, axis = 1)
@@ -572,15 +625,15 @@ class MI(Portfolio):
 # äxn annuity endowment insurance
     def axn(self):
         
-        Nxn = self.actu('Nx', 'n')
-        Nx = self.actu('Nx', 't')
-        Dx = self.actu('Dx', 't')
+        Nxn = self.Nxn
+        Nx = self.Nxt
+        Dx = self.Dxt
         
         axn = (Nx - Nxn) / Dx
         axn = np.roll(axn, -1, axis = 1)
         
-        NxDec = self.actu('Nx', 't+1')
-        DxDec = self.actu('Dx', 't+1')
+        NxDec = self.NxDec
+        DxDec = self.DxDec
         
         axnDec = (NxDec - Nxn) / DxDec
         axnDec = np.roll(axnDec, -1, axis = 1)
@@ -596,10 +649,10 @@ class MI(Portfolio):
     def AExnInit(self):
         
 
-        Mx = self.actu('Mx', 'x')
-        Mxn = self.actu('Mx', 'n')
-        Dx = self.actu('Dx', 'x')
-        Dxn = self.actu('Dx', 'n')
+        Mx = self.Mx
+        Mxn = self.Mxn
+        Dx = self.Dx
+        Dxn = self.Dxn
         
         AExn = (Mx - Mxn + Dxn) / Dx
 
@@ -818,9 +871,9 @@ class MI(Portfolio):
         PA = self.prInventaire()
         
         # taux de zillmérisation
-        alpha = 
+        # alpha = 
 
-
+        pass
 
 
 
