@@ -38,6 +38,7 @@ class VE(Portfolio):
         self.lapse()
         self.reserveForExp()
         self.isActive()
+        self.commutations()
     
     # Fonction pour savoir si une police lapse, voir pourquoi elle est là
     def isLapse(self):
@@ -122,7 +123,7 @@ class VE(Portfolio):
             nbrPolIf[:,i,:]=nbrPolIf[:,i-1,:]-nbrMaturities[:,i,:]-nbrDeath[:,i,:]-nbrSurrender[:,i,:]
 
         #Nombre de polices actives                                 
-        self.nbrPolIf=nbrPolIf
+        self.nbrPolIf = nbrPolIf
         #Nombre de police actives en déduisant les échéances du mois
         self.nbrPolIfSM=nbrPolIfSM
         #Nombre d'échéances de contrat
@@ -194,6 +195,40 @@ class VE(Portfolio):
         return age
         
     
+    def commutations(self):
+        
+        Nx = self.actu('Nx', 'x')
+        Nxn = self.actu('Nx', 'n')
+        Nxt = self.actu('Nx', 't')
+        # Nxp = self.actu('Nx', 'p')
+        
+        Dx = self.actu('Dx', 'x')
+        Dxn = self.actu('Dx', 'n')
+        Dxt = self.actu('Dx', 't')
+        # Dxp = self.actu('Dx', 'p')
+        
+        Mx = self.actu('Mx', 'x')
+        Mxn = self.actu('Mx', 'n')
+        Mxt = self.actu('Mx', 't')
+        # Mxp = self.actu('Mx', 'p')
+        
+        
+        self.Nx = Nx
+        self.Nxn = Nxn
+        self.Nxt = Nxt
+        # self.Nxp = Nxp
+        
+        self.Dx = Dx
+        self.Dxn = Dxn
+        self.Dxt = Dxt
+        # self.Dxp = Dxp
+        
+        self.Mx = Mx
+        self.Mxn = Mxn
+        self.Mxt = Mxt
+        # self.Mxp = Mxp
+        
+        
     
  # Fonction générique actuarielle
     def actu(self, var, x):
@@ -236,6 +271,14 @@ class VE(Portfolio):
                 
         return myVarx 
 
+
+    def test(self):
+        # Nx = self.actu('Nx', 't')
+        
+        Nx = self.Nx
+        
+        return Nx
+        
    
     def ax(self):
         Nx = self.actu('Nx', 't')
@@ -254,7 +297,7 @@ class VE(Portfolio):
         Nxp = self.actu('Nx', 'p')
         Nx = self.actu('Nx', 't')
         Dx = self.actu('Dx', 't')
-        axn = (Nx - Nxn) / Dx
+        axn = (Nx - Nxp) / Dx
         axn = np.roll(axn, -1, axis = 1)
         NxDec = self.actu('Nx', 't+1')
         DxDec = self.actu('Dx', 't+1')
@@ -268,11 +311,11 @@ class VE(Portfolio):
         Nx = self.actu('Nx', 't')
 
         aduePolVal = Nx / (Nx - Nxp)
-        aduePolVal = np.roll(axn, -1, axis = 1)
+        aduePolVal = np.roll(aduePolVal, -1, axis = 1)
         NxDec = self.actu('Nx', 't+1')
 
         aduePolValDec = NxDec / (NxDec - Nxp)
-        aduePolValDec = np.roll(axnDec, -1, axis = 1)
+        aduePolValDec = np.roll(aduePolValDec, -1, axis = 1)
         resultat = self.interp(aduePolVal, aduePolValDec)
         return resultat
     
@@ -417,7 +460,7 @@ class VE(Portfolio):
     
     # PR_INVENT_PP
     def prInventPP(self):
-        prInventPp = (self.purePremium() + ((self.cgSaPolPc()+self.cgSaPriPc())/100 * self.insuredSum() * self.policeActive())
+        prInventPp = self.purePremium() + ((self.cgSaPolPc()+self.cgSaPriPc())/100 * self.insuredSum() * self.policeActive())
         # PrInventPp = self.one()
         return prInventPp            
                       
