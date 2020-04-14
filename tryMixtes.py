@@ -35,120 +35,58 @@ class MI(Portfolio):
 #Permet de relancer l'update() en intégrant des methodes de la sous-classe
     def update(self,subPortfolio):
         super().update(subPortfolio)
+        # self.commutations()
         self.loopSaving()
-        self.commutations()
-  
         
   
+        
   
-# Fonction présent dans l'update permettant de chargé une fois tous les symboles de commutation
-    def commutations(self):
+  
+# # Fonction présent dans l'update permettant de chargé une fois tous les symboles de commutation
+#     def commutations(self):
         
-        Nx = self.actu('Nx', 'x')
-        Nxn = self.actu('Nx', 'n')
-        Nxt = self.actu('Nx', 't')
-        # Nxp = self.actu('Nx', 'p')
-        NxDec = self.actu('Nx', 't+1')
+#         Nx = self.actu('Nx', 'x')
+#         Nxn = self.actu('Nx', 'n')
+#         Nxt = self.actu('Nx', 't')
+#         # Nxp = self.actu('Nx', 'p')
+#         NxDec = self.actu('Nx', 't+1')
         
-        Dx = self.actu('Dx', 'x')
-        Dxn = self.actu('Dx', 'n')
-        Dxt = self.actu('Dx', 't')
-        # Dxp = self.actu('Dx', 'p')
-        DxDec = self.actu('Dx', 't+1')
+#         Dx = self.actu('Dx', 'x')
+#         Dxn = self.actu('Dx', 'n')
+#         Dxt = self.actu('Dx', 't')
+#         # Dxp = self.actu('Dx', 'p')
+#         DxDec = self.actu('Dx', 't+1')
         
-        Mx = self.actu('Mx', 'x')
-        Mxn = self.actu('Mx', 'n')
-        Mxt = self.actu('Mx', 't')
-        # Mxp = self.actu('Mx', 'p')
-        MxDec = self.actu('Mx', 't+1')
-        
-        
+#         Mx = self.actu('Mx', 'x')
+#         Mxn = self.actu('Mx', 'n')
+#         Mxt = self.actu('Mx', 't')
+#         # Mxp = self.actu('Mx', 'p')
+#         MxDec = self.actu('Mx', 't+1')
         
         
-        self.Nx = Nx
-        self.Nxn = Nxn
-        self.Nxt = Nxt
-        self.NxDec = NxDec
-        # self.Nxp = Nxp
         
-        self.Dx = Dx
-        self.Dxn = Dxn
-        self.Dxt = Dxt
-        self.DxDec = DxDec
-        # self.Dxp = Dxp
         
-        self.Mx = Mx
-        self.Mxn = Mxn
-        self.Mxt = Mxt
-        self.MxDec = MxDec
-        # self.Mxp = Mxp
+#         self.Nx = Nx
+#         self.Nxn = Nxn
+#         self.Nxt = Nxt
+#         self.NxDec = NxDec
+#         # self.Nxp = Nxp
+        
+#         self.Dx = Dx
+#         self.Dxn = Dxn
+#         self.Dxt = Dxt
+#         self.DxDec = DxDec
+#         # self.Dxp = Dxp
+        
+#         self.Mx = Mx
+#         self.Mxn = Mxn
+#         self.Mxt = Mxt
+#         self.MxDec = MxDec
+#         # self.Mxp = Mxp
           
   
     
   
-
-# #Cette Loop renvoie l'ensemble des variables récusrives pour les produits mixtes
-#     def loopEndowment(self):
-
-# #Variables des actifs            
-#         nbrPolIf=self.one()
-#         nbrPolIfSM=self.zero()
-#         nbrDeath=self.zero()
-#         nbrSurrender=self.zero()
-#         nbrMaturities=self.zero()
-#         nbrNewRed = self.zero()
-#         matRate=self.zero()
-             
-        
-# #Variables biométriques et génériques
-#         lapseTiming=0.5
-#         polTermM=self.polTermM()       
-#         lapseD=lapseTiming * self.lapse()
-#         lapse = self.lapse()        
-#         reduction = self.reduction()       
-#         qxy=self.qxyExpMens()
-#         qxyD =lapseTiming * self.qxyExpMens()
-
-        
-#         #Définition du vecteur des maturités (bool)        
-#         matRate[polTermM+1 ==self.durationIf()]=1 
-            
-#         for i in range(1,self.shape[1]):
-
-# #Définition des variables des actifs            
-#             nbrMaturities[:,i,:]=nbrPolIf[:,i-1,:]*matRate[:,i,:]
-            
-#             nbrPolIfSM[:,i,:]=nbrPolIf[:,i-1,:] - nbrMaturities[:,i,:]
-            
-#             nbrDeath[:,i,:]=nbrPolIfSM[:,i,:]*qxy[:,i,:]*(1-(lapseD[:,i,:]))
-            
-#             nbrSurrender[:,i,:]=nbrPolIfSM[:,i,:]*lapse[:,i,:]*(1-(qxyD[:,i,:]))
-            
-#             # nbrNewRed[:,i,:] = (nbrPolIf[:,i-1,:] - nbrDeath[:,i,:] - nbrSurrender[:,i,:] - nbrMaturities[:,i,:]) * reduction[:,i,:]
-            
-#             # nbrPolIf[:,i,:]=nbrPolIf[:,i-1,:]-nbrDeath[:,i,:]-nbrSurrender[:,i,:]- nbrNewRed[:,i,:] - nbrMaturities[:,i,:]
-
-          
-#             nbrPolIf[:,i,:]=nbrPolIf[:,i-1,:]-nbrDeath[:,i,:]-nbrSurrender[:,i,:] - nbrMaturities[:,i,:]
-
-
-# #Sauvegarde des variables des actifs
-       
-#         #Nombre de polices actives                                 
-#         self.nbrPolIf=nbrPolIf
-#         #Nombre de police actives en déduisant les échéances du mois
-#         self.nbrPolIfSM=nbrPolIfSM
-#         #Nombre de décès
-#         self.nbrDeath=nbrDeath
-#         #Nombre d'annulation de contrat
-#         self.nbrSurrender=nbrSurrender
-#         #Nombre de nouvelle réduction
-#         self.nbrNewRed = nbrNewRed
-#         # Nombre de nouvelle maturités
-#         self.nbrNewMat = nbrMaturities
-             
-        
-#         return
 
 
 #Retourne la probabilité de décès d'expérience (FAUSSE DANS PROPHET POUR LES MODALITES 6 ET 7 CAR LA MORTALITE D'EXPERIENCE EST A 100%)
@@ -160,7 +98,6 @@ class MI(Portfolio):
         mod = self.p['PMBMOD'].to_numpy()[:,np.newaxis,np.newaxis]  * self.one()
         mask = ((mod == 7) | (mod == 6))
         mortExp[mask] = 1
-        
         
         myQx=self.qx(ass=assExp)*mortExp
         
@@ -599,19 +536,19 @@ class MI(Portfolio):
     def AExn(self):
         
 
-        Mx = self.Mxt
-        Mxn = self.Mxn
-        Dx = self.Dxt
-        Dxn = self.Dxn
+        Mx = self.actu('Mx','t')
+        Mxn = self.actu('Mx','n')
+        Dx = self.actu('Dx','t')
+        Dxn = self.actu('Dx','n')
         
         AExn = (Mx - Mxn + Dxn) / Dx
         AExn = np.roll(AExn, -1, axis = 1)
 
         
-        MxDec = self.MxDec
-        MxnDec = self.Mxn
-        DxDec = self.DxDec
-        DxnDec = self.Dxn
+        MxDec = self.actu('Mx','t+1')
+        MxnDec = Mxn
+        DxDec = self.actu('Dx','t+1')
+        DxnDec = Dxn
         
         AExnDec = (MxDec - MxnDec + DxnDec) / DxDec
         AExnDec = np.roll(AExnDec, -1, axis = 1)
@@ -625,15 +562,15 @@ class MI(Portfolio):
 # äxn annuity endowment insurance
     def axn(self):
         
-        Nxn = self.Nxn
-        Nx = self.Nxt
-        Dx = self.Dxt
+        Nxn = self.actu('Nx','n')
+        Nx = self.actu('Nx','t')
+        Dx = self.actu('Dx','t')
         
         axn = (Nx - Nxn) / Dx
         axn = np.roll(axn, -1, axis = 1)
         
-        NxDec = self.NxDec
-        DxDec = self.DxDec
+        NxDec = self.actu('Nx','t+1')
+        DxDec = self.actu('Dx','t+1')
         
         axnDec = (NxDec - Nxn) / DxDec
         axnDec = np.roll(axnDec, -1, axis = 1)
@@ -644,25 +581,17 @@ class MI(Portfolio):
     
     
     
-    
-
     def AExnInit(self):
-        
 
-        Mx = self.Mx
-        Mxn = self.Mxn
-        Dx = self.Dx
-        Dxn = self.Dxn
+        Mx = self.actu('Mx','x')
+        Mxn =  self.actu('Mx','n')
+        Dx = self.actu('Dx','x')
+        Dxn =  self.actu('Dx','n')
         
         AExn = (Mx - Mxn + Dxn) / Dx
 
         return AExn
     
-
-
-
-   
-
 
 # Créer un vecteur permettant d'interpolé les vecteur en fonction de la date début de la police
     def interp(self, var, varDec):
@@ -787,8 +716,8 @@ class MI(Portfolio):
 # Calcul des primes d'inventaire annuelle (PA'')
     def prInventaire(self):
         
-        loading = self.p['aquisitionLoading'][np.newaxis,:,np.newaxis]*self.one()   
-        fraisFract = self.p['fraisFract'][np.newaxis,:,np.newaxis]*self.one()   
+        loading = self.p['aquisitionLoading'][:,np.newaxis, np.newaxis]*self.one()   
+        fraisFract = self.p['fraisFract'][:,np.newaxis, np.newaxis]*self.one()   
         
         premInc=((self.p['POLPRVIEHT'] - self.p['POLPRCPLA'])[:,np.newaxis,np.newaxis])
         premInc = premInc * self.indexation()
