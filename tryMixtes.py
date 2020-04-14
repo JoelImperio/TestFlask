@@ -902,7 +902,7 @@ pol.ids([301])
 # age = pol.age()
 
 
-check = pol.adjustedReserve()
+# check = pol.adjustedReserve()
 # pureprem = pol.purePremium()
 
 # a = pol.p
@@ -934,7 +934,7 @@ p=pol.totalPremium()
 
 print("Class MI--- %s sec" %'%.2f'%  (time.time() - start_time))
 
-monCas=check
+monCas=b
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
