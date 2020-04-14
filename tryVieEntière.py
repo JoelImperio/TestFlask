@@ -148,6 +148,32 @@ class VE(Portfolio):
         sinon = 0
         policeActive = np.select(conditions,result,sinon)
         return policeActive
+    
+    def payPrimes(self):
+        durationIf = self.durationIf()
+        payPrimes = self.one()
+        
+        moisPaiement = (self.p['POLDURP'].to_numpy() * 12 )[:,np.newaxis,np.newaxis] * self.one()
+        
+        conditions = [(durationIf <= moisPaiement)]
+        result =[(1)]
+        sinon = 0
+        payPrimes = np.select(conditions,result,sinon)
+        
+        
+        
+        # durationIf = pol.durationIf()
+        # payPrimes = pol.one()
+        
+        # moisPaiement = (pol.p['POLDURP'].to_numpy() * 12 )[:,np.newaxis,np.newaxis] * pol.one()
+        
+        # conditions = [(durationIf <= moisPaiement)]
+        # result =[(1)]
+        # sinon = 0
+        # payPrimes = np.select(conditions,result,sinon)
+        
+        
+        return payPrimes
         
     
 # =============================================================================
@@ -225,16 +251,29 @@ class VE(Portfolio):
     
 # äxn annuity endowment insurance
     def axp(self):
-        Nxn = self.actu('Nx', 'p')
+        Nxp = self.actu('Nx', 'p')
         Nx = self.actu('Nx', 't')
         Dx = self.actu('Dx', 't')
         axn = (Nx - Nxn) / Dx
         axn = np.roll(axn, -1, axis = 1)
         NxDec = self.actu('Nx', 't+1')
         DxDec = self.actu('Dx', 't+1')
-        axnDec = (NxDec - Nxn) / DxDec
+        axnDec = (NxDec - Nxp) / DxDec
         axnDec = np.roll(axnDec, -1, axis = 1)
         resultat = self.interp(axn, axnDec)
+        return resultat
+    
+    def aduePolVal(self):
+        Nxp = self.actu('Nx', 'p')
+        Nx = self.actu('Nx', 't')
+
+        aduePolVal = Nx / (Nx - Nxp)
+        aduePolVal = np.roll(axn, -1, axis = 1)
+        NxDec = self.actu('Nx', 't+1')
+
+        aduePolValDec = NxDec / (NxDec - Nxp)
+        aduePolValDec = np.roll(axnDec, -1, axis = 1)
+        resultat = self.interp(aduePolVal, aduePolValDec)
         return resultat
     
     def axInit(self):
@@ -357,7 +396,7 @@ class VE(Portfolio):
     # PR_PURE_PP - Prime pure calcul éronné pour la mod11
     def purePremium(self):
         # purePremium = self.insuredSum() / self.axInit() * self.policeActive()
-        purePremium = self.insuredSum() / self.axInitPrimes() * self.policeActive()
+        purePremium = self.insuredSum() / self.axInitPrimes() * self.policeActive() * self.payPrimes()
         
         # calcul erronnée pour la modalité 11, à enlever une fois PGG répliquée:
         insuredSum = self.insuredSum()
@@ -378,14 +417,10 @@ class VE(Portfolio):
     
     # PR_INVENT_PP
     def prInventPP(self):
-        situation = self.p['POLSIT'][:,np.newaxis,np.newaxis]
-        conditions = [(situation != 4) & (situation != 8) & (situation != 9)]
-        # result =[(self.purePremium() + (self.fraisGestion()/100 * self.insuredSum()))]
-        result =[(self.purePremium() + ((self.cgSaPolPc()+self.cgSaPriPc())/100 * self.insuredSum()))]
-        sinon = 0
-        PrInventPp = np.select(conditions,result,sinon)
-        return PrInventPp
-      
+        prInventPp = (self.purePremium() + ((self.cgSaPolPc()+self.cgSaPriPc())/100 * self.insuredSum() * self.policeActive())
+        # PrInventPp = self.one()
+        return prInventPp            
+                      
     # VAL_NETP_FAC - durée restante mensuelle, à 0 si pas de paiement des primes
     def valNetpFac(self):
         # situation = self.p['POLSIT'][:,np.newaxis,np.newaxis]
@@ -753,12 +788,22 @@ pol.ids([2172401])
 
     
 
+# durationIf = pol.durationIf()
+# payPrimes = pol.one()
+
+# moisPaiement = (pol.p['POLDURP'].to_numpy() * 12 )[:,np.newaxis,np.newaxis] * pol.one()
+
+# conditions = [(durationIf <= moisPaiement)]
+# result =[(1)]
+# sinon = 0
+# payPrimes = np.select(conditions,result,sinon)
+
 
 
  
 x = pol.p
 x.to_excel(path+'/zFT/ptf.xlsx')
-monCas = pol.isActive()
+monCas = pol.aduePolVal()
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
