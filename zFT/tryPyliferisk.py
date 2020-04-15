@@ -12,7 +12,7 @@ from MyPyliferisk.mortalitytables import *
 # i = 0.05
 x = 61
 # n = 10
-nt=Actuarial(nt=EKF95, i=0.0025)
+nt=Actuarial(nt=EKM95, i=0.0025)
 # nt=MortalityTable(nt=EKM95000, i=0)
 
 aQx=nt.qx

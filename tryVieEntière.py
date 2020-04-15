@@ -38,7 +38,7 @@ class VE(Portfolio):
         self.lapse()
         self.reserveForExp()
         self.isActive()
-        self.commutations()
+        # self.commutations()
     
     # Fonction pour savoir si une police lapse, voir pourquoi elle est là
     def isLapse(self):
@@ -134,16 +134,13 @@ class VE(Portfolio):
         self.nbrSurrender=nbrSurrender
         
     def isActive(self):
-        
         moisRestant = self.p['residualTermM'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
         increment = np.cumsum(self.one(), axis = 1)-1
         mask = moisRestant >= increment
-        
         return mask
     
     def policeActive(self):
         situation = self.p['POLSIT'][:,np.newaxis,np.newaxis] * self.one()
-            
         conditions = [(situation != 4) & (situation != 8) & (situation != 9)]
         result =[(1)]
         sinon = 0
@@ -153,9 +150,7 @@ class VE(Portfolio):
     def payPrimes(self):
         durationIf = self.durationIf()
         payPrimes = self.one()
-        
         moisPaiement = (self.p['POLDURP'].to_numpy() * 12 )[:,np.newaxis,np.newaxis] * self.one()
-        
         conditions = [(durationIf <= moisPaiement)]
         result =[(1)]
         sinon = 0
@@ -195,38 +190,38 @@ class VE(Portfolio):
         return age
         
     
-    def commutations(self):
+    # def commutations(self):
         
-        Nx = self.actu('Nx', 'x')
-        Nxn = self.actu('Nx', 'n')
-        Nxt = self.actu('Nx', 't')
-        # Nxp = self.actu('Nx', 'p')
+    #     Nx = self.actu('Nx', 'x')
+    #     Nxn = self.actu('Nx', 'n')
+    #     Nxt = self.actu('Nx', 't')
+    #     # Nxp = self.actu('Nx', 'p')
         
-        Dx = self.actu('Dx', 'x')
-        Dxn = self.actu('Dx', 'n')
-        Dxt = self.actu('Dx', 't')
-        # Dxp = self.actu('Dx', 'p')
+    #     Dx = self.actu('Dx', 'x')
+    #     Dxn = self.actu('Dx', 'n')
+    #     Dxt = self.actu('Dx', 't')
+    #     # Dxp = self.actu('Dx', 'p')
         
-        Mx = self.actu('Mx', 'x')
-        Mxn = self.actu('Mx', 'n')
-        Mxt = self.actu('Mx', 't')
-        # Mxp = self.actu('Mx', 'p')
+    #     Mx = self.actu('Mx', 'x')
+    #     Mxn = self.actu('Mx', 'n')
+    #     Mxt = self.actu('Mx', 't')
+    #     # Mxp = self.actu('Mx', 'p')
         
         
-        self.Nx = Nx
-        self.Nxn = Nxn
-        self.Nxt = Nxt
-        # self.Nxp = Nxp
+    #     self.Nx = Nx
+    #     self.Nxn = Nxn
+    #     self.Nxt = Nxt
+    #     # self.Nxp = Nxp
         
-        self.Dx = Dx
-        self.Dxn = Dxn
-        self.Dxt = Dxt
-        # self.Dxp = Dxp
+    #     self.Dx = Dx
+    #     self.Dxn = Dxn
+    #     self.Dxt = Dxt
+    #     # self.Dxp = Dxp
         
-        self.Mx = Mx
-        self.Mxn = Mxn
-        self.Mxt = Mxt
-        # self.Mxp = Mxp
+    #     self.Mx = Mx
+    #     self.Mxn = Mxn
+    #     self.Mxt = Mxt
+    #     # self.Mxp = Mxp
         
         
     
@@ -246,39 +241,27 @@ class VE(Portfolio):
             myAge = self.ageFinal().astype(int) 
         elif x == 'p':
             myAge = self.agePrimes().astype(int)
-
-            
-        txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis]/100
+       
+        txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis] / 100
         txTechLoop = np.unique(self.p['PMBTXINT'].to_numpy())
         tbMort = tbMort[:,np.newaxis,np.newaxis]
         myVarx = self.zero()
+        one = self.one()
+        zero = self.zero()
         
         for tb in table:
-             
-            mask_tableMort = ((tbMort == tb)*self.one()).astype(bool)
-        
+            mask_tableMort = ((tbMort == tb)*one).astype(bool)
             for i in np.nditer(txTechLoop):
-                
                 txInt = i / 100
-                mask_txTech = ((txTech == txInt)*self.one()).astype(bool)
+                mask_txTech = ((txTech == txInt)*one).astype(bool)
                 mt = Actuarial(nt=eval(tb), i=txInt)
-                
                 aVARx = pd.DataFrame(getattr(mt, var)).to_numpy()
-                    
                 # myAge = np.where(myAge>=mt.w, mt.w-1, myAge)
-                myAge = np.where(myAge>=mt.w, mt.w, myAge)
-                myVarx[mask_txTech & mask_tableMort] = np.take(aVARx, myAge[mask_txTech & mask_tableMort])
-                
-        return myVarx 
+                myAge2 = np.where(myAge>=mt.w, mt.w, myAge)
+                myVarx[mask_txTech & mask_tableMort] = np.take(aVARx, myAge2[mask_txTech & mask_tableMort])
+                myVarx[mask_txTech & mask_tableMort & (myAge>mt.w+1)] = zero[mask_txTech & mask_tableMort & (myAge>mt.w+1)]
 
-
-    def test(self):
-        # Nx = self.actu('Nx', 't')
-        
-        Nx = self.Nx
-        
-        return Nx
-        
+        return myVarx      
    
     def ax(self):
         Nx = self.actu('Nx', 't')
@@ -308,21 +291,24 @@ class VE(Portfolio):
     
     def aduePolVal(self):
         Nxp = self.actu('Nx', 'p')
-        Nx = self.actu('Nx', 't')
+        Nx = self.actu('Nx', 'x')
 
         aduePolVal = Nx / (Nx - Nxp)
-        aduePolVal = np.roll(aduePolVal, -1, axis = 1)
-        NxDec = self.actu('Nx', 't+1')
+        # aduePolVal = np.roll(aduePolVal, -1, axis = 1)
+        # NxDec = self.actu('Nx', 't+1')
 
-        aduePolValDec = NxDec / (NxDec - Nxp)
-        aduePolValDec = np.roll(aduePolValDec, -1, axis = 1)
-        resultat = self.interp(aduePolVal, aduePolValDec)
-        return resultat
+        # aduePolValDec = NxDec / (NxDec - Nxp)
+        # aduePolValDec = np.roll(aduePolValDec, -1, axis = 1)
+        # resultat = self.interp(aduePolVal, aduePolValDec)
+        return aduePolVal
     
     def axInit(self):
         Nx = self.actu('Nx', 'x')
         Mx = self.actu('Mx', 'x')
         ax = Nx / Mx
+        
+        
+        
         return ax
     
     def axInitPrimes(self):
@@ -335,13 +321,13 @@ class VE(Portfolio):
     def Ax(self):
         Dx = self.actu('Dx', 't')
         Mx = self.actu('Mx', 't')
-        ax = Mx / Dx
-        ax = np.roll(ax, -1, axis = 1)
+        Ax = Mx / Dx
+        Ax = np.roll(Ax, -1, axis = 1)
         DxDec = self.actu('Dx', 't+1')
         MxDec = self.actu('Mx', 't+1')   
-        axDec = MxDec / DxDec
-        axDec = np.roll(axDec, -1, axis = 1)
-        abar = self.interp(ax, axDec)
+        AxDec = MxDec / DxDec
+        AxDec = np.roll(AxDec, -1, axis = 1)
+        abar = self.interp(Ax, AxDec) * self.isActive()
         return abar
         
     def AxInit(self):
@@ -359,12 +345,9 @@ class VE(Portfolio):
 
 # Créer un vecteur permettant d'interpolé les vecteur en fonction de la date début de la police
     def interp(self, var, varDec):
-        
         dur = self.durationIf()
         interp = np.int16(dur/12) + 1-(dur/12)
-        
         resultat = (var * interp) + ((1-interp) * varDec)
-        
         return resultat * self.isActive()
         # return resultat 
 
@@ -413,10 +396,11 @@ class VE(Portfolio):
         riderIncPP2 = self.zero()
         primeTotaleMensuelle = self.primeTotaleMensuelle()
         isPremPay = self.isPremPay()
+        payPrimes = self.payPrimes()
         
         # Calcul du risque en cours
-        riderIncPP = primecompl * self.isPremPay() * agelimite
-        riderIncPP2 = primecompl * agelimite
+        riderIncPP = primecompl * self.isPremPay() * agelimite * payPrimes
+        riderIncPP2 = primecompl * agelimite * payPrimes
         
         
         riderIncPP[(self.mask([11]))] = primeTotaleMensuelle[(self.mask([11]))] * isPremPay[(self.mask([11]))] * agelimite[(self.mask([11]))] 
@@ -460,7 +444,17 @@ class VE(Portfolio):
     
     # PR_INVENT_PP
     def prInventPP(self):
-        prInventPp = self.purePremium() + ((self.cgSaPolPc()+self.cgSaPriPc())/100 * self.insuredSum() * self.policeActive())
+        purePremium = self.purePremium()
+        cgSaPolPc = self.cgSaPolPc()
+        cgSaPriPc = self.cgSaPriPc()
+        insuredSum = self.insuredSum()
+        policeActive = self.policeActive()
+        aduePolVal = self.aduePolVal()
+        
+        prInventPp = self.zero()
+        
+        prInventPp[(self.mask([11]))] = purePremium[(self.mask([11]))] + (cgSaPolPc[(self.mask([11]))]+cgSaPriPc[(self.mask([11]))] / 100 * insuredSum[(self.mask([11]))]) * policeActive[(self.mask([11]))]
+        prInventPp[(self.mask([1]))] = purePremium[(self.mask([1]))] + (cgSaPolPc[(self.mask([1]))] * aduePolVal[(self.mask([1]))] + cgSaPriPc[(self.mask([1]))]) / 100 * insuredSum[(self.mask([1]))] * policeActive[(self.mask([1]))]
         # PrInventPp = self.one()
         return prInventPp            
                       
@@ -495,19 +489,9 @@ class VE(Portfolio):
     def valPolFac(self):
         
         # valPolFac = self.ax()
-        
-        dureePayPrimes = self.p['POLDURP'][:,np.newaxis,np.newaxis] * self.one()
-        maskDureeEq99 = dureePayPrimes == 99 
-        masDureeNotEq99 = dureePayPrimes != 99
-        
-        ax = self.ax()
-        axp = self.axp()
- 
-        valPolFac = self.zero()
-        # valNetpFac = self.ax() * self.policeActive()
-        valPolFac[maskDureeEq99] = ax[maskDureeEq99] 
-        valPolFac[masDureeNotEq99] = axp[masDureeNotEq99]
-        
+
+        valPolFac = self.ax()
+
         # calcul erronnée pour la modalité 11, à enlever une fois PGG répliquée:
         durationIf = self.durationIf()
         valPolFac[(self.mask([11]))] = (99 - (durationIf[(self.mask([11]))]/12))
@@ -540,7 +524,7 @@ class VE(Portfolio):
         conditions = [(self.p['Age1AtEntry'] < 53), (self.p['Age1AtEntry'] < 70)]
         result =[(0.25), (0.45)]
         sinon = (0.9)
-        cgSaPolPc = np.select(conditions,result,sinon)[:,np.newaxis,np.newaxis]
+        cgSaPolPc = np.select(conditions,result,sinon)[:,np.newaxis,np.newaxis] * self.one()
         return cgSaPolPc
     
     # Frais sur durée du paiement des primes
@@ -548,7 +532,7 @@ class VE(Portfolio):
         conditions = [(self.p['Age1AtEntry'] < 53), (self.p['Age1AtEntry'] < 70)]
         result =[(0.35), (0.55)]
         sinon = (1.2)
-        cgSaPriPc = np.select(conditions,result,sinon)[:,np.newaxis,np.newaxis]
+        cgSaPriPc = np.select(conditions,result,sinon)[:,np.newaxis,np.newaxis] * self.one()
         return cgSaPriPc
     
 # =============================================================================
@@ -742,7 +726,7 @@ class VE(Portfolio):
         ridercOutgo[(self.mask([1])) & mask_infeqf85] = cpl3[(self.mask([1])) & mask_infeqf85] * dcAccident[(self.mask([1])) & mask_infeqf85] * isPremPay[(self.mask([1])) & mask_infeqf85] * nbrPolIfSM[(self.mask([1])) & mask_infeqf85]
         ridercOutgo[(self.mask([1])) & mask_sup85] = zero[(self.mask([1])) & mask_sup85] 
     
-        return ridercOutgo
+        return ridercOutgo * self.payPrimes()
 
 # =============================================================================
     ### CALCUL DU BEL
@@ -810,7 +794,7 @@ pol = VE()
 
 
 # police unique
-pol.ids([2172401])
+# pol.ids([2085901])
 
 
 # échantillon force F1VE01
@@ -823,30 +807,15 @@ pol.ids([2172401])
 # pol.ids([2168202, 2172401, 2178001])
 
 # échantillon force F1VE04
-# pol.ids([572405, 572503, 731902, 732001, 818202, 889603, 1132602, 1132701, 2211301])
+pol.ids([572405, 572503, 731902, 732001, 818202, 889603, 1132602, 1132701, 2211301])
 
 # selection de la modalité
 # pol.mod([1])
 
 
-    
-
-# durationIf = pol.durationIf()
-# payPrimes = pol.one()
-
-# moisPaiement = (pol.p['POLDURP'].to_numpy() * 12 )[:,np.newaxis,np.newaxis] * pol.one()
-
-# conditions = [(durationIf <= moisPaiement)]
-# result =[(1)]
-# sinon = 0
-# payPrimes = np.select(conditions,result,sinon)
-
-
-
- 
 x = pol.p
 x.to_excel(path+'/zFT/ptf.xlsx')
-monCas = pol.aduePolVal()
+monCas = pol.totalClaim()
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
