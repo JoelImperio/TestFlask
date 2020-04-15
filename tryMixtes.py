@@ -58,7 +58,7 @@ class MI(Portfolio):
         super().update(subPortfolio)
         # self.commutations()
         self.loopSaving()
-        self.reserve()
+        # self.reserve()
         
   
         
@@ -198,28 +198,73 @@ class MI(Portfolio):
         qxy = self.qxExpMens() 
         qx = self.qxExp()
         
-    # Modification les mixtes 2 tetes sont en fait calculée en fonction de l'assuré 1 (Ce qui est faux)
+    # Modification les mixtes 2 tetes sont en fait calculée en fonction de l'assuré 1 (Ce qui est faux) (A MODIFIER)
         mask = (((self.p['PMBMOD']==2) & (self.p['POLNBTETE']==2))).astype(bool)
    
 
         qxy[mask] = qx[mask] + qx[mask] - qx[mask]*qx[mask]
         qxy[mask] = 1-(1-qxy[mask])**(1/12)
-        
-        
-        
         qxyD = lapseTiming * qxy
         txInteret = self.txInt()
-        # prEncInv = self.premiumInvested()
 
         
         # Variable actuarielle
         AExn = self.AExn()
 
-
-
-
         #Définition du vecteur des maturités (bool)        
         matRate[polTermM+1 ==self.durationIf()]=1 
+        
+        
+        
+# Déclaration des variables pour le calcul des PM
+                    
+        # Variable existante
+        zill = self.zero()
+        precPP = self.precPP()
+        valSaPP = self.valSaPP()
+        valNetPP = self.valNetPrem()
+        prInventPP = self.prInventaire()
+        alpha = self.p['tauxZill'][:,np.newaxis, np.newaxis]*self.one()  
+        axn = self.axn()
+        valSumAss = self.sumAss() * self.AExn()
+        provGestPP = self.provGestPP()
+        pmFirstYear = self.pmFirstYear()    
+        allocMonths = self.allocMonths()
+        txPartPB = self.txPartPB()
+        
+        
+        # Nouvelles variables
+        valAccrbPP = self.zero()
+        pbIncorPP = self.zero()
+        pbAcquPP = self.zero()
+        pbAcquPP[:,0,:] = self.p['PMBPBEN'].to_numpy()[:,np.newaxis]
+        pbCalcPP = self.zero()
+        isActive = self.isActive()
+        mathResPP = self.zero()  
+        provTechPP = self.zero()
+        pmZillCum = self.zero()
+        pmZillPP = self.zero()
+        pmPourPB = self.zero()
+        tierPM = self.zero()
+        zillTot = self.zero()
+        
+        
+        
+        # Calcul des PM au temps 0 
+        tierPM[:,0,:] = (1/3) * np.maximum(valSaPP[:,0,:] + valAccrbPP[:,0,:] + provGestPP[:,0,:] + precPP[:,0,:] - valNetPP[:,0,:], 0)
+            
+        zillTot[:,0,:] = np.minimum(alpha[:,0,:] * prInventPP[:,0,:] * axn[:,0,:], np.maximum(valSumAss[:,0,:] - valNetPP[:,0,:] + provGestPP[:,0,:], 0))
+            
+            
+        zill[:,0,:] = np.where(tierPM[:,0,:] <= zillTot[:,0,:], tierPM[:,0,:], zillTot[:,0,:])
+        
+        mathResPP[:,0,:] = np.maximum(valSaPP[:,0,:] + valAccrbPP[:,0,:] + provGestPP[:,0,:] - valNetPP[:,0,:] + precPP[:,0,:] - zill[:,0,:], 0 )
+
+        provTechPP[:,0,:] = mathResPP[:,0,:] - provGestPP[:,0,:] - precPP[:,0,:] + zill[:,0,:]
+        
+        pmZillPP[:,0,:] = provTechPP[:,0,:] - zill[:,0,:]
+        
+        
             
         for i in range(1,self.shape[1]):
 
@@ -246,6 +291,41 @@ class MI(Portfolio):
             
             nbrPupsIf[:,i,:]=nbrPupsIf[:,i-1,:]-nbrPupDeath[:,i,:]-nbrPupSurrender[:,i,:] - nbrPupMaturities[:,i,:] + nbrNewRed[:,i,:]
 
+
+
+
+# Variable permettant le calcul des reserves
+
+            pbIncorPP[:,i,:] = np.nan_to_num(pbCalcPP[:,i-1,:] *  isActive[:,i-1,:])
+            
+            pbAcquPP[:,i,:] = (pbAcquPP[:,i-1,:] + pbIncorPP[:,i,:])  * isActive[:,i,:]             
+
+            valAccrbPP[:,i,:] = pbAcquPP[:,i,:] * AExn[:,i,:] 
+            
+            tierPM[:,i,:] = (1/3) * (np.maximum(valSaPP[:,i,:] + valAccrbPP[:,i,:] + provGestPP[:,i,:] + precPP[:,i,:] - valNetPP[:,i,:], 0))
+            
+            zillTot[:,i,:] = np.minimum(alpha[:,i,:] * prInventPP[:,i,:] * axn[:,i,:], np.maximum(valSumAss[:,i,:] - valNetPP[:,i,:] + provGestPP[:,i,:], 0))
+            
+            
+            zill[:,i,:] = np.where(tierPM[:,i,:] <= zillTot[:,i,:], tierPM[:,i,:], zillTot[:,i,:])
+            
+          
+            
+            mathResPP[:,i,:] = np.maximum(valSaPP[:,i,:] + valAccrbPP[:,i,:] + provGestPP[:,i,:] - valNetPP[:,i,:] + precPP[:,i,:] - zill[:,i,:], 0 )
+
+            provTechPP[:,i,:] = mathResPP[:,i,:] - provGestPP[:,i,:] - precPP[:,i,:] + zill[:,i,:]
+            
+            pmZillPP[:,i,:] = provTechPP[:,i,:] - zill[:,i,:]
+            
+            pmZillCum[:,i,:] = pmZillPP[:,i,:] + (1-allocMonths[:,i-1,:]) * pmZillCum[:,i-1,:]
+            
+            
+            pmPourPB[:,i,:] = (pmZillCum[:,i,:] / 12) * allocMonths[:,i,:]
+            
+            
+            pbCalpTEMP = pmPourPB[:,i,:] * txPartPB[:,i,:] * (pmFirstYear[:,i,:] / 12)
+            
+            pbCalcPP[:,i,:] = np.divide( pbCalpTEMP, AExn[:,i,:], out=np.zeros_like(pbCalpTEMP), where=AExn[:,i,:]!=0 ) * allocMonths[:,i,:]
 
 
 
@@ -277,6 +357,14 @@ class MI(Portfolio):
         self.nbrPupSurrender=nbrPupSurrender
         # Nombre de police réduite arrivant à maturité
         self.nbrPupMat = nbrPupMaturities
+
+
+
+# Sauvegarde des variables concernant les PM
+ # Montant de PB à affecter par police
+        self.pbCalcPP = pbCalcPP
+  # PB acquise des polices actives
+        self.pbAcquPP = pbAcquPP
 
 
         return
@@ -661,237 +749,237 @@ class MI(Portfolio):
         return pmIF
 
 
-# loop pour calculer les reserves
-    def reserve(self):
+# # loop pour calculer les reserves
+#     def reserve(self):
         
         
-        # Variable existante
-        zill = self.zero()
-        precPP = self.precPP()
-        valSaPP = self.valSaPP()
-        valNetPP = self.valNetPrem()
-        AExn = self.AExn()
-        prInventPP = self.prInventaire()
-        alpha = self.p['tauxZill'][:,np.newaxis, np.newaxis]*self.one()  
-        axn = self.axn()
-        valSumAss = self.sumAss() * self.AExn()
-        provGestPP = self.provGestPP()
+#         # Variable existante
+#         zill = self.zero()
+#         precPP = self.precPP()
+#         valSaPP = self.valSaPP()
+#         valNetPP = self.valNetPrem()
+#         AExn = self.AExn()
+#         prInventPP = self.prInventaire()
+#         alpha = self.p['tauxZill'][:,np.newaxis, np.newaxis]*self.one()  
+#         axn = self.axn()
+#         valSumAss = self.sumAss() * self.AExn()
+#         provGestPP = self.provGestPP()
         
         
-        # Nouvelles variables
-        valAccrbPP = self.zero()
-        pbIncorPP = self.zero()
-        pbAcquPP = self.zero()
-        pbAcquPP[:,0,:] = self.p['PMBPBEN'].to_numpy()[:,np.newaxis]
-        pbCalcPP = self.zero()
-        isActive = self.isActive()
-        mathResPP = self.zero()
+#         # Nouvelles variables
+#         valAccrbPP = self.zero()
+#         pbIncorPP = self.zero()
+#         pbAcquPP = self.zero()
+#         pbAcquPP[:,0,:] = self.p['PMBPBEN'].to_numpy()[:,np.newaxis]
+#         pbCalcPP = self.zero()
+#         isActive = self.isActive()
+#         mathResPP = self.zero()
        
-        provTechPP = self.zero()
-        pmZillCum = self.zero()
-        pmZillPP = self.zero()
-        pmPourPB = self.zero()
-        tierPM = self.zero()
-        zillTot = self.zero()
+#         provTechPP = self.zero()
+#         pmZillCum = self.zero()
+#         pmZillPP = self.zero()
+#         pmPourPB = self.zero()
+#         tierPM = self.zero()
+#         zillTot = self.zero()
         
         
-        #Variables de l'épargne actifs et réduits
-        epargnAcquPP = self.zero()        
-        eppAcquAPPUP = self.zero()
-        epAcquAVPUP = self.zero()
+#         #Variables de l'épargne actifs et réduits
+#         epargnAcquPP = self.zero()        
+#         eppAcquAPPUP = self.zero()
+#         epAcquAVPUP = self.zero()
 
-        epargnAcquPP[:,0,:] = self.p['PMBPRVMAT'].to_numpy()[:,np.newaxis]        
+#         epargnAcquPP[:,0,:] = self.p['PMBPRVMAT'].to_numpy()[:,np.newaxis]        
 
-#Variables de PB actifs et réduites
+# #Variables de PB actifs et réduites
 
-        pbAcquAVPUP = self.zero()
-        pbAcquAPPUP = self.zero()
-        pbIncorPUP = self.zero()      
-        epgTxPbPUP = self.zero()
-        pbCalcPUP = self.zero()
-        pbPupDTHS = self.zero()
-        pbSortDTHS = self.zero()
+#         pbAcquAVPUP = self.zero()
+#         pbAcquAPPUP = self.zero()
+#         pbIncorPUP = self.zero()      
+#         epgTxPbPUP = self.zero()
+#         pbCalcPUP = self.zero()
+#         pbPupDTHS = self.zero()
+#         pbSortDTHS = self.zero()
         
-        epgTxPbPUP[:,0,:] = 0
+#         epgTxPbPUP[:,0,:] = 0
         
-        pbSortMatsPP= self.zero()
-        pbSortMatsPUP = self.zero()
-        allocMonths = self.allocMonths()
+#         pbSortMatsPP= self.zero()
+#         pbSortMatsPUP = self.zero()
+#         allocMonths = self.allocMonths()
         
-        # Variable existante
-        pmFirstYear = self.pmFirstYear()
+#         # Variable existante
+#         pmFirstYear = self.pmFirstYear()
     
    
-        # Taux annualisé
-        txIntPC = self.txInt()**(12) - 1
-        # txPbPC = self.txPbPC()/100
+#         # Taux annualisé
+#         txIntPC = self.txInt()**(12) - 1
+#         # txPbPC = self.txPbPC()/100
         
-        # taux annualisé
-        txIntPC = self.txInt()**(12) - 1
-        txPartPB = self.txPartPB()
+#         # taux annualisé
+#         txIntPC = self.txInt()**(12) - 1
+#         txPartPB = self.txPartPB()
         
-        # txTot = 1 + (txPbPC + txIntPC)
+#         # txTot = 1 + (txPbPC + txIntPC)
         
 
         
         
-        pbCalcPPdths = self.zero()
-        pbCalcPUPdths = self.zero()
+#         pbCalcPPdths = self.zero()
+#         pbCalcPUPdths = self.zero()
         
      
-        # nouvelles variables
-        pmPourPB = self.zero()
+#         # nouvelles variables
+#         pmPourPB = self.zero()
         
         
         
-        # Calcul au temps 0
-        tierPM[:,0,:] = (1/3) * np.maximum(valSaPP[:,0,:] + valAccrbPP[:,0,:] + provGestPP[:,0,:] + precPP[:,0,:] - valNetPP[:,0,:], 0)
+#         # Calcul au temps 0
+#         tierPM[:,0,:] = (1/3) * np.maximum(valSaPP[:,0,:] + valAccrbPP[:,0,:] + provGestPP[:,0,:] + precPP[:,0,:] - valNetPP[:,0,:], 0)
             
-        zillTot[:,0,:] = np.minimum(alpha[:,0,:] * prInventPP[:,0,:] * axn[:,0,:], np.maximum(valSumAss[:,0,:] - valNetPP[:,0,:] + provGestPP[:,0,:], 0))
+#         zillTot[:,0,:] = np.minimum(alpha[:,0,:] * prInventPP[:,0,:] * axn[:,0,:], np.maximum(valSumAss[:,0,:] - valNetPP[:,0,:] + provGestPP[:,0,:], 0))
             
             
-        zill[:,0,:] = np.where(tierPM[:,0,:] <= zillTot[:,0,:], tierPM[:,0,:], zillTot[:,0,:])
+#         zill[:,0,:] = np.where(tierPM[:,0,:] <= zillTot[:,0,:], tierPM[:,0,:], zillTot[:,0,:])
         
-        mathResPP[:,0,:] = np.maximum(valSaPP[:,0,:] + valAccrbPP[:,0,:] + provGestPP[:,0,:] - valNetPP[:,0,:] + precPP[:,0,:] - zill[:,0,:], 0 )
+#         mathResPP[:,0,:] = np.maximum(valSaPP[:,0,:] + valAccrbPP[:,0,:] + provGestPP[:,0,:] - valNetPP[:,0,:] + precPP[:,0,:] - zill[:,0,:], 0 )
 
-        provTechPP[:,0,:] = mathResPP[:,0,:] - provGestPP[:,0,:] - precPP[:,0,:] + zill[:,0,:]
+#         provTechPP[:,0,:] = mathResPP[:,0,:] - provGestPP[:,0,:] - precPP[:,0,:] + zill[:,0,:]
         
-        pmZillPP[:,0,:] = provTechPP[:,0,:] - zill[:,0,:]
-        
-        
-        for i in range(1,self.shape[1]):
+#         pmZillPP[:,0,:] = provTechPP[:,0,:] - zill[:,0,:]
         
         
+#         for i in range(1,self.shape[1]):
         
-        # #Définition des variables d'épargne pour actives et réduites
-#             epargnAcquPP[:,i,:]= (epargnAcquPP[:,i-1,:] + prEncInv[:,i,:]) * txInteret[:,i,:]
+        
+        
+#         # #Définition des variables d'épargne pour actives et réduites
+# #             epargnAcquPP[:,i,:]= (epargnAcquPP[:,i-1,:] + prEncInv[:,i,:]) * txInteret[:,i,:]
 
-#             epAcquAVPUP[:,i,:] = eppAcquAPPUP[:,i-1,:] * txInteret[:,i,:]
+# #             epAcquAVPUP[:,i,:] = eppAcquAPPUP[:,i-1,:] * txInteret[:,i,:]
             
-#             epTemp = epAcquAVPUP[:,i,:] * (nbrPupsIf[:,i,:] - nbrNewRed[:,i,:]) + epargnAcquPP[:,i,:] * nbrNewRed[:,i,:]
+# #             epTemp = epAcquAVPUP[:,i,:] * (nbrPupsIf[:,i,:] - nbrNewRed[:,i,:]) + epargnAcquPP[:,i,:] * nbrNewRed[:,i,:]
             
-#             eppAcquAPPUP[:,i,:] = np.divide(epTemp,nbrPupsIf[:,i,:],out=np.zeros_like(epTemp), where=nbrPupsIf[:,i,:]!=0)
+# #             eppAcquAPPUP[:,i,:] = np.divide(epTemp,nbrPupsIf[:,i,:],out=np.zeros_like(epTemp), where=nbrPupsIf[:,i,:]!=0)
 
             
-# # #Définition des variables de PB pour actives et réduites  
+# # # #Définition des variables de PB pour actives et réduites  
     
             
-#             pbIncorPUP[:,i,:] = np.nan_to_num(pbCalcPUP[:,i-1,:]  * isActive[:,i-1,:]) 
+# #             pbIncorPUP[:,i,:] = np.nan_to_num(pbCalcPUP[:,i-1,:]  * isActive[:,i-1,:]) 
             
-#             pbAcquPP[:,i,:] = (pbAcquPP[:,i-1,:] + pbIncorPP[:,i,:]) * txInteret[:,i,:] * isActive[:,i,:] 
+# #             pbAcquPP[:,i,:] = (pbAcquPP[:,i-1,:] + pbIncorPP[:,i,:]) * txInteret[:,i,:] * isActive[:,i,:] 
 
 
-            pbIncorPP[:,i,:] = np.nan_to_num(pbCalcPP[:,i-1,:] *  isActive[:,i-1,:])
+#             pbIncorPP[:,i,:] = np.nan_to_num(pbCalcPP[:,i-1,:] *  isActive[:,i-1,:])
             
-            pbAcquPP[:,i,:] = (pbAcquPP[:,i-1,:] + pbIncorPP[:,i,:])  * isActive[:,i,:]             
+#             pbAcquPP[:,i,:] = (pbAcquPP[:,i-1,:] + pbIncorPP[:,i,:])  * isActive[:,i,:]             
 
-            valAccrbPP[:,i,:] = pbAcquPP[:,i,:] * AExn[:,i,:] 
+#             valAccrbPP[:,i,:] = pbAcquPP[:,i,:] * AExn[:,i,:] 
             
-            tierPM[:,i,:] = (1/3) * (np.maximum(valSaPP[:,i,:] + valAccrbPP[:,i,:] + provGestPP[:,i,:] + precPP[:,i,:] - valNetPP[:,i,:], 0))
+#             tierPM[:,i,:] = (1/3) * (np.maximum(valSaPP[:,i,:] + valAccrbPP[:,i,:] + provGestPP[:,i,:] + precPP[:,i,:] - valNetPP[:,i,:], 0))
             
-            zillTot[:,i,:] = np.minimum(alpha[:,i,:] * prInventPP[:,i,:] * axn[:,i,:], np.maximum(valSumAss[:,i,:] - valNetPP[:,i,:] + provGestPP[:,i,:], 0))
+#             zillTot[:,i,:] = np.minimum(alpha[:,i,:] * prInventPP[:,i,:] * axn[:,i,:], np.maximum(valSumAss[:,i,:] - valNetPP[:,i,:] + provGestPP[:,i,:], 0))
             
             
-            zill[:,i,:] = np.where(tierPM[:,i,:] <= zillTot[:,i,:], tierPM[:,i,:], zillTot[:,i,:])
+#             zill[:,i,:] = np.where(tierPM[:,i,:] <= zillTot[:,i,:], tierPM[:,i,:], zillTot[:,i,:])
             
           
             
-            mathResPP[:,i,:] = np.maximum(valSaPP[:,i,:] + valAccrbPP[:,i,:] + provGestPP[:,i,:] - valNetPP[:,i,:] + precPP[:,i,:] - zill[:,i,:], 0 )
+#             mathResPP[:,i,:] = np.maximum(valSaPP[:,i,:] + valAccrbPP[:,i,:] + provGestPP[:,i,:] - valNetPP[:,i,:] + precPP[:,i,:] - zill[:,i,:], 0 )
 
-            provTechPP[:,i,:] = mathResPP[:,i,:] - provGestPP[:,i,:] - precPP[:,i,:] + zill[:,i,:]
+#             provTechPP[:,i,:] = mathResPP[:,i,:] - provGestPP[:,i,:] - precPP[:,i,:] + zill[:,i,:]
             
-            pmZillPP[:,i,:] = provTechPP[:,i,:] - zill[:,i,:]
+#             pmZillPP[:,i,:] = provTechPP[:,i,:] - zill[:,i,:]
             
-            pmZillCum[:,i,:] = pmZillPP[:,i,:] + (1-allocMonths[:,i-1,:]) * pmZillCum[:,i-1,:]
-            
-            
-            pmPourPB[:,i,:] = (pmZillCum[:,i,:] / 12) * allocMonths[:,i,:]
+#             pmZillCum[:,i,:] = pmZillPP[:,i,:] + (1-allocMonths[:,i-1,:]) * pmZillCum[:,i-1,:]
             
             
-            pbCalpTEMP = pmPourPB[:,i,:] * txPartPB[:,i,:] * (pmFirstYear[:,i,:] / 12)
+#             pmPourPB[:,i,:] = (pmZillCum[:,i,:] / 12) * allocMonths[:,i,:]
             
-            pbCalcPP[:,i,:] = np.divide( pbCalpTEMP, AExn[:,i,:], out=np.zeros_like(pbCalpTEMP), where=AExn[:,i,:]!=0 ) * allocMonths[:,i,:]
+            
+#             pbCalpTEMP = pmPourPB[:,i,:] * txPartPB[:,i,:] * (pmFirstYear[:,i,:] / 12)
+            
+#             pbCalcPP[:,i,:] = np.divide( pbCalpTEMP, AExn[:,i,:], out=np.zeros_like(pbCalpTEMP), where=AExn[:,i,:]!=0 ) * allocMonths[:,i,:]
             
             
          
 
-#             pbSortDTHS[:,i,:] = np.nan_to_num(pbCalcPPdths[:,i,:] * isActive[:,i,:]) 
+# #             pbSortDTHS[:,i,:] = np.nan_to_num(pbCalcPPdths[:,i,:] * isActive[:,i,:]) 
             
-#             pbPupDTHS[:,i,:] = np.nan_to_num(pbCalcPUPdths[:,i,:] * isActive[:,i,:]) 
+# #             pbPupDTHS[:,i,:] = np.nan_to_num(pbCalcPUPdths[:,i,:] * isActive[:,i,:]) 
          
-#             pbAcquAVPUP[:,i,:] = (pbAcquAPPUP[:,i-1,:] + pbIncorPUP[:,i,:]) * txInteret[:,i,:]
+# #             pbAcquAVPUP[:,i,:] = (pbAcquAPPUP[:,i-1,:] + pbIncorPUP[:,i,:]) * txInteret[:,i,:]
 
      
 
-#             pbTemp=pbAcquAVPUP[:,i,:] * (nbrPupsIf[:,i,:] - nbrNewRed[:,i,:]) + pbAcquPP[:,i,:] * nbrNewRed[:,i,:]            
+# #             pbTemp=pbAcquAVPUP[:,i,:] * (nbrPupsIf[:,i,:] - nbrNewRed[:,i,:]) + pbAcquPP[:,i,:] * nbrNewRed[:,i,:]            
             
-#             pbAcquAPPUP[:,i,:] = np.divide(pbTemp,nbrPupsIf[:,i,:],out=np.zeros_like(pbTemp), where=nbrPupsIf[:,i,:]!=0)       
+# #             pbAcquAPPUP[:,i,:] = np.divide(pbTemp,nbrPupsIf[:,i,:],out=np.zeros_like(pbTemp), where=nbrPupsIf[:,i,:]!=0)       
   
-#             epgTxTEMP = epgTxPbPUP[:,i-1,:] * (nbrPupsIf[:,i,:] - nbrNewRed[:,i,:]) * (txTot[:,i,:]**(1/12)) + (epgTxPB_PP[:,i,:] *  nbrNewRed[:,i,:])
+# #             epgTxTEMP = epgTxPbPUP[:,i-1,:] * (nbrPupsIf[:,i,:] - nbrNewRed[:,i,:]) * (txTot[:,i,:]**(1/12)) + (epgTxPB_PP[:,i,:] *  nbrNewRed[:,i,:])
             
-#             epgTxPbPUP[:,i,:] =  np.divide(epgTxTEMP, nbrPupsIf[:,i,:], out=np.zeros_like(epgTxTEMP), where=nbrPupsIf[:,i,:]!=0)
+# #             epgTxPbPUP[:,i,:] =  np.divide(epgTxTEMP, nbrPupsIf[:,i,:], out=np.zeros_like(epgTxTEMP), where=nbrPupsIf[:,i,:]!=0)
             
             
             
              
             
-#             pbCalcPUP[:,i,:] = np.maximum((epgTxPbPUP[:,i,:] - eppAcquAPPUP[:,i,:] - pbAcquAPPUP[:,i,:]),0) * allocMonths[:,i,:]
+# #             pbCalcPUP[:,i,:] = np.maximum((epgTxPbPUP[:,i,:] - eppAcquAPPUP[:,i,:] - pbAcquAPPUP[:,i,:]),0) * allocMonths[:,i,:]
             
-#             pbCalcPPdths[:,i,:] = np.maximum((epgTxPB_PP[:,i,:] - epargnAcquPP[:,i,:] - pbAcquPP[:,i,:]),0) * (1 - allocMonths[:,i,:])
+# #             pbCalcPPdths[:,i,:] = np.maximum((epgTxPB_PP[:,i,:] - epargnAcquPP[:,i,:] - pbAcquPP[:,i,:]),0) * (1 - allocMonths[:,i,:])
             
-#             pbCalcPUPdths[:,i,:] = np.maximum((epgTxPbPUP[:,i,:] - eppAcquAPPUP[:,i,:] - pbAcquAPPUP[:,i,:]),0) * (1 - allocMonths[:,i,:])
+# #             pbCalcPUPdths[:,i,:] = np.maximum((epgTxPbPUP[:,i,:] - eppAcquAPPUP[:,i,:] - pbAcquAPPUP[:,i,:]),0) * (1 - allocMonths[:,i,:])
             
-#             pbSortMatsPP[:,i,:] = pbCalcPP[:,i,:] * isActive[:,i,:]
+# #             pbSortMatsPP[:,i,:] = pbCalcPP[:,i,:] * isActive[:,i,:]
             
-#             pbSortMatsPUP[:,i,:] = pbCalcPUP[:,i,:] * isActive[:,i,:]
+# #             pbSortMatsPUP[:,i,:] = pbCalcPUP[:,i,:] * isActive[:,i,:]
 
 
 
 
 
-# #Sauvegarde des variables d'éparnge actifs et réduites
+# # #Sauvegarde des variables d'éparnge actifs et réduites
         
-#         #Epargne acquise par police AVANT nouvelle réduction                                 
-#         self.epAcquAVPUP=epAcquAVPUP
-#         #Epargne acquise par police APRES nouvelle réduction 
-#         self.eppAcquAPPUP=eppAcquAPPUP
-#         #Epargne aquise des polices actives
-#         self.epargnAcquPP = epargnAcquPP
+# #         #Epargne acquise par police AVANT nouvelle réduction                                 
+# #         self.epAcquAVPUP=epAcquAVPUP
+# #         #Epargne acquise par police APRES nouvelle réduction 
+# #         self.eppAcquAPPUP=eppAcquAPPUP
+# #         #Epargne aquise des polices actives
+# #         self.epargnAcquPP = epargnAcquPP
 
 
 
-# #Sauvgarde des variables de  PB pour actives et réduites
+# # #Sauvgarde des variables de  PB pour actives et réduites
         
-#         # PB acquise par police AVANT nouvelle réduction                                 
-#         self.pbAcquAVPUP=np.nan_to_num(pbAcquAVPUP)
-#         # PB acquise par police APRES nouvelle réduction 
-#         self.pbAcquAPPUP=np.nan_to_num(pbAcquAPPUP)
-#         #  PB à affecter par police réduite
-#         self.pbCalcPUP = pbCalcPUP
-#         # epargne et PB des polices réduites calculé au taux PB
-#         self.epgTxPbPUP = epgTxPbPUP
-#         # PB incorporée par contrat réduit
-#         self.pbIncorPUP = pbIncorPUP
-#         # Montant de PB à affecter par police
-        self.pbCalcPP = pbCalcPP
-#         # PB acquise des polices actives
-        self.pbAcquPP = pbAcquPP
-#         # PB incorporée par police
-#         self.pbIncorPP = pbIncorPP
-#         # PB incorporée par police réduite
-#         self.pbIncorPUP = pbIncorPUP
-#         # PB non incorporée des polices réduites
-#         self.pbPupDTHS=pbPupDTHS
-#         # PB non incorporée des polices actives
-#         self.pbSortDTHS=pbSortDTHS
-#         # Pb donnée par police en cas de maturité
-#         self.pbSortMatsPP = pbSortMatsPP
-#         # pb donnée par police en cas de maturité d'une police réduite
-#         self.pbSortMatsPUP = pbSortMatsPUP     
-#         # pb donnée par police en cas de décès
-#         self.pbCalcPPdths = pbCalcPPdths
-#         # pb donné par police en cas de décès d'une police réduite
-#         self.pbCalcPUPdths = pbCalcPUPdths
+# #         # PB acquise par police AVANT nouvelle réduction                                 
+# #         self.pbAcquAVPUP=np.nan_to_num(pbAcquAVPUP)
+# #         # PB acquise par police APRES nouvelle réduction 
+# #         self.pbAcquAPPUP=np.nan_to_num(pbAcquAPPUP)
+# #         #  PB à affecter par police réduite
+# #         self.pbCalcPUP = pbCalcPUP
+# #         # epargne et PB des polices réduites calculé au taux PB
+# #         self.epgTxPbPUP = epgTxPbPUP
+# #         # PB incorporée par contrat réduit
+# #         self.pbIncorPUP = pbIncorPUP
+# #         # Montant de PB à affecter par police
+#         self.pbCalcPP = pbCalcPP
+# #         # PB acquise des polices actives
+#         self.pbAcquPP = pbAcquPP
+# #         # PB incorporée par police
+# #         self.pbIncorPP = pbIncorPP
+# #         # PB incorporée par police réduite
+# #         self.pbIncorPUP = pbIncorPUP
+# #         # PB non incorporée des polices réduites
+# #         self.pbPupDTHS=pbPupDTHS
+# #         # PB non incorporée des polices actives
+# #         self.pbSortDTHS=pbSortDTHS
+# #         # Pb donnée par police en cas de maturité
+# #         self.pbSortMatsPP = pbSortMatsPP
+# #         # pb donnée par police en cas de maturité d'une police réduite
+# #         self.pbSortMatsPUP = pbSortMatsPUP     
+# #         # pb donnée par police en cas de décès
+# #         self.pbCalcPPdths = pbCalcPPdths
+# #         # pb donné par police en cas de décès d'une police réduite
+# #         self.pbCalcPUPdths = pbCalcPUPdths
         
 
 
@@ -899,18 +987,18 @@ class MI(Portfolio):
 
 
 
-        # self.pmPourPB = pmPourPB
-        # self.pmZillCum = pmZillCum
-        # self.provTechPP = provTechPP
-        # self.mathResPP = mathResPP
-        # self.valAccrbPP = valAccrbPP
-        # self.pbIncorPP = pbIncorPP
-        # self.pmZillPP = pmZillPP
-        # self.valAccrbPP = valAccrbPP
-        # self.zill = zill
+#         # self.pmPourPB = pmPourPB
+#         # self.pmZillCum = pmZillCum
+#         # self.provTechPP = provTechPP
+#         # self.mathResPP = mathResPP
+#         # self.valAccrbPP = valAccrbPP
+#         # self.pbIncorPP = pbIncorPP
+#         # self.pmZillPP = pmZillPP
+#         # self.valAccrbPP = valAccrbPP
+#         # self.zill = zill
         
-        # self.zillTot = zillTot
-        # self.tierPM = tierPM
+#         # self.zillTot = zillTot
+#         # self.tierPM = tierPM
 
 
     
@@ -975,8 +1063,8 @@ pol = MI()
 # pol.modHead([2],1)
 
     ### Mod 2_2 F2XT_1
-# pol.ids([2135101])
-pol.modHead([2],2)
+pol.ids([241801])
+# pol.modHead([2],2)
 
     ### Mod 10 F1XT14
 # pol.ids([1602604])
@@ -988,7 +1076,7 @@ pol.modHead([2],2)
 # age = pol.age()
 
 
-check = pol.claimPrincipal()
+check = pol.nbrDeath
 # pureprem = pol.purePremium()
 
 # a = pol.p
@@ -1032,7 +1120,7 @@ z.to_csv(path+'/zJO/check.csv',header=False)
 
 # AExmTEST = pol.AExn(pol.age(), GKM95)
 
-# pol.p.to_excel(path+'/zJO/check portefeuille.xlsx', header = True )
+pol.p.to_excel(path+'/zJO/check portefeuille.xlsx', header = True )
 # aa.to_excel("check portefeuille.xlsx", header = True )
 
 

@@ -152,8 +152,14 @@ def premiumAquisitionLoading(p):
     
     # Mixtes 2 têtes mod2
     maskTete = p['POLNBTETE'] == 2
-    maskTarif = p['POLTARIF'].isin(['A', 'B','C'])
+    maskTarif = p['POLTARIF'].isin(['A', 'B', 'C', 'D'])
     p.loc[maskTete & maskTarif & mask,'aquisitionLoading'] = 0.11
+    
+    maskTarif = p['POLTARIF'].isin(['E', 'F','G'])
+    p.loc[maskTete & maskTarif & mask,'aquisitionLoading'] = 0.09
+    
+    maskTarif = p['POLTARIF'].isin(['H', 'I','J', 'K', 'L'])
+    p.loc[maskTete & maskTarif & mask,'aquisitionLoading'] = 0.07
     
     
     # Mixte mod10
@@ -217,30 +223,18 @@ def fraisGestionSumAss(p):
     # mod2
     mask=(p['PMBMOD'].isin([2]))
     
-    # 1 tete
-    maskTete = p['POLNBTETE'] == 1
-    
-    
+
     maskTarif = p['POLTARIF'].isin(['A', 'B', 'C', 'D'])
-    p.loc[maskTete & maskTarif & mask,'gestionLoadingSA'] = 0.00425
+    p.loc[maskTarif & mask,'gestionLoadingSA'] = 0.00425
     
     maskTarif = p['POLTARIF'].isin(['E', 'F', 'G'])
-    p.loc[maskTete & maskTarif & mask,'gestionLoadingSA'] = 0.00325
+    p.loc[maskTarif & mask,'gestionLoadingSA'] = 0.00325
 
     maskTarif = p['POLTARIF'].isin(['H', 'I', 'J', 'L', 'K'])
-    p.loc[maskTete & maskTarif & mask,'gestionLoadingSA'] = 0.0039
+    p.loc[maskTarif & mask,'gestionLoadingSA'] = 0.0039
 
 
-    # 2tetes
-    maskTete = p['POLNBTETE'] == 2
-    
-    maskTarif = p['POLTARIF'].isin(['A', 'B', 'C'])
-    p.loc[maskTete & maskTarif & mask,'gestionLoadingSA'] = 0.00425
-    
-    maskTarif = p['POLTARIF'].isin(['J', 'K'])
-    p.loc[maskTete & maskTarif & mask,'gestionLoadingSA'] = 0.0039
-    
-    
+ 
     
 def tauxZill(p):
     
