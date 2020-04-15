@@ -221,13 +221,13 @@ def fraisGestionSumAss(p):
     maskTete = p['POLNBTETE'] == 1
     
     
-    maskTarif = p['POLTARIF'].isin(['A', 'B', 'C', 'D', 'K'])
+    maskTarif = p['POLTARIF'].isin(['A', 'B', 'C', 'D'])
     p.loc[maskTete & maskTarif & mask,'gestionLoadingSA'] = 0.00425
     
     maskTarif = p['POLTARIF'].isin(['E', 'F', 'G'])
     p.loc[maskTete & maskTarif & mask,'gestionLoadingSA'] = 0.00325
 
-    maskTarif = p['POLTARIF'].isin(['H', 'I', 'J', 'L'])
+    maskTarif = p['POLTARIF'].isin(['H', 'I', 'J', 'L', 'K'])
     p.loc[maskTete & maskTarif & mask,'gestionLoadingSA'] = 0.0039
 
 
@@ -237,7 +237,7 @@ def fraisGestionSumAss(p):
     maskTarif = p['POLTARIF'].isin(['A', 'B', 'C'])
     p.loc[maskTete & maskTarif & mask,'gestionLoadingSA'] = 0.00425
     
-    maskTarif = p['POLTARIF'].isin(['J'])
+    maskTarif = p['POLTARIF'].isin(['J', 'K'])
     p.loc[maskTete & maskTarif & mask,'gestionLoadingSA'] = 0.0039
     
     
@@ -248,10 +248,10 @@ def tauxZill(p):
     mask=(p['PMBMOD'].isin([2]))
     
 
-    maskTarif = p['POLTARIF'].isin(['H', 'I', 'J', 'L'])
+    maskTarif = p['POLTARIF'].isin(['H', 'I', 'J', 'L', 'K'])
     p.loc[maskTarif & mask,'tauxZill'] = 0.05
     
-    maskTarif = p['POLTARIF'].isin(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'K'])
+    maskTarif = p['POLTARIF'].isin(['A', 'B', 'C', 'D', 'E', 'F', 'G'])
     p.loc[ maskTarif & mask,'tauxZill'] = 0.08
     
 

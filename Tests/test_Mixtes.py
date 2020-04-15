@@ -276,6 +276,13 @@ class Test_MOD_2_1(ut.TestCase):
 
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='Premium ERROR ')
 
+    def test_Claim(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'DEATH_OUTGO'].to_numpy(),dtype=float)
+        
+        python=np.sum((self.sp.claimPrincipal())[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='Claim ERROR ')
 
 
 

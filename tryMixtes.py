@@ -317,12 +317,17 @@ class MI(Portfolio):
 
 
 
-# Arrondi des tables afin d'obtenir taux pb (table rdt est)
+# Arrondi des tables afin d'obtenir taux pb (table rdt est). Le taux va également dépendre du taux d'intêret
     def txPartPB(self):
         
         rate = (1+self.pbRate())**12 - 1
         rate = (1+rate)**(1/12) - 1
         rate = np.round(rate, decimals = 6)
+        
+        txInt = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()/100
+        
+        rate = np.maximum(0, rate - txInt)
+        
         return rate
     
 
@@ -541,7 +546,7 @@ class MI(Portfolio):
 
 
 # =============================================================================
-# Calcul des Claims
+# --- CALCUL DES CLAIMS
 # =============================================================================
 
 # retourne la somme assurée avec le bon format
@@ -549,25 +554,6 @@ class MI(Portfolio):
         
         sumAss = self.p['PMBCAPIT'][:,np.newaxis, np.newaxis]*self.one()   
         return sumAss
-
-
-
-
-
-
-
-
-# Provision zillmérisée cumulée entre 2 calcul de PB (PMZ_ZILL_CUM)
-    def pmZillCum(self):
-        
-        pass
-    
-
-# Provision technique zillmérisée (PMT_ZILL_PP)
-    def pmZill(self):
-        
-        pm = self.pmTech() - valZill(self)
-        return pm
 
 
 
@@ -579,6 +565,10 @@ class MI(Portfolio):
         premInc=((self.p['POLPRVIEHT'] - self.p['POLPRCPLA'])[:,np.newaxis,np.newaxis])
         premInc = premInc * self.indexation()
         prInventaire = premInc * (1-loading) / fraisFract
+        
+        mask = (self.p['POLSIT']==4) | (self.p['POLSIT']==9) 
+        prInventaire[mask] = self.zero()[mask]
+        
         return prInventaire
         
   
@@ -590,6 +580,10 @@ class MI(Portfolio):
         capital = self.p['PMBCAPIT'][:,np.newaxis, np.newaxis]*self.one()  
         prInvent = self.prInventaire()
         ppure = prInvent - gestLoading * capital
+        
+        mask = (self.p['POLSIT']==4) | (self.p['POLSIT']==9) 
+        ppure[mask] = self.zero()[mask]
+        
         return ppure
         
 
@@ -642,25 +636,29 @@ class MI(Portfolio):
         return precPP * self.isActive()
 
 
-
-
-# Retourne la zillmérisation VAL_ZILLMER
-    def zillmer(self):
+# retourne la provision mathèmatique de gestion
+    def pmgSA(self):
         
-        PA = self.prInventaire()
+        tauxPM =self.p['gestionLoadingSA'][:,np.newaxis, np.newaxis]*self.one()  
+        valPolFac = self.axn()
+        pm = tauxPM * valPolFac 
+        return pm
+
+
+# Provision de gestion calculée sans pb
+    def provGestPP(self):
         
-        # taux de zillmérisation
-        alpha = self.p['tauxZill'][:,np.newaxis, np.newaxis]*self.one()  
-        axn = self.axn()
-        zill = alpha * PA * axn
+        pm = self.pmgSA()  * self.sumAss() - self.axn() * (self.prInventaire() - self.prPure())
+        return pm
+
+
+
+
+# provision de gestion Inforce (INFORMATIF)
+    def provGestIF(self):
         
-        
-
-
-        return zill
-
-
-
+        pmIF = self.provGestPP() * self.nbrPolIf
+        return pmIF
 
 
 # loop pour calculer les reserves
@@ -677,6 +675,7 @@ class MI(Portfolio):
         alpha = self.p['tauxZill'][:,np.newaxis, np.newaxis]*self.one()  
         axn = self.axn()
         valSumAss = self.sumAss() * self.AExn()
+        provGestPP = self.provGestPP()
         
         
         # Nouvelles variables
@@ -687,7 +686,7 @@ class MI(Portfolio):
         pbCalcPP = self.zero()
         isActive = self.isActive()
         mathResPP = self.zero()
-        provGestPP = self.zero()
+       
         provTechPP = self.zero()
         pmZillCum = self.zero()
         pmZillPP = self.zero()
@@ -745,6 +744,20 @@ class MI(Portfolio):
         
         
         
+        # Calcul au temps 0
+        tierPM[:,0,:] = (1/3) * np.maximum(valSaPP[:,0,:] + valAccrbPP[:,0,:] + provGestPP[:,0,:] + precPP[:,0,:] - valNetPP[:,0,:], 0)
+            
+        zillTot[:,0,:] = np.minimum(alpha[:,0,:] * prInventPP[:,0,:] * axn[:,0,:], np.maximum(valSumAss[:,0,:] - valNetPP[:,0,:] + provGestPP[:,0,:], 0))
+            
+            
+        zill[:,0,:] = np.where(tierPM[:,0,:] <= zillTot[:,0,:], tierPM[:,0,:], zillTot[:,0,:])
+        
+        mathResPP[:,0,:] = np.maximum(valSaPP[:,0,:] + valAccrbPP[:,0,:] + provGestPP[:,0,:] - valNetPP[:,0,:] + precPP[:,0,:] - zill[:,0,:], 0 )
+
+        provTechPP[:,0,:] = mathResPP[:,0,:] - provGestPP[:,0,:] - precPP[:,0,:] + zill[:,0,:]
+        
+        pmZillPP[:,0,:] = provTechPP[:,0,:] - zill[:,0,:]
+        
         
         for i in range(1,self.shape[1]):
         
@@ -762,7 +775,6 @@ class MI(Portfolio):
             
 # # #Définition des variables de PB pour actives et réduites  
     
-
             
 #             pbIncorPUP[:,i,:] = np.nan_to_num(pbCalcPUP[:,i-1,:]  * isActive[:,i-1,:]) 
             
@@ -775,18 +787,16 @@ class MI(Portfolio):
 
             valAccrbPP[:,i,:] = pbAcquPP[:,i,:] * AExn[:,i,:] 
             
-            tierPM[:,i,:] = (1/3) * np.maximum(valSaPP[:,i,:] + valAccrbPP[:,i,:] + precPP[:,i,:] - valNetPP[:,i,:], 0)
+            tierPM[:,i,:] = (1/3) * (np.maximum(valSaPP[:,i,:] + valAccrbPP[:,i,:] + provGestPP[:,i,:] + precPP[:,i,:] - valNetPP[:,i,:], 0))
             
-            zillTot[:,i,:] = np.minimum(alpha[:,i,:] * prInventPP[:,i,:] * axn[:,i,:], np.maximum(valSumAss[:,i,:] - valNetPP[:,i,:], 0))
+            zillTot[:,i,:] = np.minimum(alpha[:,i,:] * prInventPP[:,i,:] * axn[:,i,:], np.maximum(valSumAss[:,i,:] - valNetPP[:,i,:] + provGestPP[:,i,:], 0))
             
             
-            zill[:,i,:] = np.where(tierPM[:,i,:] < zillTot[:,i,:], tierPM[:,i,:], zillTot[:,i,:])
+            zill[:,i,:] = np.where(tierPM[:,i,:] <= zillTot[:,i,:], tierPM[:,i,:], zillTot[:,i,:])
             
-         
-                
-                
+          
             
-            mathResPP[:,i,:] = np.maximum(valSaPP[:,i,:] + valAccrbPP[:,i,:] - valNetPP[:,i,:] + precPP[:,i,:] - zill[:,i,:], 0 )
+            mathResPP[:,i,:] = np.maximum(valSaPP[:,i,:] + valAccrbPP[:,i,:] + provGestPP[:,i,:] - valNetPP[:,i,:] + precPP[:,i,:] - zill[:,i,:], 0 )
 
             provTechPP[:,i,:] = mathResPP[:,i,:] - provGestPP[:,i,:] - precPP[:,i,:] + zill[:,i,:]
             
@@ -795,7 +805,7 @@ class MI(Portfolio):
             pmZillCum[:,i,:] = pmZillPP[:,i,:] + (1-allocMonths[:,i-1,:]) * pmZillCum[:,i-1,:]
             
             
-            pmPourPB[:,i,:] = (pmZillCum[:,i,:] * pmFirstYear[:,i,:]/12) * allocMonths[:,i,:]
+            pmPourPB[:,i,:] = (pmZillCum[:,i,:] / 12) * allocMonths[:,i,:]
             
             
             pbCalpTEMP = pmPourPB[:,i,:] * txPartPB[:,i,:] * (pmFirstYear[:,i,:] / 12)
@@ -803,10 +813,7 @@ class MI(Portfolio):
             pbCalcPP[:,i,:] = np.divide( pbCalpTEMP, AExn[:,i,:], out=np.zeros_like(pbCalpTEMP), where=AExn[:,i,:]!=0 ) * allocMonths[:,i,:]
             
             
-            
-            
-            
-            
+         
 
 #             pbSortDTHS[:,i,:] = np.nan_to_num(pbCalcPPdths[:,i,:] * isActive[:,i,:]) 
             
@@ -826,10 +833,7 @@ class MI(Portfolio):
             
             
             
-               
-
-            
-            
+             
             
 #             pbCalcPUP[:,i,:] = np.maximum((epgTxPbPUP[:,i,:] - eppAcquAPPUP[:,i,:] - pbAcquAPPUP[:,i,:]),0) * allocMonths[:,i,:]
             
@@ -895,23 +899,20 @@ class MI(Portfolio):
 
 
 
-        self.pmPourPB = pmPourPB
-        self.pmZillCum = pmZillCum
-        self.provTechPP = provTechPP
-        self.mathResPP = mathResPP
-        self.valAccrbPP = valAccrbPP
-        self.pbIncorPP = pbIncorPP
-        self.pmZillPP = pmZillPP
-        self.valAccrbPP = valAccrbPP
-        self.zill = zill
-
-# PB acquise depuis le début du contrat (SUREMENT A MODIFIER)
-    def pbAcquPP(self):
+        # self.pmPourPB = pmPourPB
+        # self.pmZillCum = pmZillCum
+        # self.provTechPP = provTechPP
+        # self.mathResPP = mathResPP
+        # self.valAccrbPP = valAccrbPP
+        # self.pbIncorPP = pbIncorPP
+        # self.pmZillPP = pmZillPP
+        # self.valAccrbPP = valAccrbPP
+        # self.zill = zill
         
-        pb = self.p['PMBPBEN'][:,np.newaxis,np.newaxis] * self.one()
+        # self.zillTot = zillTot
+        # self.tierPM = tierPM
 
-        return pb
-    
+
     
     
     
@@ -925,10 +926,11 @@ class MI(Portfolio):
 
 
 
+
 #Retourne les claims de la garantie principale (DEATH_OUTGO)
     def claimPrincipal(self):
         
-        deathBenPP = self.sumAss() + self.pbAcquPP()
+        deathBenPP = self.sumAss() + self.pbAcquPP
         deathOutgo = deathBenPP * self.nbrDeath
         
         
@@ -965,13 +967,16 @@ pol = MI()
     ###  Mod 2_1 produit F1XT1
 # pol.ids([106907])
 
-pol.ids([106907])
+# pol.ids([106907])
 # pol.ids([301])
+
+# pol.ids([829603])
+
 # pol.modHead([2],1)
 
     ### Mod 2_2 F2XT_1
 # pol.ids([2135101])
-# pol.modHead([2],2)
+pol.modHead([2],2)
 
     ### Mod 10 F1XT14
 # pol.ids([1602604])
@@ -983,7 +988,7 @@ pol.ids([106907])
 # age = pol.age()
 
 
-check = pol.valAccrbPP
+check = pol.claimPrincipal()
 # pureprem = pol.purePremium()
 
 # a = pol.p
