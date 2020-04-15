@@ -370,6 +370,9 @@ class MI(Portfolio):
         return
 
 
+    
+
+
 # Vecteur de 1 et 0 permettant de savoir si police toujours active ou non
     def isActive(self):
         
@@ -1060,10 +1063,10 @@ pol = MI()
 
 # pol.ids([829603])
 
-# pol.modHead([2],1)
+pol.modHead([2],1)
 
     ### Mod 2_2 F2XT_1
-pol.ids([241801])
+# pol.ids([22101])
 # pol.modHead([2],2)
 
     ### Mod 10 F1XT14
@@ -1076,7 +1079,7 @@ pol.ids([241801])
 # age = pol.age()
 
 
-check = pol.nbrDeath
+check = pol.nbrPolIf
 # pureprem = pol.purePremium()
 
 # a = pol.p
@@ -1120,7 +1123,7 @@ z.to_csv(path+'/zJO/check.csv',header=False)
 
 # AExmTEST = pol.AExn(pol.age(), GKM95)
 
-pol.p.to_excel(path+'/zJO/check portefeuille.xlsx', header = True )
+# pol.p.to_excel(path+'/zJO/check portefeuille.xlsx', header = True )
 # aa.to_excel("check portefeuille.xlsx", header = True )
 
 
