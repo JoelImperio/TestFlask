@@ -300,7 +300,8 @@ def projectionLengh(p):
 
  # Traitement des vies entières
     mask = (p['PMBMOD']==11)|(p['PMBMOD']==1)
-    p.loc[mask,'residualTermM'] = ((125-p.loc[mask,'Age1AtEntry'])*12)-p.loc[mask,'DurationIfInitial']
+    # p.loc[mask,'residualTermM'] = ((140-p.loc[mask,'Age1AtEntry'])*12)-p.loc[mask,'DurationIfInitial']
+    p.loc[mask,'residualTermM'] = ((99 * 12) - p.loc[mask,'DurationIfInitial'])
 
 
 ##############################################################################################################################
@@ -350,6 +351,37 @@ def adjustAgesAndTerm(p):
     p.loc[mask,'Age2AtEntry']=999
     
     p.loc[p['residualTermM']<0,'residualTermM']=0
+
+
+# =============================================================================
+# Taux zill
+# =============================================================================
+def tauxZill(p):
+    
+    # mod2
+    mask=(p['PMBMOD'].isin([2]))
+    
+
+    maskTarif = p['POLTARIF'].isin(['H', 'I', 'J', 'L', 'K'])
+    p.loc[maskTarif & mask,'tauxZill'] = 0.05
+    
+    maskTarif = p['POLTARIF'].isin(['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+    p.loc[ maskTarif & mask,'tauxZill'] = 0.08
+
+    # mod1
+    mask=(p['PMBMOD'].isin([2]))
+    
+    maskTarif = p['POLTARIF'].isin(['H', 'I', 'J', 'L', 'K'])
+    p.loc[maskTarif & mask,'tauxZill'] = 0.05
+    
+    maskTarif = p['POLTARIF'].isin(['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+    p.loc[ maskTarif & mask,'tauxZill'] = 0.08
+    
+    # mod11
+    mask=(p['PMBMOD'].isin([2]))
+    
+    maskTarif = p['POLTARIF'].isin(['H', 'I', 'J', 'L', 'K'])
+    p.loc[maskTarif & mask,'tauxZill'] = 0.05
 
 
 

@@ -5,6 +5,7 @@ import pandas as pd
 from varname import varname
 import time
 import os, os.path
+import datetime
 #from MyPyliferisk import mortalitytables
 from MyPyliferisk import Actuarial
 from MyPyliferisk.mortalitytables import *
@@ -259,18 +260,25 @@ class VE(Portfolio):
                 # myAge = np.where(myAge>=mt.w, mt.w-1, myAge)
                 myAge2 = np.where(myAge>=mt.w, mt.w, myAge)
                 myVarx[mask_txTech & mask_tableMort] = np.take(aVARx, myAge2[mask_txTech & mask_tableMort])
-                myVarx[mask_txTech & mask_tableMort & (myAge>mt.w+1)] = zero[mask_txTech & mask_tableMort & (myAge>mt.w+1)]
+                myVarx[mask_txTech & mask_tableMort & (myAge>mt.w)] = zero[mask_txTech & mask_tableMort & (myAge>mt.w)]
 
         return myVarx      
    
     def ax(self):
         Nx = self.actu('Nx', 't')
         Dx = self.actu('Dx', 't')
-        ax = Nx / Dx
+        
+        ax = self.zero()
+        
+        ax[Dx>0] = Nx[Dx>0] / Dx[Dx>0]
+        
         ax = np.roll(ax, -1, axis = 1)
         NxDec = self.actu('Nx', 't+1')
         DxDec = self.actu('Dx', 't+1')
-        axDec = NxDec / DxDec
+        
+        axDec = self.zero()
+        axDec[DxDec>0] = NxDec[DxDec>0] / DxDec[DxDec>0]
+        
         axDec = np.roll(axDec, -1, axis = 1)
         resultat = self.interp(ax, axDec)
         return resultat
@@ -280,11 +288,21 @@ class VE(Portfolio):
         Nxp = self.actu('Nx', 'p')
         Nx = self.actu('Nx', 't')
         Dx = self.actu('Dx', 't')
-        axn = (Nx - Nxp) / Dx
+        
+        axn = self.zero()
+        
+        axn[Dx>0] = (Nx[Dx>0] - Nxp[Dx>0]) / Dx[Dx>0]
+        
+        
         axn = np.roll(axn, -1, axis = 1)
         NxDec = self.actu('Nx', 't+1')
         DxDec = self.actu('Dx', 't+1')
-        axnDec = (NxDec - Nxp) / DxDec
+        
+        axnDec = self.zero()
+        
+        axnDec[DxDec>0] = (NxDec[DxDec>0] - Nxp[DxDec>0]) / DxDec[DxDec>0]
+        
+        
         axnDec = np.roll(axnDec, -1, axis = 1)
         resultat = self.interp(axn, axnDec)
         return resultat
@@ -306,9 +324,6 @@ class VE(Portfolio):
         Nx = self.actu('Nx', 'x')
         Mx = self.actu('Mx', 'x')
         ax = Nx / Mx
-        
-        
-        
         return ax
     
     def axInitPrimes(self):
@@ -321,11 +336,20 @@ class VE(Portfolio):
     def Ax(self):
         Dx = self.actu('Dx', 't')
         Mx = self.actu('Mx', 't')
-        Ax = Mx / Dx
+        
+        Ax = self.zero()
+        # Ax = Mx / Dx
+        
+        Ax[Dx>0] = Mx[Dx>0] / Dx[Dx>0]
+        
+        
         Ax = np.roll(Ax, -1, axis = 1)
         DxDec = self.actu('Dx', 't+1')
         MxDec = self.actu('Mx', 't+1')   
-        AxDec = MxDec / DxDec
+        
+        AxDec = self.zero()
+        # AxDec = MxDec / DxDec
+        AxDec[DxDec>0] = MxDec[DxDec>0] / DxDec[DxDec>0]
         AxDec = np.roll(AxDec, -1, axis = 1)
         abar = self.interp(Ax, AxDec) * self.isActive()
         return abar
@@ -499,11 +523,24 @@ class VE(Portfolio):
     
     # VAL_ZILL_PP - valeur de zillmérisation    
     def valZillPP(self):
-        valZillPC = (5/100) * self.one()
-        ValZillPP = np.minimum(valZillPC * self.prInventPP() * self.valNetpFac(), self.insuredSum() - self.valNetpPP() + self.provGestPP())
+        
+        
+        
+        self.p['POLDTDEB'] = pd.to_datetime(self.p['POLDTDEB'])
+        self.p['ANDEBUT'] = self.p['POLDTDEB'].dt.year
+        anDebut = self.p['ANDEBUT'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
+        
+        valZillPC = self.zero()
+        # valZillPC = (5/100) * self.one()
+        
+        valZillPC[anDebut<2011] = (8/100) * self.one()[anDebut<2011]
+        valZillPC[anDebut>=2011] = (5/100) * self.one()[anDebut>=2011]
+        
+        ValZillPP = np.minimum(valZillPC * self.prInventPP() * self.valNetpFac(), self.valSumAssd() - self.valNetpPP() + self.provGestPP())
+        # ValZillPP = np.minimum(valZillPC * self.prInventPP() * self.valNetpFac(), self.insuredSum() - self.valNetpPP() + self.provGestPP())
         return ValZillPP
     
-    # MATH_RES_BA - provision mathématique - en cours
+    # MATH_RES_BA - provision mathématique 
     def mathResBa(self):
         
         # pour la 11:
@@ -794,7 +831,7 @@ pol = VE()
 
 
 # police unique
-# pol.ids([2085901])
+pol.ids([743801])
 
 
 # échantillon force F1VE01
@@ -807,15 +844,20 @@ pol = VE()
 # pol.ids([2168202, 2172401, 2178001])
 
 # échantillon force F1VE04
-pol.ids([572405, 572503, 731902, 732001, 818202, 889603, 1132602, 1132701, 2211301])
+# pol.ids([572405, 572503, 731902, 732001, 818202, 889603, 1132602, 1132701, 2211301])
 
 # selection de la modalité
 # pol.mod([1])
 
+print("Class VE--- %s sec" %'%.2f'%  (time.time() - start_time))
+
+
+
+
 
 x = pol.p
 x.to_excel(path+'/zFT/ptf.xlsx')
-monCas = pol.totalClaim()
+monCas = pol.numberSurrenders()
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
