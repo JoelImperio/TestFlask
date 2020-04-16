@@ -237,7 +237,14 @@ class Test_MOD_10(ut.TestCase):
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalClaim ERROR')
             
 
+    def test_claimCompl(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'RIDERC_OUTGO'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.claimCompl()[:,:409,0],axis=0)
 
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='RIDERC OUTGO ERROR')
+            
 
 
 
@@ -290,6 +297,14 @@ class Test_MOD_2_1(ut.TestCase):
         python=np.sum(self.sp.claimPrincipal()[:,:409,0],axis=0)
 
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalClaim ERROR')
+            
+    def test_claimCompl(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'RIDERC_OUTGO'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.claimCompl()[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='RIDERC OUTGO ERROR')
             
 
 
@@ -346,6 +361,14 @@ class Test_MOD_2_2(ut.TestCase):
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalClaim ERROR')
             
 
+    def test_claimCompl(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'RIDERC_OUTGO'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.claimCompl()[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='RIDERC OUTGO ERROR')
+            
 
 
 
@@ -404,6 +427,14 @@ class Test_MOD_6_7(ut.TestCase):
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalClaim ERROR')
             
 
+    def test_claimCompl(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'RIDERC_OUTGO'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.claimCompl()[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='RIDERC OUTGO ERROR')
+            
 
 
 
