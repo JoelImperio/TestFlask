@@ -201,7 +201,7 @@ class MortalityTable:
 
      
 class Actuarial:
-    def __init__(self, l_x=[], q_x=[], nt=None, i=None, perc=100):
+    def __init__(self, l_x=[], q_x=[], nt=None, i=None, perc=100, nbtete = 1):
         self.lx = l_x
         self.qx = q_x
         self.dx = []
@@ -222,9 +222,16 @@ class Actuarial:
             self.qx = [0.0] * init
             end_val = 0
             for val in mt[1:]:
+                
                 if end_val < 1000.0:
-                    end_val = val * perc / 100
-                    self.qx.append(end_val)
+                   # Ajout du calcul des qy pour les polices à 2 têtes 
+                    if nbtete ==1:
+                        end_val = val * perc / 100
+                        self.qx.append(end_val)
+                    elif nbtete == 2:
+                        end_val = (val + val - val*val) * perc / 100
+                        self.qx.append(end_val)
+                    
             if perc != 100:
                 self.qx.append(1000)
         if self.lx == []:
