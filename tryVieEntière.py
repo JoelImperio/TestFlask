@@ -36,10 +36,10 @@ class VE(Portfolio):
     def update(self,subPortfolio):
         super().update(subPortfolio)
         self.loopVE()
-        self.lapse()
+        # self.lapse()
+        # self.isActive()
+        self.commutations()
         self.reserveForExp()
-        self.isActive()
-        # self.commutations()
     
     # Fonction pour savoir si une police lapse, voir pourquoi elle est là
     def isLapse(self):
@@ -156,20 +156,6 @@ class VE(Portfolio):
         result =[(1)]
         sinon = 0
         payPrimes = np.select(conditions,result,sinon)
-        
-        
-        
-        # durationIf = pol.durationIf()
-        # payPrimes = pol.one()
-        
-        # moisPaiement = (pol.p['POLDURP'].to_numpy() * 12 )[:,np.newaxis,np.newaxis] * pol.one()
-        
-        # conditions = [(durationIf <= moisPaiement)]
-        # result =[(1)]
-        # sinon = 0
-        # payPrimes = np.select(conditions,result,sinon)
-        
-        
         return payPrimes
         
     
@@ -190,39 +176,81 @@ class VE(Portfolio):
         age = ((self.p['Age1AtEntry'].to_numpy() + self.p['POLDURP'].to_numpy())[:,np.newaxis,np.newaxis]*self.one())
         return age
         
-    
-    # def commutations(self):
+    # Fonction qui sert à retourner les valeurs actuarielles, Ax, ax, etc.
+    def commutations(self):
         
-    #     Nx = self.actu('Nx', 'x')
-    #     Nxn = self.actu('Nx', 'n')
-    #     Nxt = self.actu('Nx', 't')
-    #     # Nxp = self.actu('Nx', 'p')
+        # Création des variables actuarielles utilisées
+        Nx = self.actu('Nx', 'x')
+        # Nxn = self.actu('Nx', 'n')
+        Nxt = self.actu('Nx', 't')
+        Nxp = self.actu('Nx', 'p')
         
-    #     Dx = self.actu('Dx', 'x')
-    #     Dxn = self.actu('Dx', 'n')
-    #     Dxt = self.actu('Dx', 't')
-    #     # Dxp = self.actu('Dx', 'p')
+        # NxDec = self.actu('Nx', 'x')
+        # NxnDec = self.actu('Nx', 'n')
+        NxtDec = self.actu('Nx', 't+1')
+        # NxpDec = self.actu('Nx', 'p')
         
-    #     Mx = self.actu('Mx', 'x')
-    #     Mxn = self.actu('Mx', 'n')
-    #     Mxt = self.actu('Mx', 't')
-    #     # Mxp = self.actu('Mx', 'p')
+        # Dx = self.actu('Dx', 'x')
+        # Dxn = self.actu('Dx', 'n')
+        Dxt = self.actu('Dx', 't')
+        # Dxp = self.actu('Dx', 'p')
         
+        # DxDec = self.actu('Dx', 'x')
+        # DxnDec = self.actu('Dx', 'n')
+        DxtDec = self.actu('Dx', 't+1')
+        # DxpDec = self.actu('Dx', 'p')
         
-    #     self.Nx = Nx
-    #     self.Nxn = Nxn
-    #     self.Nxt = Nxt
-    #     # self.Nxp = Nxp
+        Mx = self.actu('Mx', 'x')
+        # Mxn = self.actu('Mx', 'n')
+        Mxt = self.actu('Mx', 't')
+        # Mxp = self.actu('Mx', 'p')
         
-    #     self.Dx = Dx
-    #     self.Dxn = Dxn
-    #     self.Dxt = Dxt
-    #     # self.Dxp = Dxp
+        # MxDec = self.actu('Mx', 'x')
+        # MxnDec = self.actu('Mx', 'n')
+        MxtDec = self.actu('Mx', 't+1')
+        # MxpDec = self.actu('Mx', 'p')
         
-    #     self.Mx = Mx
-    #     self.Mxn = Mxn
-    #     self.Mxt = Mxt
-    #     # self.Mxp = Mxp
+        # Calcul de ax
+        ax = self.zero()
+        ax[Dxt>0] = Nxt[Dxt>0] / Dxt[Dxt>0]
+        ax = np.roll(ax, -1, axis = 1)
+        axDec = self.zero()
+        axDec[DxtDec>0] = NxtDec[DxtDec>0] / DxtDec[DxtDec>0]
+        axDec = np.roll(axDec, -1, axis = 1)
+        ax = self.interp(ax, axDec)
+        
+        # Calcul de axp
+        axp = self.zero()
+        axp[Dxt>0] = (Nxt[Dxt>0] - Nxp[Dxt>0]) / Dxt[Dxt>0]
+        axp = np.roll(axp, -1, axis = 1)
+        axpDec = self.zero()
+        axpDec[DxtDec>0] = (NxtDec[DxtDec>0] - Nxp[DxtDec>0]) / DxtDec[DxtDec>0]
+        axpDec = np.roll(axpDec, -1, axis = 1)
+        axp = self.interp(axp, axpDec)
+        
+        # Calcul de Ax
+        Ax = self.zero()
+        Ax[Dxt>0] = Mxt[Dxt>0] / Dxt[Dxt>0]
+        Ax = np.roll(Ax, -1, axis = 1)
+        AxDec = self.zero()
+        AxDec[DxtDec>0] = MxtDec[DxtDec>0] / DxtDec[DxtDec>0]
+        AxDec = np.roll(AxDec, -1, axis = 1)
+        Ax = self.interp(Ax, AxDec)
+        
+        # Calcul de aduePolVal
+        aduePolVal = Nx / (Nx - Nxp)
+        
+        # Calcul de axInitPrimes
+        axInitPrimes = (Nx - Nxp) / Mx
+        
+        # Retour des variables voulues
+        self.ax = ax
+        self.axp = axp
+        self.Ax = Ax
+        self.aduePolVal = aduePolVal
+        self.axInitPrimes = axInitPrimes
+        
+        # print("Commutations update--- %s sec" %'%.2f'%  (time.time() - start_time))
         
         
     
@@ -264,107 +292,106 @@ class VE(Portfolio):
 
         return myVarx      
    
-    def ax(self):
-        Nx = self.actu('Nx', 't')
-        Dx = self.actu('Dx', 't')
+    # def ax(self):
+    #     Nx = self.actu('Nx', 't')
+    #     Dx = self.actu('Dx', 't')
         
-        ax = self.zero()
+    #     ax = self.zero()
+    #     ax[Dx>0] = Nx[Dx>0] / Dx[Dx>0]
+    #     ax = np.roll(ax, -1, axis = 1)
         
-        ax[Dx>0] = Nx[Dx>0] / Dx[Dx>0]
+    #     NxDec = self.actu('Nx', 't+1')
+    #     DxDec = self.actu('Dx', 't+1')
         
-        ax = np.roll(ax, -1, axis = 1)
-        NxDec = self.actu('Nx', 't+1')
-        DxDec = self.actu('Dx', 't+1')
+    #     axDec = self.zero()
+    #     axDec[DxDec>0] = NxDec[DxDec>0] / DxDec[DxDec>0]
         
-        axDec = self.zero()
-        axDec[DxDec>0] = NxDec[DxDec>0] / DxDec[DxDec>0]
-        
-        axDec = np.roll(axDec, -1, axis = 1)
-        resultat = self.interp(ax, axDec)
-        return resultat
+    #     axDec = np.roll(axDec, -1, axis = 1)
+    #     resultat = self.interp(ax, axDec)
+    #     return resultat
     
 # äxn annuity endowment insurance
-    def axp(self):
-        Nxp = self.actu('Nx', 'p')
-        Nx = self.actu('Nx', 't')
-        Dx = self.actu('Dx', 't')
+    # def axp(self):
+    #     Nxp = self.actu('Nx', 'p')
+    #     Nx = self.actu('Nx', 't')
+    #     Dx = self.actu('Dx', 't')
         
-        axn = self.zero()
+    #     axn = self.zero()
         
-        axn[Dx>0] = (Nx[Dx>0] - Nxp[Dx>0]) / Dx[Dx>0]
-        
-        
-        axn = np.roll(axn, -1, axis = 1)
-        NxDec = self.actu('Nx', 't+1')
-        DxDec = self.actu('Dx', 't+1')
-        
-        axnDec = self.zero()
-        
-        axnDec[DxDec>0] = (NxDec[DxDec>0] - Nxp[DxDec>0]) / DxDec[DxDec>0]
+    #     axn[Dx>0] = (Nx[Dx>0] - Nxp[Dx>0]) / Dx[Dx>0]
         
         
-        axnDec = np.roll(axnDec, -1, axis = 1)
-        resultat = self.interp(axn, axnDec)
-        return resultat
+    #     axn = np.roll(axn, -1, axis = 1)
+    #     NxDec = self.actu('Nx', 't+1')
+    #     DxDec = self.actu('Dx', 't+1')
+        
+    #     axnDec = self.zero()
+        
+    #     axnDec[DxDec>0] = (NxDec[DxDec>0] - Nxp[DxDec>0]) / DxDec[DxDec>0]
+        
+        
+    #     axnDec = np.roll(axnDec, -1, axis = 1)
+    #     resultat = self.interp(axn, axnDec)
+    #     return resultat
     
-    def aduePolVal(self):
-        Nxp = self.actu('Nx', 'p')
-        Nx = self.actu('Nx', 'x')
+    # def aduePolVal(self):
+    #     Nxp = self.actu('Nx', 'p')
+    #     Nx = self.actu('Nx', 'x')
 
-        aduePolVal = Nx / (Nx - Nxp)
-        # aduePolVal = np.roll(aduePolVal, -1, axis = 1)
-        # NxDec = self.actu('Nx', 't+1')
+    #     aduePolVal = Nx / (Nx - Nxp)
+    #     # aduePolVal = np.roll(aduePolVal, -1, axis = 1)
+    #     # NxDec = self.actu('Nx', 't+1')
 
-        # aduePolValDec = NxDec / (NxDec - Nxp)
-        # aduePolValDec = np.roll(aduePolValDec, -1, axis = 1)
-        # resultat = self.interp(aduePolVal, aduePolValDec)
-        return aduePolVal
+    #     # aduePolValDec = NxDec / (NxDec - Nxp)
+    #     # aduePolValDec = np.roll(aduePolValDec, -1, axis = 1)
+    #     # resultat = self.interp(aduePolVal, aduePolValDec)
+    #     return aduePolVal
     
-    def axInit(self):
-        Nx = self.actu('Nx', 'x')
-        Mx = self.actu('Mx', 'x')
-        ax = Nx / Mx
-        return ax
+    # def axInit(self):
+    #     Nx = self.actu('Nx', 'x')
+    #     Mx = self.actu('Mx', 'x')
+    #     ax = Nx / Mx
+    #     return ax
     
-    def axInitPrimes(self):
-        Nxp = self.actu('Nx', 'p')
-        Nx = self.actu('Nx', 'x')
-        Mx = self.actu('Mx', 'x')
-        axn = (Nx - Nxp) / Mx
-        return axn
+    # def axInitPrimes(self):
+    #     Nxp = self.actu('Nx', 'p')
+    #     Nx = self.actu('Nx', 'x')
+    #     Mx = self.actu('Mx', 'x')
+    #     axn = (Nx - Nxp) / Mx
+    #     return axn
     
-    def Ax(self):
-        Dx = self.actu('Dx', 't')
-        Mx = self.actu('Mx', 't')
+    # def Ax(self):
+    #     Dx = self.actu('Dx', 't')
+    #     Mx = self.actu('Mx', 't')
         
-        Ax = self.zero()
-        # Ax = Mx / Dx
+    #     Ax = self.zero()
+    #     # Ax = Mx / Dx
         
-        Ax[Dx>0] = Mx[Dx>0] / Dx[Dx>0]
+    #     Ax[Dx>0] = Mx[Dx>0] / Dx[Dx>0]
         
         
-        Ax = np.roll(Ax, -1, axis = 1)
-        DxDec = self.actu('Dx', 't+1')
-        MxDec = self.actu('Mx', 't+1')   
+    #     Ax = np.roll(Ax, -1, axis = 1)
+    #     DxDec = self.actu('Dx', 't+1')
+    #     MxDec = self.actu('Mx', 't+1')   
         
-        AxDec = self.zero()
-        # AxDec = MxDec / DxDec
-        AxDec[DxDec>0] = MxDec[DxDec>0] / DxDec[DxDec>0]
-        AxDec = np.roll(AxDec, -1, axis = 1)
-        abar = self.interp(Ax, AxDec) * self.isActive()
-        return abar
+    #     AxDec = self.zero()
+    #     # AxDec = MxDec / DxDec
+    #     AxDec[DxDec>0] = MxDec[DxDec>0] / DxDec[DxDec>0]
+    #     AxDec = np.roll(AxDec, -1, axis = 1)
+    #     abar = self.interp(Ax, AxDec) * self.isActive()
+    #     return abar
         
-    def AxInit(self):
-        Dx = self.actu('Dx', 'x')
-        Mx = self.actu('Mx', 'x')
-        abarInit = Mx / Dx
-        return abarInit
+    # def AxInit(self):
+    #     Dx = self.actu('Dx', 'x')
+    #     Mx = self.actu('Mx', 'x')
+    #     abarInit = Mx / Dx
+    #     return abarInit
     
-    def AxFinal(self):
-        Dx = self.actu('Dx', 'n')
-        Mx = self.actu('Mx', 'n')
-        abarInit = Mx / Dx
-        return abarInit
+    # def AxFinal(self):
+    #     Dx = self.actu('Dx', 'n')
+    #     Mx = self.actu('Mx', 'n')
+    #     abarInit = Mx / Dx
+    #     return abarInit
 
 
 # Créer un vecteur permettant d'interpolé les vecteur en fonction de la date début de la police
@@ -374,6 +401,23 @@ class VE(Portfolio):
         resultat = (var * interp) + ((1-interp) * varDec)
         return resultat * self.isActive()
         # return resultat 
+        
+        
+        
+        
+        
+# pol = VE()
+
+# pol.ids([743801])      
+        
+        
+        
+        
+        
+        
+        
+        
+        
 
 # =============================================================================
     ### CALCUL DES SURRENDER
@@ -386,7 +430,8 @@ class VE(Portfolio):
     
     # VAL_SUM_ASSD
     def valSumAssd(self):
-        valSaPP = self.p['PMBCAPIT'].to_numpy()[:,np.newaxis,np.newaxis]*self.one() * self.Ax()
+        # valSaPP = self.p['PMBCAPIT'].to_numpy()[:,np.newaxis,np.newaxis]*self.one() * self.Ax()
+        valSaPP = self.p['PMBCAPIT'].to_numpy()[:,np.newaxis,np.newaxis]*self.one() * self.Ax
         return valSaPP
     
     # VAL_ACCRB_PP - valeur de la PB acquise en début de projection               
@@ -447,7 +492,8 @@ class VE(Portfolio):
     # PR_PURE_PP - Prime pure calcul éronné pour la mod11
     def purePremium(self):
         # purePremium = self.insuredSum() / self.axInit() * self.policeActive()
-        purePremium = self.insuredSum() / self.axInitPrimes() * self.policeActive() * self.payPrimes()
+        # purePremium = self.insuredSum() / self.axInitPrimes() * self.policeActive() * self.payPrimes()
+        purePremium = self.insuredSum() / self.axInitPrimes * self.policeActive() * self.payPrimes()
         
         # calcul erronnée pour la modalité 11, à enlever une fois PGG répliquée:
         insuredSum = self.insuredSum()
@@ -473,7 +519,7 @@ class VE(Portfolio):
         cgSaPriPc = self.cgSaPriPc()
         insuredSum = self.insuredSum()
         policeActive = self.policeActive()
-        aduePolVal = self.aduePolVal()
+        aduePolVal = self.aduePolVal
         
         prInventPp = self.zero()
         
@@ -493,8 +539,8 @@ class VE(Portfolio):
         maskDureeEq99 = dureePayPrimes == 99 
         masDureeNotEq99 = dureePayPrimes != 99
         
-        ax = self.ax()
-        axp = self.axp()
+        ax = self.ax
+        axp = self.axp
         policeActive = self.policeActive()
         
         valNetpFac = self.zero()
@@ -514,7 +560,8 @@ class VE(Portfolio):
         
         # valPolFac = self.ax()
 
-        valPolFac = self.ax()
+        # valPolFac = self.ax()
+        valPolFac = self.ax
 
         # calcul erronnée pour la modalité 11, à enlever une fois PGG répliquée:
         durationIf = self.durationIf()
@@ -592,7 +639,6 @@ class VE(Portfolio):
         noDeaths= self.qxExpMens() * self.nbrPolIfSM *(1 - self.lapse()*self.lapseTiming)
         return noDeaths
 # =============================================================================
-    ### CALCUL DE DEATHOUTGO
 # =============================================================================    
 
     # DEATH_BEN_PP - calcul du death benefit
@@ -831,7 +877,7 @@ pol = VE()
 
 
 # police unique
-pol.ids([743801])
+# pol.ids([743801])
 
 
 # échantillon force F1VE01
@@ -847,7 +893,7 @@ pol.ids([743801])
 # pol.ids([572405, 572503, 731902, 732001, 818202, 889603, 1132602, 1132701, 2211301])
 
 # selection de la modalité
-# pol.mod([1])
+pol.mod([1])
 
 print("Class VE--- %s sec" %'%.2f'%  (time.time() - start_time))
 
