@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import time
 import os, os.path
-from MyPyliferisk import Actuarial, AExn
+from MyPyliferisk import Actuarial
 from MyPyliferisk.mortalitytables import *
 path = os.path.dirname(os.path.abspath(__file__))
 start_time = time.time()
@@ -17,7 +17,8 @@ start_time = time.time()
 ############################################################################################################################
 
 class MI(Portfolio):
-    mods=[2,10,6,7]
+    # mods=[2,10,6,7]
+    mods=[10]
 
 #Products: F1XT_1,F2XT_1,F1XT14,F1XT11
     
@@ -31,32 +32,12 @@ class MI(Portfolio):
              myPortfolioNew=PortfolioNew, mySinistralityNew=SinistralityNew,myLapseNew=LapseNew,myCostNew=CostNew,myRateNew=RateNew)
         self.p=self.mod(self.mods)
         
-        
-        # self.Nx = self.actu('Nx', 'x')
-        # self.Nxn = self.actu('Nx', 'n')
-        # self.Nxt = self.actu('Nx', 't')
-        # # Nxp = self.actu('Nx', 'p')
-        # self.NxDec = self.actu('Nx', 't+1')
-        
-        # self.Dx = self.actu('Dx', 'x')
-        # self.Dxn = self.actu('Dx', 'n')
-        # self.Dxt = self.actu('Dx', 't')
-        # # Dxp = self.actu('Dx', 'p')
-        # self.DxDec = self.actu('Dx', 't+1')
-        
-        # self.Mx = self.actu('Mx', 'x')
-        # self.Mxn = self.actu('Mx', 'n')
-        # self.Mxt = self.actu('Mx', 't')
-        # # Mxp = self.actu('Mx', 'p')
-        # self.MxDec = self.actu('Mx', 't+1')
-
-
 
 
 #Permet de relancer l'update() en intégrant des methodes de la sous-classe
     def update(self,subPortfolio):
         super().update(subPortfolio)
-        # self.commutations()
+        self.commutations()
         self.loopSaving()
         # self.reserve()
         
@@ -65,30 +46,51 @@ class MI(Portfolio):
   
   
 # # Fonction présent dans l'update permettant de chargé une fois tous les symboles de commutation
-    # def commutations(self):
+    def commutations(self):
         
+        Nx = self.actu('Nx', 'x')
+        Nxn = self.actu('Nx', 'n')
+        Nxt = self.actu('Nx', 't')
+        # Nxp = self.actu('Nx', 'p')
+        NxDec = self.actu('Nx', 't+1')
+        
+        Dx = self.actu('Dx', 'x')
+        Dxn = self.actu('Dx', 'n')
+        Dxt = self.actu('Dx', 't')
+        # Dxp = self.actu('Dx', 'p')
+        DxDec = self.actu('Dx', 't+1')
+        
+        Mx = self.actu('Mx', 'x')
+        Mxn = self.actu('Mx', 'n')
+        Mxt = self.actu('Mx', 't')
+        # Mxp = self.actu('Mx', 'p')
+        MxDec = self.actu('Mx', 't+1')
+  
+# AExn endowment insurance
+        
+        AExn = (Mxt - Mxn + Dxn) / Dxt
+        AExn = np.roll(AExn, -1, axis = 1)
+        AExnDec = (MxDec - Mxn + Dxn) / DxDec
+        AExnDec = np.roll(AExnDec, -1, axis = 1)
+        
+        self.AExn = self.interp(AExn, AExnDec)
+  
+# äxn annuity endowment insurance
+
+        axn = (Nxt - Nxn) / Dxt
+        axn = np.roll(axn, -1, axis = 1)
+        axnDec = (NxDec - Nxn) / DxDec
+        axnDec = np.roll(axnDec, -1, axis = 1)
+        
+        self.axn = self.interp(axn, axnDec)
+        
+# AExn initial = Net Single Premium
+
+        self.AExnInit = (Mx - Mxn + Dxn) / Dx
 
         
-    #     self.Nx = self.actu('Nx', 'x')
-    #     self.Nxn = self.actu('Nx', 'n')
-    #     self.Nxt = self.actu('Nx', 't')
-    #     # Nxp = self.actu('Nx', 'p')
-    #     self.NxDec = self.actu('Nx', 't+1')
-        
-    #     self.Dx = self.actu('Dx', 'x')
-    #     self.Dxn = self.actu('Dx', 'n')
-    #     self.Dxt = self.actu('Dx', 't')
-    #     # Dxp = self.actu('Dx', 'p')
-    #     self.DxDec = self.actu('Dx', 't+1')
-        
-    #     self.Mx = self.actu('Mx', 'x')
-    #     self.Mxn = self.actu('Mx', 'n')
-    #     self.Mxt = self.actu('Mx', 't')
-    #     # Mxp = self.actu('Mx', 'p')
-    #     self.MxDec = self.actu('Mx', 't+1')
-  
+
     
-  
 
 
 #Retourne la probabilité de décès d'expérience (FAUSSE DANS PROPHET POUR LES MODALITES 6 ET 7 CAR LA MORTALITE D'EXPERIENCE EST A 100%)
@@ -209,7 +211,7 @@ class MI(Portfolio):
 
         
         # Variable actuarielle
-        AExn = self.AExn()
+        AExn = self.AExn
 
         #Définition du vecteur des maturités (bool)        
         matRate[polTermM+1 ==self.durationIf()]=1 
@@ -225,8 +227,8 @@ class MI(Portfolio):
         valNetPP = self.valNetPrem()
         prInventPP = self.prInventaire()
         alpha = self.p['tauxZill'][:,np.newaxis, np.newaxis]*self.one()  
-        axn = self.axn()
-        valSumAss = self.sumAss() * self.AExn()
+        axn = self.axn
+        valSumAss = self.sumAss() * self.AExn
         provGestPP = self.provGestPP()
         pmFirstYear = self.pmFirstYear()    
         allocMonths = self.allocMonths()
@@ -367,6 +369,19 @@ class MI(Portfolio):
         self.pbAcquPP = pbAcquPP
 
 
+
+        self.pmPourPB = pmPourPB
+        self.pmZillCum = pmZillCum
+        self.provTechPP = provTechPP
+        self.mathResPP = mathResPP
+        self.valAccrbPP = valAccrbPP
+        self.pbIncorPP = pbIncorPP
+        self.pmZillPP = pmZillPP
+        self.valAccrbPP = valAccrbPP
+        self.zill = zill
+        
+        self.zillTot = zillTot
+        self.tierPM = tierPM
         return
 
 
@@ -385,9 +400,7 @@ class MI(Portfolio):
 # Met un vecteur de 1 et 0 (1 si la police possède moins de 12 mois)
     def pmFirstYear(self):
         vec = self.one() * 12
-        
         mask = self.durationIf() <= 12
-        
         vec[mask] = self.durationIf()[mask]
         return vec
 
@@ -403,20 +416,14 @@ class MI(Portfolio):
         
         return mask*1
     
-    
-
-
-
-
+ 
 # Arrondi des tables afin d'obtenir taux pb (table rdt est). Le taux va également dépendre du taux d'intêret
     def txPartPB(self):
         
         rate = (1+self.pbRate())**12 - 1
         rate = (1+rate)**(1/12) - 1
         rate = np.round(rate, decimals = 6)
-        
         txInt = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()/100
-        
         rate = np.maximum(0, rate - txInt)
         
         return rate
@@ -443,17 +450,14 @@ class MI(Portfolio):
     def actu(self, var, x):
         
         table = self.p['POLTBMORT'].unique()
-        
         tbMort = self.p['POLTBMORT']
                
         if x == 'x':
             myAge = self.ageInit().astype(int)
         elif x == 't':
-            myAge = self.age().astype(int) 
-        
+            myAge = self.age().astype(int)  
         elif x == 't+1':
             myAge = self.age().astype(int) + 1
-        
         elif x == 'n':
             myAge = self.ageFinal().astype(int) 
             
@@ -463,90 +467,19 @@ class MI(Portfolio):
         myVarx = self.zero()
         
         for tb in table:
-             
             mask_tableMort = ((tbMort == tb)*self.one()).astype(bool)
-        
+            
             for i in np.nditer(txTechLoop):
-                
                 txInt = i / 100
                 mask_txTech = ((txTech == txInt)*self.one()).astype(bool)
                 mt = Actuarial(nt=eval(tb), i=txInt)
-                
-                aVARx = pd.DataFrame(getattr(mt, var)).to_numpy()
-                    
+                aVARx = pd.DataFrame(getattr(mt, var)).to_numpy()  
                 myAge = np.where(myAge>=mt.w, mt.w-1, myAge)
                 myVarx[mask_txTech & mask_tableMort] = np.take(aVARx, myAge[mask_txTech & mask_tableMort])
           
-        
-            
         return myVarx 
 
 
-
-
-
-
-   
-# AExn Endowment insurance
-    def AExn(self):
-        
-
-        Mx = self.actu('Mx','t')
-        Mxn = self.actu('Mx','n')
-        Dx = self.actu('Dx','t')
-        Dxn = self.actu('Dx','n')
-        
-        AExn = (Mx - Mxn + Dxn) / Dx
-        AExn = np.roll(AExn, -1, axis = 1)
-
-        
-        MxDec = self.actu('Mx','t+1')
-        MxnDec = Mxn
-        DxDec = self.actu('Dx','t+1')
-        DxnDec = Dxn
-        
-        AExnDec = (MxDec - MxnDec + DxnDec) / DxDec
-        AExnDec = np.roll(AExnDec, -1, axis = 1)
-        
-        resultat = self.interp(AExn, AExnDec)
-        
-        return resultat
-    
-    
-    
-# äxn annuity endowment insurance
-    def axn(self):
-        
-        Nxn = self.actu('Nx','n')
-        Nx = self.actu('Nx','t')
-        Dx = self.actu('Dx','t')
-        
-        axn = (Nx - Nxn) / Dx
-        axn = np.roll(axn, -1, axis = 1)
-        
-        NxDec = self.actu('Nx','t+1')
-        DxDec = self.actu('Dx','t+1')
-        
-        axnDec = (NxDec - Nxn) / DxDec
-        axnDec = np.roll(axnDec, -1, axis = 1)
-        
-        resultat = self.interp(axn, axnDec)
-        
-        return resultat
-    
-    
-# AExn initial = Net Single Premium
-    def AExnInit(self):
-
-        Mx = self.actu('Mx','x')
-        Mxn =  self.actu('Mx','n')
-        Dx = self.actu('Dx','x')
-        Dxn =  self.actu('Dx','n')
-        
-        AExn = (Mx - Mxn + Dxn) / Dx
-
-        return AExn
-    
 
 # Créer un vecteur permettant d'interpolé les vecteur en fonction de la date début de la police
     def interp(self, var, varDec):
@@ -558,15 +491,7 @@ class MI(Portfolio):
         
         return resultat * self.isActive()
     
-    
-    
-    
-
-    
-
-
-
-
+   
 # =============================================================================
 # --- CALCUL DES PREMIUMS
 # =============================================================================
@@ -682,7 +607,7 @@ class MI(Portfolio):
     def valNetPrem(self):
         
         premNet = self.prPure()
-        axn = self.axn()
+        axn = self.axn
         valNetPrem = premNet * axn
         return valNetPrem
 
@@ -692,7 +617,7 @@ class MI(Portfolio):
         # mask ici car au moment de l'échéance de la police, le net Single premium = 0 et non Capital
         mask = self.polTermM() > self.durationIf() 
         valSaPP = self.zero()
-        valSaPP[mask] = self.AExn()[mask] * self.sumAss()[mask]
+        valSaPP[mask] = self.AExn[mask] * self.sumAss()[mask]
         return valSaPP
 
 
@@ -731,7 +656,7 @@ class MI(Portfolio):
     def pmgSA(self):
         
         tauxPM =self.p['gestionLoadingSA'][:,np.newaxis, np.newaxis]*self.one()  
-        valPolFac = self.axn()
+        valPolFac = self.axn
         pm = tauxPM * valPolFac 
         return pm
 
@@ -739,7 +664,7 @@ class MI(Portfolio):
 # Provision de gestion calculée sans pb
     def provGestPP(self):
         
-        pm = self.pmgSA()  * self.sumAss() - self.axn() * (self.prInventaire() - self.prPure())
+        pm = self.pmgSA()  * self.sumAss() - self.axn * (self.prInventaire() - self.prPure())
         return pm
 
 
@@ -750,6 +675,13 @@ class MI(Portfolio):
         
         pmIF = self.provGestPP() * self.nbrPolIf
         return pmIF
+    
+# Pb acquise in force (INFORMATIF)
+    def pbAcqIF(self):
+        
+        pb = self.pbAcquPP * self.nbrPolIf
+        
+        return pb
 
 
 # # loop pour calculer les reserves
@@ -1063,14 +995,14 @@ pol = MI()
 
 # pol.ids([829603])
 
-pol.modHead([2],1)
+# pol.modHead([2],1)
 
     ### Mod 2_2 F2XT_1
 # pol.ids([22101])
 # pol.modHead([2],2)
 
     ### Mod 10 F1XT14
-# pol.ids([1602604])
+pol.ids([1602604])
 # pol.mod([10])
 
     ### Mod 6 F1XT11
@@ -1079,7 +1011,7 @@ pol.modHead([2],1)
 # age = pol.age()
 
 
-check = pol.nbrPolIf
+check = pol.valNetPrem()
 # pureprem = pol.purePremium()
 
 # a = pol.p
