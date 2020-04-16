@@ -369,20 +369,38 @@ def tauxZill(p):
     p.loc[ maskTarif & mask,'tauxZill'] = 0.08
 
     # mod1
-    mask=(p['PMBMOD'].isin([2]))
+    mask=(p['PMBMOD'].isin([1]))
     
-    maskTarif = p['POLTARIF'].isin(['H', 'I', 'J', 'L', 'K'])
+    maskTarif = p['POLTARIF'].isin(['A', 'B', 'C', 'D'])
     p.loc[maskTarif & mask,'tauxZill'] = 0.05
     
-    maskTarif = p['POLTARIF'].isin(['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+    maskTarif = p['POLTARIF'].isin(['H', 'I', 'J'])
     p.loc[ maskTarif & mask,'tauxZill'] = 0.08
     
     # mod11
-    mask=(p['PMBMOD'].isin([2]))
+    mask=(p['PMBMOD'].isin([11]))
     
-    maskTarif = p['POLTARIF'].isin(['H', 'I', 'J', 'L', 'K'])
+    maskTarif = p['POLTARIF'].isin(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7'])
     p.loc[maskTarif & mask,'tauxZill'] = 0.05
 
+    p['tauxZill'] = p['tauxZill'].fillna(0)
+
+def fraisGestionSumAss(p):
+
+    # Mod11
+    mask=(p['PMBMOD'].isin([1, 11]))   
+    p.loc[(p['Age1AtEntry'] < 53) & (mask), 'fraisGestDureePrimesSA'] = 0.0035
+    p.loc[(p['Age1AtEntry'] < 53) & (mask), 'fraisGestDureePoliceSA'] = 0.0025
+    
+    p.loc[(p['Age1AtEntry'] >=53) & (p['Age1AtEntry'] < 70) & (mask), 'fraisGestDureePrimesSA'] = 0.0055
+    p.loc[(p['Age1AtEntry'] >=53) & (p['Age1AtEntry'] < 70) & (mask), 'fraisGestDureePoliceSA'] = 0.0045
+    
+    p.loc[(p['Age1AtEntry'] >= 70) & (mask), 'fraisGestDureePrimesSA'] = 0.012
+    p.loc[(p['Age1AtEntry'] >= 70) & (mask), 'fraisGestDureePoliceSA'] = 0.009
+    
+    p['fraisGestDureePrimesSA'] = p['fraisGestDureePrimesSA'].fillna(0)
+    p['fraisGestDureePoliceSA'] = p['fraisGestDureePoliceSA'].fillna(0)
+    
 
 
 # =============================================================================
@@ -583,7 +601,11 @@ def portfolioPreProcessing(p):
     # Ajustement des fractionnements pour des polices avec frac = 0 (réduites)
     adjustedFracAndPremium(p)
     
+    # Mise à jour de la zillmérisation
+    tauxZill(p)
     
+    # Fonction des frais de gestion
+    fraisGestionSumAss(p)
 
     return p
 
