@@ -163,18 +163,6 @@ class VE(Portfolio):
     ### FONCTIONS ACTUARIELLES
 # =============================================================================       
     
-    def ageInit(self):
-        age = (self.p['Age1AtEntry'].to_numpy()[:,np.newaxis,np.newaxis]*self.one())
-        return age
-    
-    def ageFinal(self):
-        age = ((self.p['Age1AtEntry'] + (self.p['residualTermM'] + self.p['DurationIfInitial'])/12).to_numpy()[:,np.newaxis,np.newaxis]*self.one())
-        return age
-    
-    def agePrimes(self):
-        age = ((self.p['Age1AtEntry'].to_numpy() + self.p['POLDURP'].to_numpy())[:,np.newaxis,np.newaxis]*self.one())
-        return age
-        
     # Fonction qui sert à retourner les valeurs actuarielles, Ax, ax, etc.
     def commutations(self):
         
@@ -229,52 +217,6 @@ class VE(Portfolio):
         self.aduePolVal = aduePolVal
         self.axInitPrimes = axInitPrimes
       
-         
- # Fonction générique actuarielle
-    def actu(self, var, x):
-        
-        table = self.p['POLTBMORT'].unique()
-        tbMort = self.p['POLTBMORT']
-               
-        if x == 'x':
-            myAge = self.ageInit().astype(int)
-        elif x == 't':
-            myAge = self.age().astype(int) 
-        elif x == 't+1':
-            myAge = self.age().astype(int) + 1
-        elif x == 'n':
-            myAge = self.ageFinal().astype(int) 
-        elif x == 'p':
-            myAge = self.agePrimes().astype(int)
-       
-        txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis] / 100
-        txTechLoop = np.unique(self.p['PMBTXINT'].to_numpy())
-        tbMort = tbMort[:,np.newaxis,np.newaxis]
-        myVarx = self.zero()
-        one = self.one()
-        zero = self.zero()
-        
-        for tb in table:
-            mask_tableMort = ((tbMort == tb)*one).astype(bool)
-            for i in np.nditer(txTechLoop):
-                txInt = i / 100
-                mask_txTech = ((txTech == txInt)*one).astype(bool)
-                mt = Actuarial(nt=eval(tb), i=txInt)
-                aVARx = pd.DataFrame(getattr(mt, var)).to_numpy()
-                myAge2 = np.where(myAge>=mt.w, mt.w, myAge)
-                myVarx[mask_txTech & mask_tableMort] = np.take(aVARx, myAge2[mask_txTech & mask_tableMort])
-                myVarx[mask_txTech & mask_tableMort & (myAge>mt.w)] = zero[mask_txTech & mask_tableMort & (myAge>mt.w)]
-        return myVarx      
-   
-# Créer un vecteur permettant d'interpolé les vecteur en fonction de la date début de la police
-    def interp(self, var, varDec):
-        dur = self.durationIf()
-        interp = np.int16(dur/12) + 1-(dur/12)
-        resultat = (var * interp) + ((1-interp) * varDec)
-        return resultat * self.isActive()
-        # return resultat 
-        
-
 # =============================================================================
     ### CALCUL DES SURRENDER
 # =============================================================================
@@ -414,9 +356,6 @@ class VE(Portfolio):
     # VAL_POL_FAC - durée restante mensuelle, ne dépend pas des primes
     def valPolFac(self):
         
-        # valPolFac = self.ax()
-
-        # valPolFac = self.ax()
         valPolFac = self.ax
 
         # calcul erronnée pour la modalité 11, à enlever une fois PGG répliquée:
@@ -426,17 +365,7 @@ class VE(Portfolio):
     
     # VAL_ZILL_PP - valeur de zillmérisation    
     def valZillPP(self):
-        
-        
-        self.p['POLDTDEB'] = pd.to_datetime(self.p['POLDTDEB'])
-        self.p['ANDEBUT'] = self.p['POLDTDEB'].dt.year
-        anDebut = self.p['ANDEBUT'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
-        
-        valZillPC = self.zero()
-        # valZillPC = (5/100) * self.one()
-        
-        valZillPC[anDebut<2011] = (8/100) * self.one()[anDebut<2011]
-        valZillPC[anDebut>=2011] = (5/100) * self.one()[anDebut>=2011]
+        valZillPC = self.p['tauxZill'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
         
         ValZillPP = np.minimum(valZillPC * self.prInventPP() * self.valNetpFac(), self.valSumAssd() - self.valNetpPP() + self.provGestPP())
         # ValZillPP = np.minimum(valZillPC * self.prInventPP() * self.valNetpFac(), self.insuredSum() - self.valNetpPP() + self.provGestPP())
@@ -444,42 +373,38 @@ class VE(Portfolio):
     
     # MATH_RES_BA - provision mathématique 
     def mathResBa(self):
+    
+        mathResBa = self.zero()
+        
+        mask11 = self.p['PMBMOD'].isin([11])
+        mask01 = self.p['PMBMOD'].isin([1])
         
         # pour la 11:
-        # mathResBa = np.maximum(self.insuredSum() + self.valAccrbPP() + self.provGestPP() + self.valPrecPP() - self.valNetpPP() - self.valZillPP(), 0)
+        # mathResBa[(self.mask([11]))] = np.maximum(self.insuredSum()[(self.mask([11]))] + self.valAccrbPP()[(self.mask([11]))] + self.provGestPP()[(self.mask([11]))] + self.valPrecPP()[(self.mask([11]))] - self.valNetpPP()[(self.mask([11]))] - self.valZillPP()[(self.mask([11]))], 0)
+        mathResBa[mask11] = np.maximum(self.insuredSum()[mask11] + self.valAccrbPP()[mask11] + self.provGestPP()[mask11] + self.valPrecPP()[mask11] - self.valNetpPP()[mask11] - self.valZillPP()[mask11], 0)
         
         # pour la 01:
-        mathResBa = np.maximum(self.valSumAssd()  + self.valPrecPP() - self.valNetpPP() + self.provGestPP() - self.valZillPP(), 0)
+        # mathResBa[(self.mask([1]))] = np.maximum(self.valSumAssd()[(self.mask([1]))] + self.valPrecPP()[(self.mask([1]))] - self.valNetpPP()[(self.mask([1]))] + self.provGestPP()[(self.mask([1]))] - self.valZillPP()[(self.mask([1]))], 0)
+        mathResBa[mask01] = np.maximum(self.valSumAssd()[mask01] + self.valPrecPP()[mask01] - self.valNetpPP()[mask01] + self.provGestPP()[mask01] - self.valZillPP()[mask01], 0)
         
+        
+        # mathResBa = np.maximum(self.insuredSum() + self.valAccrbPP() + self.provGestPP() + self.valPrecPP() - self.valNetpPP() - self.valZillPP(), 0)
+        # mathResBa = np.maximum(self.valSumAssd() + self.valPrecPP() - self.valNetpPP() + self.provGestPP() - self.valZillPP(), 0)
         
         return mathResBa
     
 # =============================================================================
-    ### FRAIS -> INTEGRER PTF
+    ### DECLARATION DES FRAIS
 # =============================================================================
 
     # Frais sur durée due la police
     def cgSaPolPc(self):
-        # conditions = [(self.p['Age1AtEntry'] < 53), (self.p['Age1AtEntry'] < 70)]
-        # result =[(0.25), (0.45)]
-        # sinon = (0.9)
-        # cgSaPolPc = np.select(conditions,result,sinon)[:,np.newaxis,np.newaxis] * self.one()
-        
-        
         cgSaPolPc = self.p['fraisGestDureePoliceSA'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
-        
         return cgSaPolPc
     
     # Frais sur durée du paiement des primes
     def cgSaPriPc(self):
-        # conditions = [(self.p['Age1AtEntry'] < 53), (self.p['Age1AtEntry'] < 70)]
-        # result =[(0.35), (0.55)]
-        # sinon = (1.2)
-        # cgSaPriPc = np.select(conditions,result,sinon)[:,np.newaxis,np.newaxis] * self.one()
-        
-        
         cgSaPriPc = self.p['fraisGestDureePrimesSA'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
-        
         return cgSaPriPc
     
 # =============================================================================
@@ -487,9 +412,9 @@ class VE(Portfolio):
 # =============================================================================
 
     # NO_SURRS - nombre de surrenders - a priori à effacer après vérification
-    def numberSurrenders(self):
-        noSurrs = self.nbrPolIfSM * self.lapse() * (1-self.lapseTiming*self.qxExpMens())
-        return noSurrs
+    # def numberSurrenders(self):
+    #     noSurrs = self.nbrPolIfSM * self.lapse() * (1 - self.lapseTiming * self.qxExpMens())
+    #     return noSurrs
     
     # Prime totale, doublon à effecer après avoir corrigé les références
     def primeTotale(self):
@@ -498,9 +423,9 @@ class VE(Portfolio):
         return primeTotale 
 
     # NO_DEATHS - nombre de morts
-    def numberDeaths(self):
-        noDeaths= self.qxExpMens() * self.nbrPolIfSM *(1 - self.lapse()*self.lapseTiming)
-        return noDeaths
+    # def numberDeaths(self):
+    #     noDeaths= self.qxExpMens() * self.nbrPolIfSM * (1 - self.lapse() * self.lapseTiming)
+    #     return noDeaths
 # =============================================================================
 # =============================================================================    
 
@@ -563,7 +488,7 @@ class VE(Portfolio):
 
         # fonction existantes
         fMathResIf = self.fMathResIf()
-        riderCoutgo = self.ridercOutgo()
+        riderCoutgo = self.claimCompl()
         premInc = self.totalPremium()
         # mathResPP = self.mathResBa()
         # pupMathRes = self.pupMathRes()
@@ -630,30 +555,25 @@ class VE(Portfolio):
 # =============================================================================
     ### CALCUL DES CLAIMS   
 # =============================================================================
-    def surrOutgo(self):
+    
+    # SURRENDER_OUTGO - Claims réductions
+    def surrender(self):
         conditions = [(self.durationIf()>36)]
-        result =[(self.mathResBa() * self.numberSurrenders())]
+        result =[(self.mathResBa() * self.nbrSurrender)]
         sinon = 0
         surrOutgo = np.select(conditions,result,sinon)
         
         # surrOutgo = self.mathResBa() * self.numberSurrenders()
         return surrOutgo
     
-    def deathOutgo(self):
-        deathOutgo = self.deathBenefit() * self.numberDeaths()
+    # DEATH_OUTGO - Claims garantie principale
+    def claimPrincipal(self):
+        deathOutgo = self.deathBenefit() * self.nbrDeath
         return deathOutgo
     
-    def ridercOutgo(self):
-        
-        # old code 
-        # situation = self.p['POLSIT'][:,np.newaxis,np.newaxis]
-        # conditions = [(self.age() <= 85) & (situation != 4) & (situation != 8) & (situation != 9)]
-        # # Attention:
-        # result =[(self.totalPremium() * self.dcAccident())]
-        # # Faux, il ne faut pas prendre la prime totale mais la prime accident
-        # sinon = 0
-        # ridercOutgo = np.select(conditions,result,sinon)
-        
+    # RIDERC_OUTGO - Claims complémentaires
+    def claimCompl(self):
+    
         totalPremium = self.totalPremium()
         cpl3 = (self.p['POLPRCPL3'])[:,np.newaxis,np.newaxis]/self.frac()
         dcAccident = self.dcAccident()    
@@ -694,12 +614,12 @@ class VE(Portfolio):
 
 
 #Retourne le total des prestations payés 
-    def totalClaim(self):
-        return self.deathOutgo() + self.ridercOutgo() + self.surrOutgo()
+    # def totalClaim(self):
+        # return self.totalClaim()
 
 #Retourne le total des commissions payées
     # def totalCommissions(self):
-    #     return self.totalPremium() * self.commissions()
+        # return self.totalCommissions()
 
 #Retourne les dépense totales 
     def totalExpense(self):
@@ -707,24 +627,6 @@ class VE(Portfolio):
         totalExpense = self.totExp
         return totalExpense
 
-# =============================================================================
-    # --- Calcul du BEL   
-# =============================================================================
-    # def BEL(self):
-        
-    #     interestRates=1+self.rate()       
-    #     premium=self.totalPremium()
-    #     claim=self.totalClaim()
-    #     expense=self.totalExpense()
-    #     commission=self.totalCommissions()
-        
-    #     bel=self.zero()
-              
-    #     for t in range(1,self.shape[1]+1):
-    #         bel[:,-t,:]=(bel[:,-t+1,:]+claim[:,-t+1,:]+expense[:,-t+1,:]+commission[:,-t+1,:]-premium[:,-t+1,:])/interestRates[:,-t+1,:]
-    
-    
-    #     return bel
 
 # définition de pol
 pol = VE()
@@ -740,7 +642,7 @@ pol = VE()
 
 
 # police unique
-# pol.ids([743801])
+pol.ids([743801])
 
 
 # échantillon force F1VE01
@@ -761,12 +663,9 @@ pol = VE()
 print("Class VE--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 
-
-
-
 x = pol.p
 x.to_excel(path+'/zFT/ptf.xlsx')
-monCas = pol.numberSurrenders()
+monCas = pol.totalClaim()
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])

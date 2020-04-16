@@ -255,7 +255,7 @@ class Portfolio(Hypo):
 #Retourne le total des prestations payées  
     def totalClaim(self):  
         return self.claimPrincipal() + self.claimCompl()\
-            +self.surrender() + self.partialSurrender()+self.maturity()
+            + self.surrender() + self.partialSurrender() + self.maturity()
 
 
 #Retourne le total des commissions payées
