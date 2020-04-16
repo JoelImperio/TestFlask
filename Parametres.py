@@ -177,6 +177,11 @@ def premiumAquisitionLoading(p):
     maskTarif = p['POLTARIF'].isin(['J3'])
     p.loc[maskTarif & mask,'aquisitionLoading'] = 0
     
+    
+    # Mixte mod 7
+    mask = (p['PMBMOD'].isin([7]))
+    p.loc[mask,'aquisitionLoading'] = 0
+    
 
     p['aquisitionLoading'].fillna(0,inplace=True)
     p['aquisitionLoadingYear2'].fillna(0,inplace=True)
@@ -233,8 +238,18 @@ def fraisGestionSumAss(p):
     maskTarif = p['POLTARIF'].isin(['H', 'I', 'J', 'L', 'K'])
     p.loc[maskTarif & mask,'gestionLoadingSA'] = 0.0039
 
-
- 
+    # mod10
+    mask=(p['PMBMOD'].isin([10]))
+    p.loc[mask,'gestionLoadingSA'] = 0.0039
+    
+    
+    # mod6
+    mask=(p['PMBMOD'].isin([6]))
+    p.loc[mask,'gestionLoadingSA'] = 0.006
+    
+    # mod7
+    mask=(p['PMBMOD'].isin([7]))
+    p.loc[mask,'gestionLoadingSA'] = 0
     
 def tauxZill(p):
     
@@ -248,7 +263,16 @@ def tauxZill(p):
     maskTarif = p['POLTARIF'].isin(['A', 'B', 'C', 'D', 'E', 'F', 'G'])
     p.loc[ maskTarif & mask,'tauxZill'] = 0.08
     
+    # mod10
+    mask=(p['PMBMOD'].isin([10]))
+    p.loc[mask,'tauxZill'] = 0.05
+     
+    # mod6 et 7
+    mask=(p['PMBMOD'].isin([6, 7]))
+    p.loc[mask,'tauxZill'] = 0
+    
 
+    
     
     
 ##############################################################################################################################

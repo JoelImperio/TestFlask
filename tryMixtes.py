@@ -12,13 +12,13 @@ path = os.path.dirname(os.path.abspath(__file__))
 start_time = time.time()
 
 
-##############################################################################################################################
-#Création de la class Epargne
-############################################################################################################################
+# =============================================================================
+# Création de la class Epargne
+# =============================================================================
 
 class MI(Portfolio):
     # mods=[2,10,6,7]
-    mods=[10]
+    # mods=[10]
 
 #Products: F1XT_1,F2XT_1,F1XT14,F1XT11
     
@@ -30,21 +30,16 @@ class MI(Portfolio):
                  PortfolioNew=True, SinistralityNew=True,LapseNew=True,CostNew=True,RateNew=True ):
         super().__init__(runs=run,\
              myPortfolioNew=PortfolioNew, mySinistralityNew=SinistralityNew,myLapseNew=LapseNew,myCostNew=CostNew,myRateNew=RateNew)
-        self.p=self.mod(self.mods)
+        # self.p=self.mod(self.mods)
         
-
 
 #Permet de relancer l'update() en intégrant des methodes de la sous-classe
     def update(self,subPortfolio):
         super().update(subPortfolio)
         self.commutations()
         self.loopSaving()
-        # self.reserve()
-        
-  
-        
-  
-  
+
+
 # # Fonction présent dans l'update permettant de chargé une fois tous les symboles de commutation
     def commutations(self):
         
@@ -67,48 +62,44 @@ class MI(Portfolio):
         MxDec = self.actu('Mx', 't+1')
   
 # AExn endowment insurance
-        
-        AExn = (Mxt - Mxn + Dxn) / Dxt
+        AExn = self.zero()
+        AExn[Dxt>0] = (Mxt[Dxt>0] - Mxn[Dxt>0] + Dxn[Dxt>0]) / Dxt[Dxt>0]
         AExn = np.roll(AExn, -1, axis = 1)
-        AExnDec = (MxDec - Mxn + Dxn) / DxDec
+        
+        AExnDec = self.zero()
+        AExnDec[DxDec>0] = (MxDec[DxDec>0] - Mxn[DxDec>0] + Dxn[DxDec>0]) / DxDec[DxDec>0]
         AExnDec = np.roll(AExnDec, -1, axis = 1)
         
         self.AExn = self.interp(AExn, AExnDec)
   
 # äxn annuity endowment insurance
-
-        axn = (Nxt - Nxn) / Dxt
+        axn = self.zero()
+        axn[Dxt>0] = (Nxt[Dxt>0] - Nxn[Dxt>0]) / Dxt[Dxt>0]
         axn = np.roll(axn, -1, axis = 1)
-        axnDec = (NxDec - Nxn) / DxDec
+        
+        axnDec = self.zero()
+        axnDec[DxDec>0] = (NxDec[DxDec>0] - Nxn[DxDec>0]) / DxDec[DxDec>0]
         axnDec = np.roll(axnDec, -1, axis = 1)
         
         self.axn = self.interp(axn, axnDec)
         
-# AExn initial = Net Single Premium
+# # AExn initial = Net Single Premium
 
-        self.AExnInit = (Mx - Mxn + Dxn) / Dx
+#         self.AExnInit = (Mx - Mxn + Dxn) / Dx
 
         
-
-    
-
 
 #Retourne la probabilité de décès d'expérience (FAUSSE DANS PROPHET POUR LES MODALITES 6 ET 7 CAR LA MORTALITE D'EXPERIENCE EST A 100%)
     def qxExp(self,assExp=1):
         
         mortExp = self.dc()
-        
         # On ajuste la mortalité d'expérience pour modalité 6 et 7 (A SUPPRIMER POUR CORRIGER)
         mod = self.p['PMBMOD'].to_numpy()[:,np.newaxis,np.newaxis]  * self.one()
         mask = ((mod == 7) | (mod == 6))
         mortExp[mask] = 1
-        
         myQx=self.qx(ass=assExp)*mortExp
         
         return np.copy(myQx)
-
-
-
 
 
 #Retourne les taux de rachat selon le fractionnement. Les taux apparaissent uniquement le mois avant un paiement de prime
@@ -155,11 +146,7 @@ class MI(Portfolio):
         frac[frac==0]=12
         mylapse=1-(1-mylapse)**(1/frac)
         
-       
-        
         return mylapse
-
-
 
 
 #Cette Loop renvoie l'ensemble des variables récusrives pour les produits épargnes
@@ -170,7 +157,6 @@ class MI(Portfolio):
         nbrPolIf = self.age() < 999
         nbrPolIf = nbrPolIf * self.one()
         
-        # nbrPolIf = self.one()
         nbrPolIfSM=self.zero()
         nbrDeath=self.zero()
         nbrSurrender=self.zero()
@@ -185,41 +171,29 @@ class MI(Portfolio):
         nbrPupIfSM=self.zero()
         nbrPupMaturities=self.zero()
 
-
-     
-        
-     
 #Variables biométriques et génériques
         lapseTiming=0.5
         polTermM=self.polTermM()       
         lapseD=lapseTiming * self.lapse()
         lapse = self.lapse()        
         reduction = self.reduction()    
-        
-
         qxy = self.qxExpMens() 
         qx = self.qxExp()
         
     # Modification les mixtes 2 tetes sont en fait calculée en fonction de l'assuré 1 (Ce qui est faux) (A MODIFIER)
         mask = (((self.p['PMBMOD']==2) & (self.p['POLNBTETE']==2))).astype(bool)
-   
-
         qxy[mask] = qx[mask] + qx[mask] - qx[mask]*qx[mask]
         qxy[mask] = 1-(1-qxy[mask])**(1/12)
         qxyD = lapseTiming * qxy
         txInteret = self.txInt()
 
-        
         # Variable actuarielle
         AExn = self.AExn
 
         #Définition du vecteur des maturités (bool)        
         matRate[polTermM+1 ==self.durationIf()]=1 
         
-        
-        
-# Déclaration des variables pour le calcul des PM
-                    
+# Déclaration des variables pour le calcul des PM        
         # Variable existante
         zill = self.zero()
         precPP = self.precPP()
@@ -250,13 +224,13 @@ class MI(Portfolio):
         tierPM = self.zero()
         zillTot = self.zero()
         
-        
-        
+
         # Calcul des PM au temps 0 
+        valAccrbPP[:,0,:] = pbAcquPP[:,0,:] * AExn[:,0,:] 
+        
         tierPM[:,0,:] = (1/3) * np.maximum(valSaPP[:,0,:] + valAccrbPP[:,0,:] + provGestPP[:,0,:] + precPP[:,0,:] - valNetPP[:,0,:], 0)
             
         zillTot[:,0,:] = np.minimum(alpha[:,0,:] * prInventPP[:,0,:] * axn[:,0,:], np.maximum(valSumAss[:,0,:] - valNetPP[:,0,:] + provGestPP[:,0,:], 0))
-            
             
         zill[:,0,:] = np.where(tierPM[:,0,:] <= zillTot[:,0,:], tierPM[:,0,:], zillTot[:,0,:])
         
@@ -267,7 +241,6 @@ class MI(Portfolio):
         pmZillPP[:,0,:] = provTechPP[:,0,:] - zill[:,0,:]
         
         
-            
         for i in range(1,self.shape[1]):
 
 #Définition des variables des actifs            
@@ -292,8 +265,6 @@ class MI(Portfolio):
             nbrPupSurrender[:,i,:]=nbrPupIfSM[:,i,:]*lapse[:,i,:]*(1-(lapseTiming*qxy[:,i,:]))
             
             nbrPupsIf[:,i,:]=nbrPupsIf[:,i-1,:]-nbrPupDeath[:,i,:]-nbrPupSurrender[:,i,:] - nbrPupMaturities[:,i,:] + nbrNewRed[:,i,:]
-
-
 
 
 # Variable permettant le calcul des reserves
@@ -321,14 +292,11 @@ class MI(Portfolio):
             
             pmZillCum[:,i,:] = pmZillPP[:,i,:] + (1-allocMonths[:,i-1,:]) * pmZillCum[:,i-1,:]
             
-            
             pmPourPB[:,i,:] = (pmZillCum[:,i,:] / 12) * allocMonths[:,i,:]
-            
             
             pbCalpTEMP = pmPourPB[:,i,:] * txPartPB[:,i,:] * (pmFirstYear[:,i,:] / 12)
             
             pbCalcPP[:,i,:] = np.divide( pbCalpTEMP, AExn[:,i,:], out=np.zeros_like(pbCalpTEMP), where=AExn[:,i,:]!=0 ) * allocMonths[:,i,:]
-
 
 
 
@@ -369,7 +337,6 @@ class MI(Portfolio):
         self.pbAcquPP = pbAcquPP
 
 
-
         self.pmPourPB = pmPourPB
         self.pmZillCum = pmZillCum
         self.provTechPP = provTechPP
@@ -379,14 +346,8 @@ class MI(Portfolio):
         self.pmZillPP = pmZillPP
         self.valAccrbPP = valAccrbPP
         self.zill = zill
-        
         self.zillTot = zillTot
         self.tierPM = tierPM
-        return
-
-
-    
-
 
 # Vecteur de 1 et 0 permettant de savoir si police toujours active ou non
     def isActive(self):
@@ -396,7 +357,6 @@ class MI(Portfolio):
         mask = moisRestant >= increment
         return mask
 
-
 # Met un vecteur de 1 et 0 (1 si la police possède moins de 12 mois)
     def pmFirstYear(self):
         vec = self.one() * 12
@@ -404,38 +364,28 @@ class MI(Portfolio):
         vec[mask] = self.durationIf()[mask]
         return vec
 
-
-
 # Retourne un vecteur de 1 et 0, Met des 1 pour le mois de janvier (là ou la PB est versée)
     def allocMonths(self):
-
         calendarMonth=np.arange(start=self.p['DateCalcul'].dt.month.values[0].astype(int),stop=(self.shape[1]+self.p['DateCalcul'].dt.month.values[0].astype(int)))
         calendarMonth=calendarMonth%12 + 1
         calendarMonth=calendarMonth[np.newaxis,:,np.newaxis]*self.one()        
         mask = calendarMonth ==1
-        
         return mask*1
     
  
 # Arrondi des tables afin d'obtenir taux pb (table rdt est). Le taux va également dépendre du taux d'intêret
     def txPartPB(self):
-        
         rate = (1+self.pbRate())**12 - 1
         rate = (1+rate)**(1/12) - 1
         rate = np.round(rate, decimals = 6)
         txInt = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()/100
         rate = np.maximum(0, rate - txInt)
-        
         return rate
     
-
-
-
 # =============================================================================
     ### FONCTIONS ACTUARIELLES
 # =============================================================================       
     
-
     def ageInit(self):
         age = (self.p['Age1AtEntry'].to_numpy()[:,np.newaxis,np.newaxis]*self.one())
         return age
@@ -444,9 +394,41 @@ class MI(Portfolio):
         age = ((self.p['Age1AtEntry'] + (self.p['residualTermM'] + self.p['DurationIfInitial'])/12).to_numpy()[:,np.newaxis,np.newaxis]*self.one())
         return age
         
-    
-    
  # Fonction générique actuarielle
+    # def actu(self, var, x):
+        
+    #     table = self.p['POLTBMORT'].unique()
+    #     tbMort = self.p['POLTBMORT']
+               
+    #     if x == 'x':
+    #         myAge = self.ageInit().astype(int)
+    #     elif x == 't':
+    #         myAge = self.age().astype(int)  
+    #     elif x == 't+1':
+    #         myAge = self.age().astype(int) + 1
+    #     elif x == 'n':
+    #         myAge = self.ageFinal().astype(int) 
+            
+    #     txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis]/100
+    #     txTechLoop = np.unique(self.p['PMBTXINT'].to_numpy())
+    #     tbMort = tbMort[:,np.newaxis,np.newaxis]
+    #     myVarx = self.zero()
+        
+    #     for tb in table:
+    #         mask_tableMort = ((tbMort == tb)*self.one()).astype(bool)
+            
+    #         for i in np.nditer(txTechLoop):
+    #             txInt = i / 100
+    #             mask_txTech = ((txTech == txInt)*self.one()).astype(bool)
+    #             mt = Actuarial(nt=eval(tb), i=txInt)
+    #             aVARx = pd.DataFrame(getattr(mt, var)).to_numpy()  
+    #             myAge = np.where(myAge>=mt.w, mt.w-1, myAge)
+    #             myVarx[mask_txTech & mask_tableMort] = np.take(aVARx, myAge[mask_txTech & mask_tableMort])
+          
+    #     return myVarx 
+
+
+
     def actu(self, var, x):
         
         table = self.p['POLTBMORT'].unique()
@@ -455,47 +437,48 @@ class MI(Portfolio):
         if x == 'x':
             myAge = self.ageInit().astype(int)
         elif x == 't':
-            myAge = self.age().astype(int)  
+            myAge = self.age().astype(int) 
         elif x == 't+1':
             myAge = self.age().astype(int) + 1
         elif x == 'n':
             myAge = self.ageFinal().astype(int) 
-            
-        txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis]/100
+        elif x == 'p':
+            myAge = self.agePrimes().astype(int)
+       
+        txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis] / 100
         txTechLoop = np.unique(self.p['PMBTXINT'].to_numpy())
         tbMort = tbMort[:,np.newaxis,np.newaxis]
         myVarx = self.zero()
+        one = self.one()
+        zero = self.zero()
         
         for tb in table:
-            mask_tableMort = ((tbMort == tb)*self.one()).astype(bool)
-            
+            mask_tableMort = ((tbMort == tb)*one).astype(bool)
             for i in np.nditer(txTechLoop):
                 txInt = i / 100
-                mask_txTech = ((txTech == txInt)*self.one()).astype(bool)
+                mask_txTech = ((txTech == txInt)*one).astype(bool)
                 mt = Actuarial(nt=eval(tb), i=txInt)
-                aVARx = pd.DataFrame(getattr(mt, var)).to_numpy()  
-                myAge = np.where(myAge>=mt.w, mt.w-1, myAge)
-                myVarx[mask_txTech & mask_tableMort] = np.take(aVARx, myAge[mask_txTech & mask_tableMort])
-          
-        return myVarx 
+                aVARx = pd.DataFrame(getattr(mt, var)).to_numpy()
+                myAge2 = np.where(myAge>=mt.w, mt.w, myAge)
+                myVarx[mask_txTech & mask_tableMort] = np.take(aVARx, myAge2[mask_txTech & mask_tableMort])
+                myVarx[mask_txTech & mask_tableMort & (myAge>mt.w)] = zero[mask_txTech & mask_tableMort & (myAge>mt.w)]
+        return myVarx    
+
+
+
 
 
 
 # Créer un vecteur permettant d'interpolé les vecteur en fonction de la date début de la police
     def interp(self, var, varDec):
-        
         dur = self.durationIf()
         interp = np.int16(dur/12) + 1-(dur/12)
-        
         resultat = (var * interp) + ((1-interp) * varDec)
-        
         return resultat * self.isActive()
     
-   
 # =============================================================================
 # --- CALCUL DES PREMIUMS
 # =============================================================================
-
 
 # Prime complémentaire qui va dépendre de la modalité et du tarif
     def annRider(self):
@@ -507,20 +490,17 @@ class MI(Portfolio):
         # Prime complémentaire pour les taux d'interet inférieur à 2.5 et age dépassant 65
         primeCompl2 = (self.p['POLPRCPL3'] + self.p['POLPRCPL4'] + self.p['POLPRCPL9'])
         
-        
         # prime complémentaire pour les produits mixtes à 2 têtes (A SUPPRIMER POUR CORRIGER)
         mask22 = (self.p['POLNBTETE'] == 2)
         primeCompl[mask22] = (self.p['POLPRCPL1'] + self.p['POLPRCPL3'] + self.p['POLPRCPL4'] + self.p['POLPRCPL5'] + self.p['POLPRCPL6'])[mask22]   
         primeCompl2[mask22] = (self.p['POLPRCPL3'] + self.p['POLPRCPL4'])[mask22]
         
-        
         # prime complémentaire pour pour les modalités 10
         mask10 = (self.p['PMBMOD'] == 10)
         primeCompl[mask10] = (self.p['POLPRCPL1'] + self.p['POLPRCPL3'] + self.p['POLPRCPL4'] + self.p['POLPRCPL5'] \
                               + self.p['POLPRCPL6'] + self.p['POLPRCPL8'] + self.p['POLPRCPL9'])[mask10]   
+            
         primeCompl2[mask10] = primeCompl[mask10]
-        
-        
         primeCompl = primeCompl[:,np.newaxis,np.newaxis] * self.one()
         primeCompl2 = primeCompl2[:,np.newaxis,np.newaxis] * self.one()
         
@@ -532,34 +512,21 @@ class MI(Portfolio):
         maskCPL2 = (self.age() <= self.ageLimiteCPL2).astype(bool)
   
         total = self.zero()
-        
-        
         conditions = [ maskA * maskCPL1, maskA * maskCPL2, maskB * maskCPL1  ]
         choices = [ primeCompl, primeCompl2, primeCompl]
-        
         total = np.select(conditions, choices, default=0)
        
         return total
-
-
 
 #Retourne les primes totales perçues
     def totalPremium(self):
         premInc=((self.p['POLPRVIEHT'] - self.p['POLPRCPLA'])[:,np.newaxis,np.newaxis])/self.frac()
         premCompl = self.annRider() / self.frac()
-
         prem=(premInc*self.indexation() + premCompl) * self.nbrPolIfSM * self.isPremPay()
-        
         # prime à 0 pour les modalités 6 et 7
         mask67 = self.mask([6,7])
         prem[mask67] = 0
-   
         return prem
-
-
-
-
-
 
 # =============================================================================
 # --- CALCUL DES CLAIMS
@@ -567,120 +534,88 @@ class MI(Portfolio):
 
 # retourne la somme assurée avec le bon format
     def sumAss(self):
-        
         sumAss = self.p['PMBCAPIT'][:,np.newaxis, np.newaxis]*self.one()   
         return sumAss
 
-
-
 # Calcul des primes d'inventaire annuelle (PA'')
     def prInventaire(self):
-        
         loading = self.p['aquisitionLoading'][:,np.newaxis, np.newaxis]*self.one()   
         fraisFract = self.p['fraisFract'][:,np.newaxis, np.newaxis]*self.one()   
         premInc=((self.p['POLPRVIEHT'] - self.p['POLPRCPLA'])[:,np.newaxis,np.newaxis])
         premInc = premInc * self.indexation()
         prInventaire = premInc * (1-loading) / fraisFract
         
-        mask = (self.p['POLSIT']==4) | (self.p['POLSIT']==9) 
+        # Modalité 10 ont une prime d'inventaire de 0 (A SUPPRIMER POUR CORRIGER)
+        mask = (self.p['POLSIT']==4) | (self.p['POLSIT']==9) | (self.p['PMBMOD'].isin([10])) 
         prInventaire[mask] = self.zero()[mask]
-        
         return prInventaire
         
-  
-    
 # Calcul des primes pures PR PURE PP
     def prPure(self):
-        
         gestLoading = self.p['gestionLoadingSA'][:,np.newaxis, np.newaxis]*self.one() 
         capital = self.p['PMBCAPIT'][:,np.newaxis, np.newaxis]*self.one()  
         prInvent = self.prInventaire()
         ppure = prInvent - gestLoading * capital
-        
         mask = (self.p['POLSIT']==4) | (self.p['POLSIT']==9) 
         ppure[mask] = self.zero()[mask]
-        
         return ppure
         
-
 # Valeur actualisée des primes nettes
     def valNetPrem(self):
-        
         premNet = self.prPure()
         axn = self.axn
         valNetPrem = premNet * axn
+        
+        # mod7 valnetPrem = 0
+        mask = self.p['PMBMOD'].isin([6,7])
+        valNetPrem[mask] = self.zero()[mask]
+        
         return valNetPrem
 
 # Valeur actualisé SA (Net single premium value) AExn * capital
     def valSaPP(self):
-        
         # mask ici car au moment de l'échéance de la police, le net Single premium = 0 et non Capital
         mask = self.polTermM() > self.durationIf() 
         valSaPP = self.zero()
         valSaPP[mask] = self.AExn[mask] * self.sumAss()[mask]
         return valSaPP
 
-
-
-
-
 #Retourne les primes totales sans inforce ni fractionnement
     def annPremPP(self):
         premInc=((self.p['POLPRVIEHT'] - self.p['POLPRCPLA'])[:,np.newaxis,np.newaxis])
         premInc=premInc*self.indexation()
-        
         premCompl = self.annRider() 
-
         return premInc + premCompl
-
-
-
-
-
 
 #Retourne les provisions pour risque en cours
     def precPP(self):
-   
         annPremPP = self.annPremPP()
         fraisFract = self.p['fraisFract'][:,np.newaxis, np.newaxis]*self.one() 
         loading = self.p['aquisitionLoading'][:,np.newaxis, np.newaxis]*self.one()  
-        
-        
         premForREC = annPremPP / fraisFract / (1+loading)
         precPP = premForREC * self.timeBeforeNextPay()/self.frac()
-  
         return precPP * self.isActive()
-
 
 # retourne la provision mathèmatique de gestion
     def pmgSA(self):
-        
         tauxPM =self.p['gestionLoadingSA'][:,np.newaxis, np.newaxis]*self.one()  
         valPolFac = self.axn
         pm = tauxPM * valPolFac 
         return pm
 
-
 # Provision de gestion calculée sans pb
     def provGestPP(self):
-        
         pm = self.pmgSA()  * self.sumAss() - self.axn * (self.prInventaire() - self.prPure())
         return pm
 
-
-
-
 # provision de gestion Inforce (INFORMATIF)
     def provGestIF(self):
-        
         pmIF = self.provGestPP() * self.nbrPolIf
         return pmIF
     
 # Pb acquise in force (INFORMATIF)
     def pbAcqIF(self):
-        
         pb = self.pbAcquPP * self.nbrPolIf
-        
         return pb
 
 
@@ -936,27 +871,16 @@ class MI(Portfolio):
 #         # self.tierPM = tierPM
 
 
-    
-    
-    
-
 # retourne un vecteur de 1 à 12 selon la duration de la police, si + élevé de 12 mois alors 12
     def firstYear(self):
         dur = self.durationIf()
         dur[dur>12] = 12 
         return dur
 
-
-
-
-
 #Retourne les claims de la garantie principale (DEATH_OUTGO)
     def claimPrincipal(self):
-        
         deathBenPP = self.sumAss() + self.pbAcquPP
         deathOutgo = deathBenPP * self.nbrDeath
-        
-        
         return deathOutgo
 
 #Retourne les claims des garanties complémentaires (RIDERC_OUTGO)
@@ -976,9 +900,9 @@ class MI(Portfolio):
         return self.zero()
 
 
-##############################################################################################################################
-###################################DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES#############################################
-##############################################################################################################################
+# =============================================================================
+# --- DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES
+# =============================================================================
 
 
 def tester(self):
@@ -998,24 +922,28 @@ pol = MI()
 # pol.modHead([2],1)
 
     ### Mod 2_2 F2XT_1
-# pol.ids([22101])
+pol.ids([22101])
 # pol.modHead([2],2)
 
     ### Mod 10 F1XT14
-pol.ids([1602604])
+# pol.ids([1602604])
 # pol.mod([10])
 
     ### Mod 6 F1XT11
 # pol.ids([799003])
 # pol.mod([6,7])
+
+# mod7
+# pol.ids([101])
+
 # age = pol.age()
 
 
-check = pol.valNetPrem()
+check = pol.mathResPP
 # pureprem = pol.purePremium()
 
 # a = pol.p
-b=pol.nbrPolIf
+b=pol.pbAcqIF()
 # check = pol.Lxx(pol.age())
 # c=pol.nbrPolIfSM
 # d=pol.nbrNewMat

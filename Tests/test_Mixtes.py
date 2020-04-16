@@ -27,7 +27,7 @@ ResultatPGG=pd.read_excel(path+'\Resultats_PGG.xls',sheet_name='Synthese',skipro
 # cov=coverage.Coverage()
 # cov.start()
 
-
+sp=MI()
     ### Précision souhaitée
 RTOL=0.0001
 ATOL=0.001
@@ -228,7 +228,14 @@ class Test_MOD_10(ut.TestCase):
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='Premium ERROR ')
 
 
+    def test_princpalClaim(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'DEATH_OUTGO'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.claimPrincipal()[:,:409,0],axis=0)
 
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalClaim ERROR')
+            
 
 
 
@@ -276,15 +283,14 @@ class Test_MOD_2_1(ut.TestCase):
 
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='Premium ERROR ')
 
-    def test_Claim(self):
+    def test_princpalClaim(self):
         
         prophet=np.array(self.spProphet.loc[:self.length,'DEATH_OUTGO'].to_numpy(),dtype=float)
         
-        python=np.sum((self.sp.claimPrincipal())[:,:409,0],axis=0)
+        python=np.sum(self.sp.claimPrincipal()[:,:409,0],axis=0)
 
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='Claim ERROR ')
-
-
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalClaim ERROR')
+            
 
 
 
@@ -331,6 +337,15 @@ class Test_MOD_2_2(ut.TestCase):
 
 
 
+    def test_princpalClaim(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'DEATH_OUTGO'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.claimPrincipal()[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalClaim ERROR')
+            
+
 
 
 
@@ -362,6 +377,8 @@ class Test_MOD_6_7(ut.TestCase):
         
         prophet=np.array(self.spProphet.loc[:self.length,'NO_POLS_IF'].to_numpy(),dtype=float)
         
+        # prophet=np.array(spProphet.loc[:length,'NO_POLS_IF'].to_numpy(),dtype=float)
+        
         python=np.sum((self.sp.nbrPolIf)[:,:409,0],axis=0)
 
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='NbrPolif ERROR ')
@@ -377,6 +394,15 @@ class Test_MOD_6_7(ut.TestCase):
 
 
 
+
+    def test_princpalClaim(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'DEATH_OUTGO'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.claimPrincipal()[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalClaim ERROR')
+            
 
 
 
