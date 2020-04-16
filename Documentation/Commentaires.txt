@@ -103,7 +103,7 @@ nous prenons pas en compte les complémentaire protection d'avenir dans ANN_RIDE
 
 - MI les primes d'inventaire pour les modalité 10 sont toujours à 0, ce qui à pour conséquence des primes pures négatives. A CORRIGER'
 
-- MI le taux de décès accident du parent pour la modalité 10 est toujours à 100%.
+- MI le taux de décès accident du parent pour la modalité 10 est toujours à 100%, il faut prendre en compte le taux décès accidentel
 
 
 

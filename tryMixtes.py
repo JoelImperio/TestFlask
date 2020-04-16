@@ -43,6 +43,30 @@ class MI(Portfolio):
 # --- FONCTION A REMONTER
 # =============================================================================
 
+# Celle-ci vient aussi de produit EP, je pense qu'on peut remplacé celle qui existe dans portefeuille (la différence est qu'ici il y a nbrPupIfSM 
+# et celui-ci est à 0 dans les mixtes, funérailles...) A tester si cela ne casse pas les produits déjà existant
+#Retourne le coût par police pour les polices avec réduction possible (RENEXP_XRSE)
+    def unitExpense(self):
+        
+        inflation=np.roll(self.inflation(),[1],axis=1)
+        inflation[:,0,:]=0
+        coutParPolice=self.fraisGestion()
+        cost=coutParPolice*inflation*(self.nbrPolIfSM + self.nbrPupIfSM)
+        return cost
+
+
+## Fonction reprise de Produit EP
+# ici on détermine le capital pour Protection d'avenir en fonction de l'âge
+    def capPA(self):
+        
+        capPA = self.zero()
+        capPA[self.age() <= 55]= 25000
+        capPA[(self.age() > 55)]= 5000
+        capPA[self.age() > 65]= 0
+        capPA[self.p['POLPRCPL9'] == 0]=0
+        return capPA
+
+
 ## Fonction reprise de Produit EP
 # Vecteur de 1 et 0 permettant de savoir si police toujours active ou non
     def isActive(self):
@@ -97,7 +121,6 @@ class MI(Portfolio):
         axnDec = np.roll(axnDec, -1, axis = 1)
         
         axn = self.interp(axn, axnDec)
-        
         
     
 # Calcul des variable pour des polices à 2 têtes       
@@ -226,9 +249,6 @@ class MI(Portfolio):
         interp = np.int16(dur/12) + 1-(dur/12)
         resultat = (var * interp) + ((1-interp) * varDec)
         return resultat * self.isActive()
-
-
-
 
 
 
@@ -669,8 +689,8 @@ class MI(Portfolio):
         return riderIncPP
 
 
-# recalcul du taux DC accident pour : (je cite) tenir en compte la sinistralité de la garantie décès de l'epargne en fonction du qx - 26.01.2015
-    def dcAccidentAdjusted(self):
+# calcul du taux de sinistralité complémentaire
+    def riderCRate(self):
         annRider = self.annRider()
         
         mask2 = ((self.p['PMBTXINT'] > 2)[:,np.newaxis, np.newaxis]*self.one()).astype(bool)
@@ -692,7 +712,9 @@ class MI(Portfolio):
         txExoRenteIG = self.itt()
         txHospi = self.hospi()
         txAccPA = self.dcAccident()
-        # taux jamais calculé
+        
+        # taux jamais calculé, voici la correction
+        # txDcAdulte = self.dcAccident() 
         txDcAdulte = self.one()
         
         tx = self.zero()
@@ -718,19 +740,11 @@ class MI(Portfolio):
 
 
     def riderCostPP(self):
-        riderCostPP = self.riderIncPP() * self.dcAccidentAdjusted()
+        riderCostPP = self.riderIncPP() * self.riderCRate()
         return riderCostPP
     
     
- # ici on détermine le capital pour Protection d'avenir en fonction de l'âge
-    def capPA(self):
-        
-        capPA = self.zero()
-        capPA[self.age() <= 55]= 25000
-        capPA[(self.age() > 55)]= 5000
-        capPA[self.age() > 65]= 0
-        capPA[self.p['POLPRCPL9'] == 0]=0
-        return capPA
+
     
  
 # Calcul des claim complémentaire
@@ -1026,15 +1040,7 @@ class MI(Portfolio):
 # --- CALCUL DES EXPENSES
 # =============================================================================
 
-#Retourne le coût par police pour les polices avec réduction possible (RENEXP_XRSE)
-    def unitExpense(self):
-        
-        inflation=np.roll(self.inflation(),[1],axis=1)
-        inflation[:,0,:]=0
-        coutParPolice=self.fraisGestion()
-        cost=coutParPolice*inflation*(self.nbrPolIfSM + self.nbrPupIfSM)
-        
-        return cost
+
 
 
 
