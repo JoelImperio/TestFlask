@@ -167,17 +167,17 @@ class VE(Portfolio):
     ### FONCTIONS ACTUARIELLES
 # =============================================================================       
     
-    def ageInit(self):
-        age = (self.p['Age1AtEntry'].to_numpy()[:,np.newaxis,np.newaxis]*self.one())
-        return age
+    # def ageInit(self):
+    #     age = (self.p['Age1AtEntry'].to_numpy()[:,np.newaxis,np.newaxis]*self.one())
+    #     return age
     
-    def ageFinal(self):
-        age = ((self.p['Age1AtEntry'] + (self.p['residualTermM'] + self.p['DurationIfInitial'])/12).to_numpy()[:,np.newaxis,np.newaxis]*self.one())
-        return age
+    # def ageFinal(self):
+    #     age = ((self.p['Age1AtEntry'] + (self.p['residualTermM'] + self.p['DurationIfInitial'])/12).to_numpy()[:,np.newaxis,np.newaxis]*self.one())
+    #     return age
     
-    def agePrimes(self):
-        age = ((self.p['Age1AtEntry'].to_numpy() + self.p['POLDURP'].to_numpy())[:,np.newaxis,np.newaxis]*self.one())
-        return age
+    # def agePrimes(self):
+    #     age = ((self.p['Age1AtEntry'].to_numpy() + self.p['POLDURP'].to_numpy())[:,np.newaxis,np.newaxis]*self.one())
+    #     return age
         
     # Fonction qui sert à retourner les valeurs actuarielles, Ax, ax, etc.
     def commutations(self):
@@ -234,49 +234,49 @@ class VE(Portfolio):
         self.axInitPrimes = axInitPrimes
       
          
- # Fonction générique actuarielle
-    def actu(self, var, x):
+#  # Fonction générique actuarielle
+#     def actu(self, var, x):
         
-        table = self.p['POLTBMORT'].unique()
-        tbMort = self.p['POLTBMORT']
+#         table = self.p['POLTBMORT'].unique()
+#         tbMort = self.p['POLTBMORT']
                
-        if x == 'x':
-            myAge = self.ageInit().astype(int)
-        elif x == 't':
-            myAge = self.age().astype(int) 
-        elif x == 't+1':
-            myAge = self.age().astype(int) + 1
-        elif x == 'n':
-            myAge = self.ageFinal().astype(int) 
-        elif x == 'p':
-            myAge = self.agePrimes().astype(int)
+#         if x == 'x':
+#             myAge = self.ageInit().astype(int)
+#         elif x == 't':
+#             myAge = self.age().astype(int) 
+#         elif x == 't+1':
+#             myAge = self.age().astype(int) + 1
+#         elif x == 'n':
+#             myAge = self.ageFinal().astype(int) 
+#         elif x == 'p':
+#             myAge = self.agePrimes().astype(int)
        
-        txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis] / 100
-        txTechLoop = np.unique(self.p['PMBTXINT'].to_numpy())
-        tbMort = tbMort[:,np.newaxis,np.newaxis]
-        myVarx = self.zero()
-        one = self.one()
-        zero = self.zero()
+#         txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis] / 100
+#         txTechLoop = np.unique(self.p['PMBTXINT'].to_numpy())
+#         tbMort = tbMort[:,np.newaxis,np.newaxis]
+#         myVarx = self.zero()
+#         one = self.one()
+#         zero = self.zero()
         
-        for tb in table:
-            mask_tableMort = ((tbMort == tb)*one).astype(bool)
-            for i in np.nditer(txTechLoop):
-                txInt = i / 100
-                mask_txTech = ((txTech == txInt)*one).astype(bool)
-                mt = Actuarial(nt=eval(tb), i=txInt)
-                aVARx = pd.DataFrame(getattr(mt, var)).to_numpy()
-                myAge2 = np.where(myAge>=mt.w, mt.w, myAge)
-                myVarx[mask_txTech & mask_tableMort] = np.take(aVARx, myAge2[mask_txTech & mask_tableMort])
-                myVarx[mask_txTech & mask_tableMort & (myAge>mt.w)] = zero[mask_txTech & mask_tableMort & (myAge>mt.w)]
-        return myVarx      
+#         for tb in table:
+#             mask_tableMort = ((tbMort == tb)*one).astype(bool)
+#             for i in np.nditer(txTechLoop):
+#                 txInt = i / 100
+#                 mask_txTech = ((txTech == txInt)*one).astype(bool)
+#                 mt = Actuarial(nt=eval(tb), i=txInt)
+#                 aVARx = pd.DataFrame(getattr(mt, var)).to_numpy()
+#                 myAge2 = np.where(myAge>=mt.w, mt.w, myAge)
+#                 myVarx[mask_txTech & mask_tableMort] = np.take(aVARx, myAge2[mask_txTech & mask_tableMort])
+#                 myVarx[mask_txTech & mask_tableMort & (myAge>mt.w)] = zero[mask_txTech & mask_tableMort & (myAge>mt.w)]
+#         return myVarx      
    
-# Créer un vecteur permettant d'interpolé les vecteur en fonction de la date début de la police
-    def interp(self, var, varDec):
-        dur = self.durationIf()
-        interp = np.int16(dur/12) + 1-(dur/12)
-        resultat = (var * interp) + ((1-interp) * varDec)
-        return resultat * self.isActive()
-        # return resultat 
+# # Créer un vecteur permettant d'interpolé les vecteur en fonction de la date début de la police
+#     def interp(self, var, varDec):
+#         dur = self.durationIf()
+#         interp = np.int16(dur/12) + 1-(dur/12)
+#         resultat = (var * interp) + ((1-interp) * varDec)
+#         return resultat * self.isActive()
+#         # return resultat 
         
         
 # =============================================================================
