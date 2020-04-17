@@ -372,10 +372,10 @@ def tauxZill(p):
     mask=(p['PMBMOD'].isin([1]))
     
     maskTarif = p['POLTARIF'].isin(['A', 'B', 'C', 'D'])
-    p.loc[maskTarif & mask,'tauxZill'] = 0.05
+    p.loc[maskTarif & mask,'tauxZill'] = 0.08
     
     maskTarif = p['POLTARIF'].isin(['H', 'I', 'J'])
-    p.loc[ maskTarif & mask,'tauxZill'] = 0.08
+    p.loc[ maskTarif & mask,'tauxZill'] = 0.05
     
     # mod11
     mask=(p['PMBMOD'].isin([11]))

@@ -2,10 +2,10 @@ from Portefeuille import Portfolio
 from Parametres import allRuns
 import numpy as np
 import pandas as pd
-from varname import varname
+# from varname import varname
 import time
 import os, os.path
-import datetime
+# import datetime
 #from MyPyliferisk import mortalitytables
 from MyPyliferisk import Actuarial
 from MyPyliferisk.mortalitytables import *
@@ -32,7 +32,8 @@ class VE(Portfolio):
         super().__init__(runs=run,\
              myPortfolioNew=PortfolioNew, mySinistralityNew=SinistralityNew,myLapseNew=LapseNew,myCostNew=CostNew,myRateNew=RateNew)
         self.p=self.mod(self.mods)
-        
+    
+    # L'update contient les self retournés des loop  
     def update(self,subPortfolio):
         super().update(subPortfolio)
         self.loopVE()
@@ -41,21 +42,21 @@ class VE(Portfolio):
         self.commutations()
         self.reserveForExp()
     
-    # Fonction pour savoir si une police lapse, voir pourquoi elle est là
+    # Fonction mondifiée des lapse car VE lapsent mensuellement
     def isLapse(self):
         lapse = self.zero()
         check1 = (self.frac() * (self.durationIf()+12)/12)
         check2 = np.floor((self.frac()*(self.durationIf()+12)/12))
         condlist = [check1 - check2 == 0, check1 - check2 != 0]
         # choicelist = [lapse[:,:,:]==0, lapse[:,:,:] ==1 ]
-        choicelist = [lapse[:,:,:]==0, lapse[:,:,:] ==0 ]
+        choicelist = [lapse[:,:,:]==0, lapse[:,:,:]==0]
         myLapse=np.select(condlist, choicelist)
         # Le premier mois il n'y a pas de payement car la prime est payé en début de mois et les date de calcul sont en fin de mois
         myLapse[:,0,:] = 0
         
         return myLapse
     
-    # Fonction des lapse, pareil qu'au dessus    
+    # Fonction mondifiée des lapse car VE lapsent mensuellement   
     def lapse(self):
         h=self.hypoSet(self.LapseNew)
         lapseSensiMoins=h.iloc[56,2]
@@ -133,13 +134,15 @@ class VE(Portfolio):
         self.nbrDeath=nbrDeath
         #Nombre d'annulation de contrat
         self.nbrSurrender=nbrSurrender
-        
+     
+    # Fonction prise des épargnes qui n'avait pas été remontée  
     def isActive(self):
         moisRestant = self.p['residualTermM'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
         increment = np.cumsum(self.one(), axis = 1)-1
         mask = moisRestant >= increment
         return mask
     
+    # Fonction qui sert à déterminer si une police est active ou non par rapport à sa situation, peut-être doublon
     def policeActive(self):
         situation = self.p['POLSIT'][:,np.newaxis,np.newaxis] * self.one()
         conditions = [(situation != 4) & (situation != 8) & (situation != 9)]
@@ -148,6 +151,7 @@ class VE(Portfolio):
         policeActive = np.select(conditions,result,sinon)
         return policeActive
     
+    # Fonction qui sert à déterminer à partir de quand les primes ne sont plus payées (POLDURP)
     def payPrimes(self):
         durationIf = self.durationIf()
         payPrimes = self.one()
@@ -163,6 +167,18 @@ class VE(Portfolio):
     ### FONCTIONS ACTUARIELLES
 # =============================================================================       
     
+    def ageInit(self):
+        age = (self.p['Age1AtEntry'].to_numpy()[:,np.newaxis,np.newaxis]*self.one())
+        return age
+    
+    def ageFinal(self):
+        age = ((self.p['Age1AtEntry'] + (self.p['residualTermM'] + self.p['DurationIfInitial'])/12).to_numpy()[:,np.newaxis,np.newaxis]*self.one())
+        return age
+    
+    def agePrimes(self):
+        age = ((self.p['Age1AtEntry'].to_numpy() + self.p['POLDURP'].to_numpy())[:,np.newaxis,np.newaxis]*self.one())
+        return age
+        
     # Fonction qui sert à retourner les valeurs actuarielles, Ax, ax, etc.
     def commutations(self):
         
@@ -217,6 +233,52 @@ class VE(Portfolio):
         self.aduePolVal = aduePolVal
         self.axInitPrimes = axInitPrimes
       
+         
+ # Fonction générique actuarielle
+    def actu(self, var, x):
+        
+        table = self.p['POLTBMORT'].unique()
+        tbMort = self.p['POLTBMORT']
+               
+        if x == 'x':
+            myAge = self.ageInit().astype(int)
+        elif x == 't':
+            myAge = self.age().astype(int) 
+        elif x == 't+1':
+            myAge = self.age().astype(int) + 1
+        elif x == 'n':
+            myAge = self.ageFinal().astype(int) 
+        elif x == 'p':
+            myAge = self.agePrimes().astype(int)
+       
+        txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis] / 100
+        txTechLoop = np.unique(self.p['PMBTXINT'].to_numpy())
+        tbMort = tbMort[:,np.newaxis,np.newaxis]
+        myVarx = self.zero()
+        one = self.one()
+        zero = self.zero()
+        
+        for tb in table:
+            mask_tableMort = ((tbMort == tb)*one).astype(bool)
+            for i in np.nditer(txTechLoop):
+                txInt = i / 100
+                mask_txTech = ((txTech == txInt)*one).astype(bool)
+                mt = Actuarial(nt=eval(tb), i=txInt)
+                aVARx = pd.DataFrame(getattr(mt, var)).to_numpy()
+                myAge2 = np.where(myAge>=mt.w, mt.w, myAge)
+                myVarx[mask_txTech & mask_tableMort] = np.take(aVARx, myAge2[mask_txTech & mask_tableMort])
+                myVarx[mask_txTech & mask_tableMort & (myAge>mt.w)] = zero[mask_txTech & mask_tableMort & (myAge>mt.w)]
+        return myVarx      
+   
+# Créer un vecteur permettant d'interpolé les vecteur en fonction de la date début de la police
+    def interp(self, var, varDec):
+        dur = self.durationIf()
+        interp = np.int16(dur/12) + 1-(dur/12)
+        resultat = (var * interp) + ((1-interp) * varDec)
+        return resultat * self.isActive()
+        # return resultat 
+        
+        
 # =============================================================================
     ### CALCUL DES SURRENDER
 # =============================================================================
@@ -306,11 +368,10 @@ class VE(Portfolio):
 
     # VAL_NETP_PP valeur des primes nettes
     def valNetpPP(self):
-        
         ValNetpPp = self.purePremium() * self.valNetpFac()
         return ValNetpPp
     
-    # PR_INVENT_PP
+    # PR_INVENT_PP prime d'inventaire (prime pure + les frais de gestion sur somme assurée)
     def prInventPP(self):
         purePremium = self.purePremium()
         cgSaPolPc = self.cgSaPolPc()
@@ -326,7 +387,7 @@ class VE(Portfolio):
         # PrInventPp = self.one()
         return prInventPp            
                       
-    # VAL_NETP_FAC - durée restante mensuelle, à 0 si pas de paiement des primes
+    # VAL_NETP_FAC - annuité qui dépend de la durée de paiemnet des primes (ax, axp, faux pour sérénité)
     def valNetpFac(self):
         # situation = self.p['POLSIT'][:,np.newaxis,np.newaxis]
         # conditions = [(situation != 4) & (situation != 8) & (situation != 9)]
@@ -353,7 +414,7 @@ class VE(Portfolio):
 
         return valNetpFac
     
-    # VAL_POL_FAC - durée restante mensuelle, ne dépend pas des primes
+    # VAL_POL_FAC - annuité qui dépend de la durée du contrat (faux pour sérénité)
     def valPolFac(self):
         
         valPolFac = self.ax
@@ -644,6 +705,7 @@ pol = VE()
 # police unique
 pol.ids([743801])
 
+# valZillPC = pol.p['tauxZill'].to_numpy()[:,np.newaxis,np.newaxis] * pol.one()
 
 # échantillon force F1VE01
 # pol.ids([71601, 71801, 236605, 294101, 350001, 375801, 399202, 743801, 1847802, 1847803])
@@ -665,7 +727,7 @@ print("Class VE--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 x = pol.p
 x.to_excel(path+'/zFT/ptf.xlsx')
-monCas = pol.totalClaim()
+monCas = pol.nbrDeath
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])

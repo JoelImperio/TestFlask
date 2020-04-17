@@ -47,27 +47,27 @@ class Test_VE(ut.TestCase):
         prophet=np.array(self.spProphet.loc[:self.length,'PREM_INC'].to_numpy(),dtype=float)
         
     ### La méthode à tester 'totalPremium()'
-        python=np.sum(self.sp.totalPremium()[:,:409,0],axis=0)
+        python=np.sum(self.sp.totalPremium()[:,:1188,0],axis=0)
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalPremium ERROR ')
             
     def test_Claim(self):
         prophet=np.array(self.spProphet.loc[:self.length,'TOT_PREST'].to_numpy(),dtype=float)
-        python=np.sum(self.sp.totalClaim()[:,:409,0],axis=0,dtype=float)
+        python=np.sum(self.sp.totalClaim()[:,:1188,0],axis=0,dtype=float)
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalClaim ERROR')
             
     def test_Commissions(self):  
         prophet=np.array(self.spProphet.loc[:self.length,'TOT_COMM'].to_numpy(),dtype=float)
-        python=np.array(np.sum(self.sp.totalCommissions()[:,:409,0],axis=0),dtype=float)
+        python=np.array(np.sum(self.sp.totalCommissions()[:,:1188,0],axis=0),dtype=float)
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalCommissions ERROR')
       
     def test_Expense(self):
         prophet=np.array(self.spProphet.loc[:self.length,'TOT_EXP'].to_numpy(),dtype=float)
-        python=np.sum(self.sp.totalExpense()[:,:409,0],axis=0)
+        python=np.sum(self.sp.totalExpense()[:,:1188,0],axis=0)
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalExpense ERROR')
             
     def test_BEL(self):
         prophet=np.array(self.spProphet.loc[:self.length,'BEL_B'].to_numpy(),dtype=float)
-        python=np.sum(self.sp.BEL()[:,:409,0],axis=0)
+        python=np.sum(self.sp.BEL()[:,:1188,0],axis=0)
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='BEL ERROR')
 
 
@@ -88,27 +88,27 @@ class Test_MOD11(ut.TestCase):
         prophet=np.array(self.spProphet.loc[:self.length,'PREM_INC'].to_numpy(),dtype=float)
         
     ### La méthode à tester 'totalPremium()'
-        python=np.sum(self.sp.totalPremium()[:,:409,0],axis=0) 
+        python=np.sum(self.sp.totalPremium()[:,:1188,0],axis=0) 
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalPremium ERROR ')
             
     def test_Claim(self):
         prophet=np.array(self.spProphet.loc[:self.length,'TOT_PREST'].to_numpy(),dtype=float)
-        python=np.sum(self.sp.totalClaim()[:,:409,0],axis=0,dtype=float)
+        python=np.sum(self.sp.totalClaim()[:,:1188,0],axis=0,dtype=float)
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalClaim ERROR')
             
     def test_Commissions(self):
         prophet=np.array(self.spProphet.loc[:self.length,'TOT_COMM'].to_numpy(),dtype=float)
-        python=np.array(np.sum(self.sp.totalCommissions()[:,:409,0],axis=0),dtype=float)
+        python=np.array(np.sum(self.sp.totalCommissions()[:,:1188,0],axis=0),dtype=float)
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalCommissions ERROR')
     
     def test_Expense(self):
         prophet=np.array(self.spProphet.loc[:self.length,'TOT_EXP'].to_numpy(),dtype=float)
-        python=np.sum(self.sp.totalExpense()[:,:409,0],axis=0)
+        python=np.sum(self.sp.totalExpense()[:,:1188,0],axis=0)
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalExpense ERROR')
             
     def test_BEL(self):
         prophet=np.array(self.spProphet.loc[:self.length,'BEL_B'].to_numpy(),dtype=float)
-        python=np.sum(self.sp.BEL()[:,:409,0],axis=0)
+        python=np.sum(self.sp.BEL()[:,:1188,0],axis=0)
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='BEL ERROR')         
 
 
@@ -130,27 +130,27 @@ class Test_MOD01(ut.TestCase):
         prophet=np.array(self.spProphet.loc[:self.length,'PREM_INC'].to_numpy(),dtype=float)
         
     ### La méthode à tester 'totalPremium()'
-        python=np.sum(self.sp.totalPremium()[:,:409,0],axis=0)
+        python=np.sum(self.sp.totalPremium()[:,:1188,0],axis=0)
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalPremium ERROR ')
             
     def test_Claim(self):
         prophet=np.array(self.spProphet.loc[:self.length,'TOT_PREST'].to_numpy(),dtype=float)
-        python=np.sum(self.sp.totalClaim()[:,:409,0],axis=0,dtype=float)
+        python=np.sum(self.sp.totalClaim()[:,:1188,0],axis=0,dtype=float)
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalClaim ERROR')
 
     def test_Commissions(self):
         prophet=np.array(self.spProphet.loc[:self.length,'TOT_COMM'].to_numpy(),dtype=float)
-        python=np.array(np.sum(self.sp.totalCommissions()[:,:409,0],axis=0),dtype=float)
+        python=np.array(np.sum(self.sp.totalCommissions()[:,:1188,0],axis=0),dtype=float)
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalCommissions ERROR')
      
     def test_Expense(self):
         prophet=np.array(self.spProphet.loc[:self.length,'TOT_EXP'].to_numpy(),dtype=float)
-        python=np.sum(self.sp.totalExpense()[:,:409,0],axis=0)
+        python=np.sum(self.sp.totalExpense()[:,:1188,0],axis=0)
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalExpense ERROR')
 
     def test_BEL(self):
         prophet=np.array(self.spProphet.loc[:self.length,'BEL_B'].to_numpy(),dtype=float)
-        python=np.sum(self.sp.BEL()[:,:409,0],axis=0)
+        python=np.sum(self.sp.BEL()[:,:1188,0],axis=0)
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='BEL ERROR')    
 
 
