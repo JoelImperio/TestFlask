@@ -250,6 +250,20 @@ def fraisGestionSumAss(p):
     # mod7
     mask=(p['PMBMOD'].isin([7]))
     p.loc[mask,'gestionLoadingSA'] = 0
+
+    # Mod1 et 11
+    mask=(p['PMBMOD'].isin([1, 11]))   
+    p.loc[(p['Age1AtEntry'] < 53) & (mask), 'fraisGestDureePrimesSA'] = 0.0035
+    p.loc[(p['Age1AtEntry'] < 53) & (mask), 'fraisGestDureePoliceSA'] = 0.0025
+    
+    p.loc[(p['Age1AtEntry'] >=53) & (p['Age1AtEntry'] < 70) & (mask), 'fraisGestDureePrimesSA'] = 0.0055
+    p.loc[(p['Age1AtEntry'] >=53) & (p['Age1AtEntry'] < 70) & (mask), 'fraisGestDureePoliceSA'] = 0.0045
+    
+    p.loc[(p['Age1AtEntry'] >= 70) & (mask), 'fraisGestDureePrimesSA'] = 0.012
+    p.loc[(p['Age1AtEntry'] >= 70) & (mask), 'fraisGestDureePoliceSA'] = 0.009
+    
+    p['fraisGestDureePrimesSA'] = p['fraisGestDureePrimesSA'].fillna(0)
+    p['fraisGestDureePoliceSA'] = p['fraisGestDureePoliceSA'].fillna(0)
     
 def tauxZill(p):
     
@@ -270,6 +284,23 @@ def tauxZill(p):
     # mod6 et 7
     mask=(p['PMBMOD'].isin([6, 7]))
     p.loc[mask,'tauxZill'] = 0
+
+    # mod1
+    mask=(p['PMBMOD'].isin([1]))
+    
+    maskTarif = p['POLTARIF'].isin(['A', 'B', 'C', 'D'])
+    p.loc[maskTarif & mask,'tauxZill'] = 0.08
+    
+    maskTarif = p['POLTARIF'].isin(['H', 'I', 'J'])
+    p.loc[ maskTarif & mask,'tauxZill'] = 0.05
+    
+    # mod11
+    mask=(p['PMBMOD'].isin([11]))
+    
+    maskTarif = p['POLTARIF'].isin(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7'])
+    p.loc[maskTarif & mask,'tauxZill'] = 0.05
+
+    p['tauxZill'] = p['tauxZill'].fillna(0)
     
 
     
@@ -1156,15 +1187,13 @@ class Hypo:
     
   
 ##############################################################################################################################
-###################################DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES#############################################
+   ### DEBUT DES TESTS
 ##############################################################################################################################
-def testerHypo():
-    return 0
 
 #myHypo=Hypo(Run=[0,5])
-myHypo=Hypo()
+# myHypo=Hypo()
 
-myHypo.mod([11])
+# myHypo.mod([11])
 # p = myHypo.ids([10105])
 #myHypo.groupe(['MI3.5'])
 
@@ -1172,7 +1201,7 @@ myHypo.mod([11])
 ###Les méthodes de la class
 
 #za=myHypo.tout
-zb=myHypo.p
+# zb=myHypo.p
 #zc=myHypo.runs
 #zd=myHypo.shape
 #ze=myHypo.one()
