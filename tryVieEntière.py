@@ -688,6 +688,9 @@ class VE(Portfolio):
         totalExpense = self.totExp
         return totalExpense
 
+# =============================================================================
+    ### Tester mon code 
+# =============================================================================
 
 # définition de pol
 pol = VE()
@@ -703,7 +706,7 @@ pol = VE()
 
 
 # police unique
-pol.ids([743801])
+# pol.ids([743801])
 
 # valZillPC = pol.p['tauxZill'].to_numpy()[:,np.newaxis,np.newaxis] * pol.one()
 
@@ -725,8 +728,8 @@ pol.ids([743801])
 print("Class VE--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 
-x = pol.p
-x.to_excel(path+'/zFT/ptf.xlsx')
+x = pol.deathBenefit()
+# x.to_excel(path+'/zFT/ptf.xlsx')
 monCas = pol.nbrDeath
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
