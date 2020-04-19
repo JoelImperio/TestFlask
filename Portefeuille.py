@@ -28,7 +28,7 @@ class Portfolio(Hypo):
              PortfolioNew=myPortfolioNew, SinistralityNew=mySinistralityNew,LapseNew=myLapseNew,CostNew=myCostNew,RateNew=myRateNew)
 
 ##############################################################################################################################
-    ### DEBUT DES METHODES ACTUARIELLES
+    ### METHODES ACTUARIELLES
 ##############################################################################################################################
     
 #Retourne les ages pour l'assuré 1 ou 2 (defaut assuré 1)   
@@ -155,7 +155,7 @@ class Portfolio(Hypo):
 
 
 ##############################################################################################################################
-    ### DEBUT DES METHODES DE PROJECTION
+    ### METHODES DE PROJECTION
 ##############################################################################################################################
         
 #Cette Loop renvoie l'ensemble des variables récusrives pour les produits risques
@@ -234,26 +234,7 @@ class Portfolio(Hypo):
 
         return elapseTime
 
-#Retourne les coûts de gestion des placements appliqué sur les réserves   
-    def reserveExpense(self):
-        
-        reserve=self.adjustedReserve()
-        
-        tauxFraisGestion=self.fraisGestionPlacement()
-        
-        return reserve*tauxFraisGestion
 
-#Retourne le coût par police
-    def unitExpense(self):
-        
-        inflation=np.roll(self.inflation(),[1],axis=1)
-        inflation[:,0,:]=0
-        
-        coutParPolice=self.fraisGestion()
-        
-        cost=coutParPolice*inflation*self.nbrPolIfSM
-        
-        return cost
     
 #Retourne les risque en cours, soit les primes émises non aquises
     def risqueEnCour(self):
@@ -286,7 +267,30 @@ class Portfolio(Hypo):
         txInteret = ((1+tx/100)**(1/12)).to_numpy()[:,np.newaxis,np.newaxis] * self.one()
         
         return txInteret
+    
+    ### COMPOSANTES DU TOTAL EXPENSE
+#Retourne les coûts de gestion des placements appliqué sur les réserves   
+    def reserveExpense(self):
+        
+        reserve=self.adjustedReserve()
+        
+        tauxFraisGestion=self.fraisGestionPlacement()
+        
+        return reserve*tauxFraisGestion
 
+#Retourne le coût par police
+    def unitExpense(self):
+        
+        inflation=np.roll(self.inflation(),[1],axis=1)
+        inflation[:,0,:]=0
+        
+        coutParPolice=self.fraisGestion()
+        
+        cost=coutParPolice*inflation*self.nbrPolIfSM
+        
+        return cost
+        
+    ### COMPOSANTES DU TOTAL CLAIM
 #Retourne les claims de la garantie principale (DEATH_OUTGO)
     def claimPrincipal(self):
         return self.zero()
@@ -308,7 +312,7 @@ class Portfolio(Hypo):
         return self.zero()
 
 ##############################################################################################################################
-    ### DEBUT DES COMPOSANTES DU BEL
+    ### COMPOSANTES DU BEL
 ##############################################################################################################################
 
 #Retourne les primes totales perçues
@@ -392,9 +396,9 @@ def testerPortfolio():
     return
   
 #myPolicies=Portfolio(runs=[4,5])
-myPolicies=Portfolio()
+# myPolicies=Portfolio()
 
-myPolicies.mod([11])
+# myPolicies.mod([11])
 # myPolicies.ids([27503])
 #myPolicies.groupe(['MI3.5'])
 

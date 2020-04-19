@@ -664,7 +664,7 @@ class VE(Portfolio):
         primetot = (self.p['POLPRTOT'])[:,np.newaxis,np.newaxis]/self.frac()
         primecompl = (self.p['POLPRCPL3'])[:,np.newaxis,np.newaxis]/self.frac() 
         modalite = (self.p['PMBMOD'])[:,np.newaxis,np.newaxis]
-        
+        # ? Dans la réalité aussi, je sais pas si le il continue pas de payer sans être couvert
         conditions = [(self.age() <= 85) | (modalite == 11), (self.age() > 85) & (modalite == 1)]
         result =[(primetot), (primetot - primecompl)]
         premInc = np.select(conditions,result) 

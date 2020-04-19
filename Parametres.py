@@ -250,7 +250,8 @@ def fraisGestionSumAss(p):
     # mod7
     mask=(p['PMBMOD'].isin([7]))
     p.loc[mask,'gestionLoadingSA'] = 0
-    
+
+    #?
 def tauxZill(p):
     
     # mod2
@@ -461,7 +462,7 @@ def adjustAgesAndTerm(p):
 
 
 # =============================================================================
-# Taux zill
+# ?Taux zill
 # =============================================================================
 def tauxZill(p):
     
@@ -1213,9 +1214,9 @@ def testerHypo():
     return 0
 
 #myHypo=Hypo(Run=[0,5])
-myHypo=Hypo()
+# myHypo=Hypo()
 
-myHypo.mod([11])
+# myHypo.mod([11])
 # p = myHypo.ids([10105])
 #myHypo.groupe(['MI3.5'])
 
@@ -1223,7 +1224,7 @@ myHypo.mod([11])
 ###Les méthodes de la class
 
 #za=myHypo.tout
-zb=myHypo.p
+# zb=myHypo.p
 #zc=myHypo.runs
 #zd=myHypo.shape
 #ze=myHypo.one()
