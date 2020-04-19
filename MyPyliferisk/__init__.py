@@ -19,6 +19,77 @@ from MyPyliferisk.mortalitytables import *
 
 # Mortality table class ----------------
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class MortalityTable:
     def __init__(self, l_x=[], q_x=[], i=[], nt=None, perc=100):
         self.lx = l_x
@@ -48,7 +119,7 @@ class MortalityTable:
                 self.qx.append(1000)
         if self.lx == []:
             self.lx = [100000.0]
-            for val in self.qx:
+            for val in self.qx: # AJOUTER ICI CALCUL DEPENDANT DE L'AGE
                 self.lx.append(self.lx[-1] * (1 - val / 1000))
         if self.lx[-1] != 0.0 : 
             self.lx.append(0.0)
@@ -72,6 +143,31 @@ class MortalityTable:
                 lx_g = self.lx[g]
                 self.ex.append(0.5 + sum(self.lx[g + 1:-1]) / lx_g) #[g+1:-2] according notes from ucm
 
+
+
+    # ### try Dx
+    #     if self.Dx == []:
+    #         for g in range(0, len(self.lx[:-1])):
+    #             lx_g = self.lx[g]
+    #             self.Dx.append(((1 / (1 + self.i)) ** g) * lx_g)
+
+    # ### try Cx
+    #     if self.Cx == []:
+    #         for g in range(0, len(self.lx[:-1])):
+    #             dx_g = self.dx[g]
+    #             self.Cx.append(((1 / (1 + self.i)) ** (g + 1)) * dx_g )
+
+    # ### try Mx
+    #     if self.Mx == []:
+    #         for g in range(0, len(self.lx[:-1])):
+    #             n = len(self.Cx)
+    #             sum1 = 0
+    #             for j in range(g, n):
+    #                 k = self.Cx[j]
+    #                 sum1 += k
+    #             self.Mx.append(sum1)
+
+
     def view(self, start=0, end=10, var='lx'):
         column  = {'qx': self.qx, 'lx': self.lx, 'dx': self.dx, 'ex': self.ex, 'nt': self.nt, \
                    'Dx': self.Dx, 'Nx': self.Nx, 'Cx': self.Cx, 'Mx': self.Mx, 'nEx': self.nEx}
@@ -86,9 +182,26 @@ class MortalityTable:
             index += 1
         print(table_str + 'Total number of rows for {} = {}'.format(var, len(column[var])))
 
+
+
+    # # Endowment insurance ---
+    # def AExn(self, x=[],n=[]):
+    #     """ AExn : Returns the EPV of a endowment insurance. 
+    #     An endowment insurance provides a combination of a term insurance and a pure endowment 
+    #     """
+    #     aexn=pd.DataFrame()
+    #     for j in range(len(x)):
+    #         xn=x[j]+n[j]
+    #         a=(self.Mx[x[j]] - self.Mx[xn) / self.Dx[x[j]] + self.Dx[xn] / self.Dx[x[j]]
+    #         aexn=aexn.append(a)
         
+    #     return aexn
+
+
+
+     
 class Actuarial:
-    def __init__(self, l_x=[], q_x=[], nt=None, i=None, perc=100):
+    def __init__(self, l_x=[], q_x=[], nt=None, i=None, perc=100, nbtete = 1):
         self.lx = l_x
         self.qx = q_x
         self.dx = []
@@ -109,13 +222,21 @@ class Actuarial:
             self.qx = [0.0] * init
             end_val = 0
             for val in mt[1:]:
+                
                 if end_val < 1000.0:
-                    end_val = val * perc / 100
-                    self.qx.append(end_val)
+                   # Ajout du calcul des qy pour les polices à 2 têtes 
+                    if nbtete ==1:
+                        end_val = val * perc / 100
+                        self.qx.append(end_val)
+                    elif nbtete == 2:
+                        end_val = (val + val - val*val) * perc / 100
+                        self.qx.append(end_val)
+                    
             if perc != 100:
                 self.qx.append(1000)
         if self.lx == []:
             self.lx = [100000.0]
+            # self.lx = [1]
             for val in self.qx:
                 self.lx.append(self.lx[-1] * ( 1 - val))
                 # self.lx.append(self.lx[-1] * ( 1 - val / 1000))
@@ -159,7 +280,8 @@ class Actuarial:
             age = -1
             for l in self.dx:   #[:-1]
                 age += 1
-                C_x = ((1 / (1 + i)) ** (age + 1))*l*((1 + i)**0.5)
+                C_x = ((1 / (1 + i)) ** (age + 1))*l *((1 + i)**0.5)
+                # C_x = ((1 / (1 + i)) ** (age + 1))*l
                 self.Cx.append(C_x)
         if self.Mx == []:
             #self.Mx = []
@@ -272,7 +394,7 @@ def Sx(mt, x):
 
 def Cx(mt, x):
     """ Return the Cx """   
-    return ((1 / (1 + mt.i)) ** (x + 1)) * mt.dx[x] * ((1 + mt.i) ** 0.5)
+    return ((1 / (1 + mt.i)) ** (x + 1)) * mt.dx[x] # * ((1 + mt.i) ** 0.5)
 
 def Mx(mt, x):
     """ Return the Mx """
@@ -612,3 +734,4 @@ def annuity(mt, x, n, p, m=1 , *args):
     else:
         #elif incr and deff and wh_l and post:
         return Itax(mt, x, t)
+    

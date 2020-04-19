@@ -83,26 +83,27 @@ CHANGEMENT APPORTé DANS PARAMÈTRE
 
 
 
-
-
 - Les totalpremium prennent en compte POLPRTOT, mais ne sont pas diminué lorsque l'assuré atteint l'age maximum d'une des garanties.
 
-ERREUR DANS MIXTES
 
-- Les lapses ne prennent pas en compte isLapse() dans prophet, donc la personne peut lapse à n'importe quel moment même si elle paye une prime annuelle.
 
-- Il n'y a pas de nbrNewPups, donc les réductions sont à 0 pour les mixtes.
 
-- La mortalité d'expérience pour les modalité 6 et 7 est tout le temps de 100%'
 
-- Les Qx pour les modalité 2 à 2 têtes sont fausses dans prophet. On fait le calcul de la probabilité jointe de décès OK mais uniquement avec le qx du 1ER ASSURE !!!! 
+- MI Les lapses ne prennent pas en compte isLapse() dans prophet, donc la personne peut lapse à n'importe quel moment même si elle paye une prime annuelle.
+
+- MI Il n'y a pas de nbrNewPups, donc les réductions sont à 0 pour les mixtes. Why ?
+
+- MI La mortalité d'expérience pour les modalité 6 et 7 est tout le temps de 100%'
+
+- MI Les Qx pour les modalité 2 à 2 têtes sont fausses dans prophet. On fait le calcul de la probabilité jointe de décès OK mais uniquement avec le qx du 1ER ASSURE !!!! 
 ça nous donne qxy = qx + qx -qx*qx au lieu de qxy = qx + qy -qx*qy
 
+- MI les primes total et complémentaire sont a revoir. On prend pas en compte POLPRCPLA dans total premium mais pas non plus dans ANN_RIDER_PP. Pour les mixtes 2 têtes
+nous prenons pas en compte les complémentaire protection d'avenir dans ANN_RIDER_PP mais par contre nous déduisons POLPRCPLA de POLPRVIEHT pour avoir les primes total'
 
+- MI les primes d'inventaire pour les modalité 10 sont toujours à 0, ce qui à pour conséquence des primes pures négatives. A CORRIGER'
 
-
-
-
+- MI le taux de décès accident du parent pour la modalité 10 est toujours à 100%, il faut prendre en compte le taux décès accidentel
 
 
 

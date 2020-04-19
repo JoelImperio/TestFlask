@@ -133,7 +133,55 @@ def premiumAquisitionLoading(p):
     p.loc[mask,'aquisitionLoading']=0    
     p.loc[mask,'aquisitionLoadingYear2']= 0
     p.loc[mask,'aquisitionLoadingYear3']= 0
+    
+    
+    
+    # Mixtes 1 tête mod2
+    mask = (p['PMBMOD'].isin([2]))
+    maskTete = p['POLNBTETE'] == 1
+    
+        # Tarif A
+    maskTarif = p['POLTARIF'].isin(['A', 'B','C','D'])
+    p.loc[maskTete & maskTarif & mask,'aquisitionLoading'] = 0.11
+    
+    maskTarif = p['POLTARIF'].isin(['E', 'F','G' ])
+    p.loc[maskTete & maskTarif & mask,'aquisitionLoading'] = 0.09
+    
+    maskTarif = p['POLTARIF'].isin(['H', 'I','J', 'L', 'K' ])
+    p.loc[maskTete & maskTarif & mask,'aquisitionLoading'] = 0.07
+    
+    # Mixtes 2 têtes mod2
+    maskTete = p['POLNBTETE'] == 2
+    maskTarif = p['POLTARIF'].isin(['A', 'B', 'C', 'D'])
+    p.loc[maskTete & maskTarif & mask,'aquisitionLoading'] = 0.11
+    
+    maskTarif = p['POLTARIF'].isin(['E', 'F','G'])
+    p.loc[maskTete & maskTarif & mask,'aquisitionLoading'] = 0.09
+    
+    maskTarif = p['POLTARIF'].isin(['H', 'I','J', 'K', 'L'])
+    p.loc[maskTete & maskTarif & mask,'aquisitionLoading'] = 0.07
+    
+    
+    # Mixte mod10
+    mask = (p['PMBMOD'].isin([10]))
 
+    maskTarif = p['POLTARIF'].isin(['A','C', 'D'])
+    p.loc[maskTarif & mask,'aquisitionLoading'] = 0.07
+    
+    # Mixte mod 6
+    mask = (p['PMBMOD'].isin([6]))
+    
+    maskTarif = p['POLTARIF'].isin(['A', 'L1', 'L2', 'M1', 'M2', 'M3'])
+    p.loc[maskTarif & mask,'aquisitionLoading'] = 0.05
+    
+    maskTarif = p['POLTARIF'].isin(['J3'])
+    p.loc[maskTarif & mask,'aquisitionLoading'] = 0
+    
+    
+    # Mixte mod 7
+    mask = (p['PMBMOD'].isin([7]))
+    p.loc[mask,'aquisitionLoading'] = 0
+    
 
     p['aquisitionLoading'].fillna(0,inplace=True)
     p['aquisitionLoadingYear2'].fillna(0,inplace=True)
@@ -168,6 +216,65 @@ def premiumGestionLoading(p):
     p.loc[(p['Age1AtEntry'] >= 70) & (mask), 'gestionLoading'] = 0.021
    
 
+
+
+
+# =============================================================================
+# Frais de gestion en % de la somme assurée sur la durée du contrat
+# =============================================================================
+
+def fraisGestionSumAss(p):
+    
+    # mod2
+    mask=(p['PMBMOD'].isin([2]))
+    
+
+    maskTarif = p['POLTARIF'].isin(['A', 'B', 'C', 'D'])
+    p.loc[maskTarif & mask,'gestionLoadingSA'] = 0.00425
+    
+    maskTarif = p['POLTARIF'].isin(['E', 'F', 'G'])
+    p.loc[maskTarif & mask,'gestionLoadingSA'] = 0.00325
+
+    maskTarif = p['POLTARIF'].isin(['H', 'I', 'J', 'L', 'K'])
+    p.loc[maskTarif & mask,'gestionLoadingSA'] = 0.0039
+
+    # mod10
+    mask=(p['PMBMOD'].isin([10]))
+    p.loc[mask,'gestionLoadingSA'] = 0.0039
+    
+    
+    # mod6
+    mask=(p['PMBMOD'].isin([6]))
+    p.loc[mask,'gestionLoadingSA'] = 0.006
+    
+    # mod7
+    mask=(p['PMBMOD'].isin([7]))
+    p.loc[mask,'gestionLoadingSA'] = 0
+    
+def tauxZill(p):
+    
+    # mod2
+    mask=(p['PMBMOD'].isin([2]))
+    
+
+    maskTarif = p['POLTARIF'].isin(['H', 'I', 'J', 'L', 'K'])
+    p.loc[maskTarif & mask,'tauxZill'] = 0.05
+    
+    maskTarif = p['POLTARIF'].isin(['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+    p.loc[ maskTarif & mask,'tauxZill'] = 0.08
+    
+    # mod10
+    mask=(p['PMBMOD'].isin([10]))
+    p.loc[mask,'tauxZill'] = 0.05
+     
+    # mod6 et 7
+    mask=(p['PMBMOD'].isin([6, 7]))
+    p.loc[mask,'tauxZill'] = 0
+    
+
+    
+    
+    
 ##############################################################################################################################
 #Permet d'ajouter une colonne contenant les frais de fractionnement
 ##############################################################################################################################
@@ -186,12 +293,12 @@ def fraisFractionnement(p):
     p.loc[mask2 & maskAX,'fraisFract']=1.04
     
     
-    maskPRECI=(p['PMBMOD']==25)|(p['PMBMOD']==26)
+    mask=(p['PMBMOD'].isin([25, 26, 2, 6, 10]))
     
-    p.loc[mask12 & maskPRECI,'fraisFract']=1.05
-    p.loc[mask6 & maskPRECI,'fraisFract']=1.04
-    p.loc[mask4 & maskPRECI,'fraisFract']=1.03
-    p.loc[mask2 & maskPRECI,'fraisFract']=1.02
+    p.loc[mask12 & mask,'fraisFract']=1.05
+    p.loc[mask6 & mask,'fraisFract']=1.04
+    p.loc[mask4 & mask,'fraisFract']=1.03
+    p.loc[mask2 & mask,'fraisFract']=1.02
     
     
     p.loc[:,'fraisFract']=p.loc[:,'fraisFract'].fillna(1)
@@ -500,7 +607,7 @@ def portfolioPreProcessing(p):
     # Une police axiprotect a un taux d'indexation sur la prime à 1%, on force à 0
     p.loc[p['PMBPOL'].isin([2357801]), 'POLINDEX'] = 0
     
-
+    
     agesInitial(p)
     
 #Formatage des colonnes et création des colonnes utiles    
@@ -546,11 +653,19 @@ def portfolioPreProcessing(p):
     # Ajout de la colonne contenant les chargements de gestion
     premiumGestionLoading(p)
     
+    #Ajout de la colonne contenant les chargement de gestions en % de la somme assurée
+    fraisGestionSumAss(p)
+    
     #Ajout d'une colonne contenant les frais de fractionnement
     fraisFractionnement(p)
     
     # Ajustement des fractionnements pour des polices avec frac = 0 (réduites)
     adjustedFracAndPremium(p)
+    
+    # Ajout des taux de zillmérisations en fonction du tarif
+    tauxZill(p)
+    
+
     
     
 
