@@ -40,7 +40,7 @@ class MI(Portfolio):
         self.loopSaving()
 
 # =============================================================================
-# --- FONCTION A REMONTER
+    ### FONCTION A REMONTER
 # =============================================================================
 
 # Celle-ci vient aussi de produit EP, je pense qu'on peut remplacé celle qui existe dans portefeuille (la différence est qu'ici il y a nbrPupIfSM 
@@ -186,69 +186,7 @@ class MI(Portfolio):
         return mask*1
     
 
-## A remonter
-# Age au début de la police 
-    def ageInit(self):
-        age = (self.p['Age1AtEntry'].to_numpy()[:,np.newaxis,np.newaxis]*self.one())
-        return age
 
-## A remonter
-# Age à la fin du contrat
-    def ageFinal(self):
-        age = ((self.p['Age1AtEntry'] + (self.p['residualTermM'] + self.p['DurationIfInitial'])/12).to_numpy()[:,np.newaxis,np.newaxis]*self.one())
-        return age
- 
-## A remonter
-# age à la fin du paiement des primes 
-    def agePrimes(self):
-        age = ((self.p['Age1AtEntry'].to_numpy() + self.p['POLDURP'].to_numpy())[:,np.newaxis,np.newaxis]*self.one())
-        return age
-
-## A remonter  
-# Fonction générique actuarielle
-    def actu(self, var, x, nbtetes = 1):
-        
-        table = self.p['POLTBMORT'].unique()
-        tbMort = self.p['POLTBMORT']
-               
-        if x == 'x':
-            myAge = self.ageInit().astype(int)
-        elif x == 't':
-            myAge = self.age().astype(int) 
-        elif x == 't+1':
-            myAge = self.age().astype(int) + 1
-        elif x == 'n':
-            myAge = self.ageFinal().astype(int) 
-        elif x == 'p':
-            myAge = self.agePrimes().astype(int)
-       
-        txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis] / 100
-        txTechLoop = np.unique(self.p['PMBTXINT'].to_numpy())
-        tbMort = tbMort[:,np.newaxis,np.newaxis]
-        myVarx = self.zero()
-        one = self.one()
-        zero = self.zero()
-        
-        for tb in table:
-            mask_tableMort = ((tbMort == tb)*one).astype(bool)
-            for i in np.nditer(txTechLoop):
-                txInt = i / 100
-                mask_txTech = ((txTech == txInt)*one).astype(bool)
-                mt = Actuarial(nt=eval(tb), i=txInt, nbtete = nbtetes)
-                aVARx = pd.DataFrame(getattr(mt, var)).to_numpy()
-                myAge2 = np.where(myAge>=mt.w, mt.w, myAge)
-                myVarx[mask_txTech & mask_tableMort] = np.take(aVARx, myAge2[mask_txTech & mask_tableMort])
-                myVarx[mask_txTech & mask_tableMort & (myAge>mt.w)] = zero[mask_txTech & mask_tableMort & (myAge>mt.w)]
-        return myVarx    
-
-
-## A remonter
-# Créer un vecteur permettant d'interpolé les vecteur en fonction de la date début de la police
-    def interp(self, var, varDec):
-        dur = self.durationIf()
-        interp = np.int16(dur/12) + 1-(dur/12)
-        resultat = (var * interp) + ((1-interp) * varDec)
-        return resultat * self.isActive()
 
 
 
@@ -540,7 +478,7 @@ class MI(Portfolio):
 
     
 # =============================================================================
-# --- CALCUL DES PREMIUMS
+    ### CALCUL DES PREMIUMS
 # =============================================================================
 
 # Prime complémentaire qui va dépendre de la modalité et du tarif
@@ -592,7 +530,7 @@ class MI(Portfolio):
         return prem
 
 # =============================================================================
-# --- CALCUL DES CLAIMS
+    ### CALCUL DES CLAIMS
 # =============================================================================
 
 # retourne la somme assurée avec le bon format
@@ -1037,7 +975,7 @@ class MI(Portfolio):
 
 
 # =============================================================================
-# --- CALCUL DES EXPENSES
+    ### CALCUL DES EXPENSES
 # =============================================================================
 
 
@@ -1048,9 +986,6 @@ class MI(Portfolio):
 # --- DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES
 # =============================================================================
 
-
-def tester(self):
-    return self
 
 pol = MI()
 #pol=MI(run=[4,5])

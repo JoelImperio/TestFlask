@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from Parametres import Hypo, allRuns,tableExperience
-from MyPyliferisk import MortalityTable
+from MyPyliferisk import MortalityTable, Actuarial
 from MyPyliferisk.mortalitytables import *
 import time
 import os, os.path
@@ -17,7 +17,7 @@ class Portfolio(Hypo):
 
     ageNan=999
     
-#Lapse timing = 1 correspond aux lapse en début de mois et décès en fin de mois
+#? Lapse timing = 1 correspond aux lapse en début de mois et décès en fin de mois
 #Nous pensons que l'hypothèse meilleure serait lapse et décès en milieu de mois soit lapseTiming=0.5
 #    lapseTiming=0.5
     lapseTiming=1
@@ -28,7 +28,7 @@ class Portfolio(Hypo):
              PortfolioNew=myPortfolioNew, SinistralityNew=mySinistralityNew,LapseNew=myLapseNew,CostNew=myCostNew,RateNew=myRateNew)
 
 ##############################################################################################################################
-###############################################DEBUT DES METHODES ACTUARIELLES################################################
+    ### DEBUT DES METHODES ACTUARIELLES
 ##############################################################################################################################
     
 #Retourne les ages pour l'assuré 1 ou 2 (defaut assuré 1)   
@@ -45,6 +45,22 @@ class Portfolio(Hypo):
         age=np.where(age==self.ageNan,age,age+duration)
 
         return np.copy(age)
+
+# Age du premier assuré au début de la police 
+    def ageInit(self):
+        age = (self.p['Age1AtEntry'].to_numpy()[:,np.newaxis,np.newaxis]*self.one())
+        return age
+
+
+# Age du premier assuré à la fin du contrat
+    def ageFinal(self):
+        age = ((self.p['Age1AtEntry'] + (self.p['residualTermM'] + self.p['DurationIfInitial'])/12).to_numpy()[:,np.newaxis,np.newaxis]*self.one())
+        return age
+
+# Age du premier assuré à la fin du paiement des primes 
+    def agePrimes(self):
+        age = ((self.p['Age1AtEntry'].to_numpy() + self.p['POLDURP'].to_numpy())[:,np.newaxis,np.newaxis]*self.one())
+        return age
 
 #Retourne les qx dimensionné pour une table de mortalité,une expérience (100 = 100% de la table) et pour l'assuré 1 ou 2
     def qx(self,table=tableExperience, exp=100, ass=1):
@@ -87,8 +103,59 @@ class Portfolio(Hypo):
         
         return qx+qy-qx*qy
 
+
+ 
+
+
+## A remonter  
+# Fonction générique actuarielle
+    def actu(self, var, x, nbtetes = 1):
+        
+        table = self.p['POLTBMORT'].unique()
+        tbMort = self.p['POLTBMORT']
+               
+        if x == 'x':
+            myAge = self.ageInit().astype(int)
+        elif x == 't':
+            myAge = self.age().astype(int) 
+        elif x == 't+1':
+            myAge = self.age().astype(int) + 1
+        elif x == 'n':
+            myAge = self.ageFinal().astype(int) 
+        elif x == 'p':
+            myAge = self.agePrimes().astype(int)
+       
+        txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis] / 100
+        txTechLoop = np.unique(self.p['PMBTXINT'].to_numpy())
+        tbMort = tbMort[:,np.newaxis,np.newaxis]
+        myVarx = self.zero()
+        one = self.one()
+        zero = self.zero()
+        
+        for tb in table:
+            mask_tableMort = ((tbMort == tb)*one).astype(bool)
+            for i in np.nditer(txTechLoop):
+                txInt = i / 100
+                mask_txTech = ((txTech == txInt)*one).astype(bool)
+                mt = Actuarial(nt=eval(tb), i=txInt, nbtete = nbtetes)
+                aVARx = pd.DataFrame(getattr(mt, var)).to_numpy()
+                myAge2 = np.where(myAge>=mt.w, mt.w, myAge)
+                myVarx[mask_txTech & mask_tableMort] = np.take(aVARx, myAge2[mask_txTech & mask_tableMort])
+                myVarx[mask_txTech & mask_tableMort & (myAge>mt.w)] = zero[mask_txTech & mask_tableMort & (myAge>mt.w)]
+        return myVarx    
+
+
+#? Créer un vecteur permettant d'interpolé les vecteur en fonction de la date début de la police
+    def interp(self, var, varDec):
+        dur = self.durationIf()
+        interp = np.int16(dur/12) + 1-(dur/12)
+        resultat = (var * interp) + ((1-interp) * varDec)
+        return resultat * self.isActive()
+
+
+
 ##############################################################################################################################
-###############################################DEBUT DES METHODES DE PROJECTION###############################################
+    ### DEBUT DES METHODES DE PROJECTION
 ##############################################################################################################################
         
 #Cette Loop renvoie l'ensemble des variables récusrives pour les produits risques
@@ -241,7 +308,7 @@ class Portfolio(Hypo):
         return self.zero()
 
 ##############################################################################################################################
-###########################################DEBUT DES COMPOSANTES DU BEL#######################################################
+    ### DEBUT DES COMPOSANTES DU BEL
 ##############################################################################################################################
 
 #Retourne les primes totales perçues
@@ -284,7 +351,7 @@ class Portfolio(Hypo):
         return bel
    
 ##############################################################################################################################
-###########################################DEBUT DU CALCUL DE LA PGG#######################################################
+    ### DEBUT DU CALCUL DE LA PGG
 ##############################################################################################################################     
 
     def PGG(self):
