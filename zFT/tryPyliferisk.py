@@ -12,7 +12,7 @@ from MyPyliferisk.mortalitytables import *
 # i = 0.05
 x = 61
 # n = 10
-nt=Actuarial(nt=EKM95, i=0)
+nt=Actuarial(nt=EKM95, i=0.0025)
 # nt=MortalityTable(nt=EKM95000, i=0)
 
 aQx=nt.qx
@@ -34,4 +34,17 @@ dx = nt.dx
 
 # adueval = Nx/Mx
 
-qx = nt.qx[61]
+
+qx = nt.qx[125]
+
+age = 59
+
+testMx = nt.Mx[age]
+testDx = nt.Dx[age]
+testNx = nt.Nx[age]
+
+aatest = testNx / testDx
+
+
+# D 0.97
+# N 10.21

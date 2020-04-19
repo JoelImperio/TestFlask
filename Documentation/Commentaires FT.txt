@@ -1,0 +1,18 @@
+VE:
+- La durée limite des projections ne dépend pas de 99 ans, mais de la longueur de la table de mortalité d'expérience (121), qui fait que les valeurs calculées dans loopVE 
+passent subitement à zéro alors qu'en tout logique elles devraient continuer à être calculées
+- Le vecteur des ax (a tester avec les autres valeurs) fini avec la valeur de 1, alors que tous les autres mois après la fin de projection sont à zéro.
+Du coup pour les 12 derniers mois les valeurs ne sont pas à zéero à cause de l'interpolation mensuelle.
+Ca a pour effet d'afficher des valeurs erronnées qui apparaissent très loin dans les projections pour les claims.
+
+
+
+Modalité 11:
+- La prime pure c'est le capital divisé par 99. Ca devrait être le capital * Mx/Nx
+- Les polices lapsent mensuellement quelque soit le fractionnement
+- L'annual riderpp est faux, car il prendre la prime totale et non juste la complémentaire
+- valNetpFac (ax, axp si durée paiement des primes != durée contrat) et valPolFac (ax) sont complètement faux (99 - durationif/12)
+- mathResBa prend la somme assurée au lieu de prendre la somme assurée * Ax 
+
+
+Modalité 01:
