@@ -438,7 +438,8 @@ def projectionLengh(p):
 
  # Traitement des vies entières
     mask=(p['PMBMOD']==11)|(p['PMBMOD']==1)
-    p.loc[mask,'residualTermM']=((115-p.loc[mask,'Age1AtEntry'])*12)-p.loc[mask,'DurationIfInitial']
+    # p.loc[mask,'residualTermM']=((121-p.loc[mask,'Age1AtEntry'])*12)-p.loc[mask,'DurationIfInitial']
+    p.loc[mask,'residualTermM']=(99*12)-p.loc[mask,'DurationIfInitial']
 
 
 

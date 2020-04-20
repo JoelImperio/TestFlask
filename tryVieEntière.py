@@ -19,7 +19,7 @@ start_time = time.time()
 # tableHommes = 'EKM05i'
     
 class VE(Portfolio):
-    mods=[1, 11]
+    mods=[1]
 
     # LapseTimine à 0.5 pour les VE
     lapseTiming = 0.5
@@ -58,6 +58,9 @@ class VE(Portfolio):
     
     # Fonction mondifiée des lapse car VE lapsent mensuellement   
     def lapse(self):
+        
+        mask99 = (self.durationIf() <= 99*12)
+        
         h=self.hypoSet(self.LapseNew)
         lapseSensiMoins=h.iloc[56,2]
         lapseSensiPlus=h.iloc[57,2]       
@@ -95,45 +98,45 @@ class VE(Portfolio):
         # mylapse=1-(1-mylapse)**(1/frac)
         mylapse=1-(1-mylapse)**(1/12)
         
-        mylapse= self.isLapse()*mylapse
+        mylapse= self.isLapse() * mylapse * mask99
         
         return mylapse
      
     # Loop qui calcule les maturités, inforce annuels et mensuels, nombre de morts, nombre de surrenders.    
     def loopVE(self):
         
+        mask121 = (self.age() <= 121)
+        mask99 = (self.durationIf() <= 98*12+1)
+        
         # Vecteur mise à zéro
-        nbrPolIf=self.one()
-        nbrDeath=self.zero()
-        nbrSurrender=self.zero()
-        nbrMaturities=self.zero()
-        nbrPolIfSM=self.zero()
-        matRate=self.zero()
+        nbrPolIf = self.one()
+        nbrDeath = self.zero()
+        nbrSurrender = self.zero()
+        nbrPolIfSM = self.zero()
+        matRate = self.zero()
         
         # Déclaration de certains vecteurs
-        polTermM=self.polTermM()
+        polTermM = self.polTermM()
         matRate[polTermM + 1==self.durationIf()]=1
-        qxy=self.qxyExpMens()
-        lapse=self.lapse()
+        qxy = self.qxyExpMens()
+        lapse = self.lapse()
          
         # Début du loop
         for i in range(1,self.shape[1]):
-            nbrMaturities[:,i,:]=nbrPolIf[:,i-1,:]*matRate[:,i,:]
-            nbrPolIfSM[:,i,:]=nbrPolIf[:,i-1,:]-nbrMaturities[:,i,:]
-            nbrDeath[:,i,:]=nbrPolIfSM[:,i,:]*qxy[:,i,:]*(1-(lapse[:,i,:]*(1-self.lapseTiming)))
-            nbrSurrender[:,i,:]=nbrPolIfSM[:,i,:]*lapse[:,i,:]*(1-(qxy[:,i,:]*self.lapseTiming))
-            nbrPolIf[:,i,:]=nbrPolIf[:,i-1,:]-nbrMaturities[:,i,:]-nbrDeath[:,i,:]-nbrSurrender[:,i,:]
+            nbrPolIfSM[:,i,:] = nbrPolIf[:,i-1,:] * mask99[:,i,:]
+            nbrDeath[:,i,:] = nbrPolIfSM[:,i,:] * qxy[:,i,:] * (1-(lapse[:,i,:] * (1-self.lapseTiming))) 
+            nbrSurrender[:,i,:] = nbrPolIfSM[:,i,:] * lapse[:,i,:] * (1-(qxy[:,i,:] * self.lapseTiming))
+            nbrPolIf[:,i,:] = nbrPolIf[:,i-1,:] - nbrDeath[:,i,:] - nbrSurrender[:,i,:]
 
         #Nombre de polices actives                                 
         self.nbrPolIf = nbrPolIf
         #Nombre de police actives en déduisant les échéances du mois
-        self.nbrPolIfSM=nbrPolIfSM
-        #Nombre d'échéances de contrat
-        self.nbrMaturities=nbrMaturities
+        self.nbrPolIfSM = nbrPolIfSM
         #Nombre de décès
-        self.nbrDeath=nbrDeath
+        self.nbrDeath = nbrDeath 
+        # self.nbrDeath=nbrDeath
         #Nombre d'annulation de contrat
-        self.nbrSurrender=nbrSurrender
+        self.nbrSurrender=nbrSurrender * mask99
      
     # Fonction prise des épargnes qui n'avait pas été remontée  
     def isActive(self):
@@ -162,7 +165,19 @@ class VE(Portfolio):
         payPrimes = np.select(conditions,result,sinon)
         return payPrimes
         
-  
+# =============================================================================
+    ### FONCTIONS A SUPPRIMER CAR FAUSSES
+# =============================================================================       
+    
+    def qxyExpMens(self):
+        maskotte1 = self.durationIf() > 98*12
+        maskotte2 = self.durationIf() <= 99*12
+        mask = maskotte1 & maskotte2
+        mask121 = (self.age() <= 121)
+        qx = self.qxExpMens(ass=1)
+        qy = self.qxExpMens(ass=2)
+        return (qx + qy - qx * qy) * mask121 + mask
+    
 # =============================================================================
     ### FONCTIONS ACTUARIELLES
 # =============================================================================       
@@ -706,7 +721,7 @@ pol = VE()
 
 
 # police unique
-# pol.ids([743801])
+pol.ids([71601])
 
 # valZillPC = pol.p['tauxZill'].to_numpy()[:,np.newaxis,np.newaxis] * pol.one()
 
@@ -725,11 +740,25 @@ pol = VE()
 # selection de la modalité
 # pol.mod([1])
 
+
+
+
+
+# mask99 = (pol.durationIf() <= 1188)
+# mask121 = (pol.age() <= 121)
+# maskotte1 = pol.durationIf() >= 98*12 
+# maskotte2 = pol.durationIf() < 99*12
+
+# test = maskotte1 & maskotte2
+
+
+
+
 print("Class VE--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 
-x = pol.deathBenefit()
-# x.to_excel(path+'/zFT/ptf.xlsx')
+x = pol.p
+x.to_excel(path+'/zFT/ptf.xlsx')
 monCas = pol.nbrDeath
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
