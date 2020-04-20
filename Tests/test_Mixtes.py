@@ -247,6 +247,24 @@ class Test_MOD_10(ut.TestCase):
             
 
 
+    def test_maturity(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'MAT_OUTGO'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.maturity()[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='maturity outgo ERROR')
+            
+    def test_surrender(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'SURR_OUTGO'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.surrender()[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='surrender outgo ERROR')
+            
+
+
 
 
 class Test_MOD_2_1(ut.TestCase):
@@ -306,7 +324,22 @@ class Test_MOD_2_1(ut.TestCase):
 
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='RIDERC OUTGO ERROR')
             
+    def test_maturity(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'MAT_OUTGO'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.maturity()[:,:409,0],axis=0)
 
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='maturity outgo ERROR')
+            
+    def test_surrender(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'SURR_OUTGO'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.surrender()[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='surrender outgo ERROR')
+            
 
 
 class Test_MOD_2_2(ut.TestCase):
@@ -369,8 +402,22 @@ class Test_MOD_2_2(ut.TestCase):
 
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='RIDERC OUTGO ERROR')
             
+    def test_maturity(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'MAT_OUTGO'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.maturity()[:,:409,0],axis=0)
 
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='maturity outgo ERROR')
+            
+    def test_surrender(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'SURR_OUTGO'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.surrender()[:,:409,0],axis=0)
 
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='surrender outgo ERROR')
+            
 
 
 class Test_MOD_6_7(ut.TestCase):
@@ -436,9 +483,23 @@ class Test_MOD_6_7(ut.TestCase):
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='RIDERC OUTGO ERROR')
             
 
+    def test_maturity(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'MAT_OUTGO'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.maturity()[:,:409,0],axis=0)
 
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='maturity outgo ERROR')
+            
 
+    def test_surrender(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'SURR_OUTGO'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.surrender()[:,:409,0],axis=0)
 
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='surrender outgo ERROR')
+            
 
 
 

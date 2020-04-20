@@ -167,12 +167,16 @@ class MI(Portfolio):
         self.AExn = self.zero()
         self.axn = self.zero()
         
-        self.AExn[self.p['POLNBTETE']==1] = AExn[self.p['POLNBTETE']==1]
-        self.AExn[self.p['POLNBTETE']==2] = AExn2t[self.p['POLNBTETE']==2]
+        mask10 = self.p['PMBMOD'] == 10
+        mask2t = self.p['POLNBTETE'] == 2
+        mask1t = self.p['POLNBTETE'] == 1
+        
+        self.AExn[mask1t | mask10] = AExn[mask1t | mask10]
+        self.AExn[mask2t & (~mask10)] = AExn2t[mask2t & (~mask10)]
         
         
-        self.axn[self.p['POLNBTETE']==1] = axn[self.p['POLNBTETE']==1]
-        self.axn[self.p['POLNBTETE']==2] = axn2t[self.p['POLNBTETE']==2]
+        self.axn[mask1t | mask10] = axn[mask1t | mask10]
+        self.axn[mask2t & (~mask10)] = axn2t[mask2t & (~mask10)]
 
 
 
@@ -329,6 +333,8 @@ class MI(Portfolio):
         pmPourPB = self.zero()
         tierPM = self.zero()
         zillTot = self.zero()
+        pbSortMatsPP = self.zero()
+        pbSortSurrPP = self.zero()
         
 
         # Calcul des PM au temps 0 
@@ -403,6 +409,10 @@ class MI(Portfolio):
             pbCalpTEMP = pmPourPB[:,i,:] * txPartPB[:,i,:] * (pmFirstYear[:,i,:] / 12)
             
             pbCalcPP[:,i,:] = np.divide( pbCalpTEMP, AExn[:,i,:], out=np.zeros_like(pbCalpTEMP), where=AExn[:,i,:]!=0 ) * allocMonths[:,i,:]
+            
+            pbSortMatsPP[:,i,:] = pbCalcPP[:,i,:] * isActive[:,i,:]
+            
+            pbSortSurrPP[:,i,:] = pbCalcPP[:,i,:] * isActive[:,i,:] * AExn[:,i,:]
 
 
 
@@ -441,7 +451,10 @@ class MI(Portfolio):
         self.pbCalcPP = pbCalcPP
   # PB acquise des polices actives
         self.pbAcquPP = pbAcquPP
-
+# PB dfdonnée par police en cas de maturité     
+        self.pbSortMatsPP = pbSortMatsPP
+# PB donnée par police en cas de rachat
+        self.pbSortSurrPP = pbSortSurrPP
 
         self.pmPourPB = pmPourPB
         self.pmZillCum = pmZillCum
@@ -590,11 +603,26 @@ class MI(Portfolio):
 
 #Retourne les provisions pour risque en cours
     def precPP(self):
+        mask10 = self.mask([10])
         annPremPP = self.annPremPP()
+        annPremPP[mask10] = self.annRider()[mask10]
         fraisFract = self.p['fraisFract'][:,np.newaxis, np.newaxis]*self.one() 
         loading = self.p['aquisitionLoading'][:,np.newaxis, np.newaxis]*self.one()  
         premForREC = annPremPP / fraisFract / (1+loading)
         precPP = premForREC * self.timeBeforeNextPay()/self.frac()
+        
+# calcul de precPP pour les modalité 10
+        frek=self.frac()
+        premCompl = self.annRider()/frek 
+        riderIncPP=premCompl*self.isPremPay()
+        riderIncPP2=premCompl
+        precPP10 = self.zero()
+        
+        for i in range(1,self.shape[1]):
+            precPP10[:,i,:]=precPP10[:,i-1,:]+riderIncPP[:,i,:] - ((frek[:,i,:]/12)*riderIncPP2[:,i,:])
+        
+        precPP[mask10] = precPP10[mask10]
+        
         return precPP * self.isActive()
 
 # retourne la provision mathèmatique de gestion
@@ -694,6 +722,53 @@ class MI(Portfolio):
         riderCoutgo[maskPA] = self.riderCostPP()[maskPA] * self.nbrPolIfSM[maskPA] + self.nbrDeath[maskPA] * self.capPA()[maskPA]
         riderCoutgo[maskNpa] = self.riderCostPP()[maskNpa] * self.nbrPolIfSM[maskNpa] 
         return riderCoutgo
+    
+    
+# calcul de la PB donnée par police en cas de maturité
+    def pbSortMats(self):
+        
+        pass
+    
+# calcul des benefices en cas de maturité par police
+    def matBenPP(self):
+        
+        pb = self.pbAcquPP
+        sumAss = self.sumAss()
+        pbSortMat = self.pbSortMatsPP
+
+        
+        return pb + sumAss + pbSortMat
+    
+    
+ # calcul des sorties total en cas de maturité 
+    def maturity(self):
+        noMats = self.nbrNewMat
+        matBenPP = self.matBenPP()
+        matOutgo = self.zero()
+
+        for i in range(1,self.shape[1]):
+            matOutgo[:,i,:] = matBenPP[:,i-1,:] * noMats[:,i,:] 
+        
+        return matOutgo
+    
+    
+# calcul des sorties en cas de rachat
+    def surrender(self):
+        pb = self.pbSortSurrPP
+        pm = self.mathResPP
+        surrValue = self.zero()
+        # le rachat n'est possible qu'après 3 ans
+        surrValue[self.durationIf() > 36] = np.maximum(pm, pb)[self.durationIf() > 36]
+        
+        # Calcul des surrender outgo pour les modalité 6 et 7
+        pmzill = self.pmZillPP
+        pbsort = self.pbSortSurrPP
+        surrValue[self.mask([6,7])] = np.maximum(pmzill + pbsort, 0.95 * pmzill)[self.mask([6,7])]
+        
+        surrOutgo = surrValue * self.nbrSurrender
+        
+        return surrOutgo
+    
 
 # # loop pour calculer les reserves
 #     def reserve(self):
@@ -961,17 +1036,13 @@ class MI(Portfolio):
 
 
 
-#Retourne les rachats totaux (SURR_OUTGO)
-    def surrender(self):
-        return self.zero()
+
 
 #Retourne les rachats partiels (PARTSV_OUTGO)
     def partialSurrender(self):
         return self.zero()
 
-#Retourne les échéances (MAT_OUTGO)
-    def maturity(self):
-        return self.zero()
+
 
 
 # =============================================================================
@@ -1005,11 +1076,13 @@ pol = MI()
 # pol.modHead([2],2)
 
     ### Mod 10 F1XT14
-# pol.ids([1602604])
+# pol.ids([2078101])
+
+# pol.ids([2078101])
 # pol.mod([10])
 
     ### Mod 6 F1XT11
-# pol.ids([799003])
+# pol.ids([354605])
 pol.mod([6,7])
 
 # mod7
@@ -1018,7 +1091,7 @@ pol.mod([6,7])
 # age = pol.age()
 
 
-check = pol.claimCompl()
+check = pol.surrender()
 # pureprem = pol.purePremium()
 
 # a = pol.p
@@ -1071,8 +1144,33 @@ z.to_csv(path+'/zJO/check.csv',header=False)
 #a=pd.DataFrame(data[:,:,4])
 # AExn = pol.AExn()
 
+Nx = pol.actu('Nx', 'x')
+Nxn = pol.actu('Nx', 'n')
+Nxt = pol.actu('Nx', 't')
+# Nxp = pol.actu('Nx', 'p')
+NxDec = pol.actu('Nx', 't+1')
+
+Dx = pol.actu('Dx', 'x')
+Dxn = pol.actu('Dx', 'n')
+Dxt = pol.actu('Dx', 't')
+# Dxp = pol.actu('Dx', 'p')
+DxDec = pol.actu('Dx', 't+1')
+
+Mx = pol.actu('Mx', 'x')
+Mxn = pol.actu('Mx', 'n')
+Mxt = pol.actu('Mx', 't')
+# Mxp = pol.actu('Mx', 'p')
+MxDec = pol.actu('Mx', 't+1')
+
+axn = pol.zero()
+axn[Dxt>0] = (Nxt[Dxt>0] - Nxn[Dxt>0]) / Dxt[Dxt>0]
+axn = np.roll(axn, -1, axis = 1)
 
 
 
+axnDec = pol.zero()
+axnDec[DxDec>0] = (NxDec[DxDec>0] - Nxn[DxDec>0]) / DxDec[DxDec>0]
+axnDec = np.roll(axnDec, -1, axis = 1)
 
+axn = pol.interp(axn, axnDec)
 # interp = pol.interp()
