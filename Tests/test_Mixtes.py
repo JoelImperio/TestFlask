@@ -201,23 +201,6 @@ class Test_MOD_10(ut.TestCase):
 # =============================================================================
 #     PRINCIPAUX VECTEUR A TESTER
 # =============================================================================
-    
-
-
-
-# =============================================================================
-# VECTEUR SECONDAIRE A TESTER
-# =============================================================================
-
-    def test_nbPolif(self):
-        
-        prophet=np.array(self.spProphet.loc[:self.length,'NO_POLS_IF'].to_numpy(),dtype=float)
-        
-        python=np.sum((self.sp.nbrPolIf)[:,:409,0],axis=0)
-
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='NbrPolif ERROR ')
-
-
 
     def test_Premium(self):
         
@@ -225,43 +208,69 @@ class Test_MOD_10(ut.TestCase):
         
         python=np.sum((self.sp.totalPremium())[:,:409,0],axis=0)
 
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='Premium ERROR ')
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='Premium ERROR ')    
 
 
-    def test_princpalClaim(self):
+    def test_Claim(self):
         
-        prophet=np.array(self.spProphet.loc[:self.length,'DEATH_OUTGO'].to_numpy(),dtype=float)
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_PREST'].to_numpy(),dtype=float)
         
-        python=np.sum(self.sp.claimPrincipal()[:,:409,0],axis=0)
+        python=np.sum(self.sp.totalClaim()[:,:409,0],axis=0)
 
+        
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalClaim ERROR')
+
+# =============================================================================
+# VECTEUR SECONDAIRE A TESTER
+# =============================================================================
+
+    # def test_nbPolif(self):
+        
+    #     prophet=np.array(self.spProphet.loc[:self.length,'NO_POLS_IF'].to_numpy(),dtype=float)
+        
+    #     python=np.sum((self.sp.nbrPolIf)[:,:409,0],axis=0)
+
+    #     np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='NbrPolif ERROR ')
+
+
+
+
+
+
+    # def test_princpalClaim(self):
+        
+    #     prophet=np.array(self.spProphet.loc[:self.length,'DEATH_OUTGO'].to_numpy(),dtype=float)
+        
+    #     python=np.sum(self.sp.claimPrincipal()[:,:409,0],axis=0)
+
+    #     np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalClaim ERROR')
             
 
-    def test_claimCompl(self):
+    # def test_claimCompl(self):
         
-        prophet=np.array(self.spProphet.loc[:self.length,'RIDERC_OUTGO'].to_numpy(),dtype=float)
+    #     prophet=np.array(self.spProphet.loc[:self.length,'RIDERC_OUTGO'].to_numpy(),dtype=float)
         
-        python=np.sum(self.sp.claimCompl()[:,:409,0],axis=0)
+    #     python=np.sum(self.sp.claimCompl()[:,:409,0],axis=0)
 
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='RIDERC OUTGO ERROR')
+    #     np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='RIDERC OUTGO ERROR')
             
 
 
-    def test_maturity(self):
+    # def test_maturity(self):
         
-        prophet=np.array(self.spProphet.loc[:self.length,'MAT_OUTGO'].to_numpy(),dtype=float)
+    #     prophet=np.array(self.spProphet.loc[:self.length,'MAT_OUTGO'].to_numpy(),dtype=float)
         
-        python=np.sum(self.sp.maturity()[:,:409,0],axis=0)
+    #     python=np.sum(self.sp.maturity()[:,:409,0],axis=0)
 
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='maturity outgo ERROR')
+    #     np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='maturity outgo ERROR')
             
-    def test_surrender(self):
+    # def test_surrender(self):
         
-        prophet=np.array(self.spProphet.loc[:self.length,'SURR_OUTGO'].to_numpy(),dtype=float)
+    #     prophet=np.array(self.spProphet.loc[:self.length,'SURR_OUTGO'].to_numpy(),dtype=float)
         
-        python=np.sum(self.sp.surrender()[:,:409,0],axis=0)
+    #     python=np.sum(self.sp.surrender()[:,:409,0],axis=0)
 
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='surrender outgo ERROR')
+    #     np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='surrender outgo ERROR')
             
 
 
@@ -285,21 +294,6 @@ class Test_MOD_2_1(ut.TestCase):
 #     PRINCIPAUX VECTEUR A TESTER
 # =============================================================================
     
-
-
-# =============================================================================
-# VECTEUR SECONDAIRE A TESTER
-# =============================================================================
-
-    def test_nbPolif(self):
-        
-        prophet=np.array(self.spProphet.loc[:self.length,'NO_POLS_IF'].to_numpy(),dtype=float)
-        
-        python=np.sum((self.sp.nbrPolIf)[:,:409,0],axis=0)
-
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='NbrPolif ERROR ')
-
-
     def test_Premium(self):
         
         prophet=np.array(self.spProphet.loc[:self.length,'PREM_INC'].to_numpy(),dtype=float)
@@ -308,37 +302,61 @@ class Test_MOD_2_1(ut.TestCase):
 
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='Premium ERROR ')
 
-    def test_princpalClaim(self):
+    def test_Claim(self):
         
-        prophet=np.array(self.spProphet.loc[:self.length,'DEATH_OUTGO'].to_numpy(),dtype=float)
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_PREST'].to_numpy(),dtype=float)
         
-        python=np.sum(self.sp.claimPrincipal()[:,:409,0],axis=0)
+        python=np.sum(self.sp.totalClaim()[:,:409,0],axis=0)
 
+        
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalClaim ERROR')
-            
-    def test_claimCompl(self):
-        
-        prophet=np.array(self.spProphet.loc[:self.length,'RIDERC_OUTGO'].to_numpy(),dtype=float)
-        
-        python=np.sum(self.sp.claimCompl()[:,:409,0],axis=0)
 
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='RIDERC OUTGO ERROR')
-            
-    def test_maturity(self):
-        
-        prophet=np.array(self.spProphet.loc[:self.length,'MAT_OUTGO'].to_numpy(),dtype=float)
-        
-        python=np.sum(self.sp.maturity()[:,:409,0],axis=0)
+# =============================================================================
+# VECTEUR SECONDAIRE A TESTER
+# =============================================================================
 
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='maturity outgo ERROR')
-            
-    def test_surrender(self):
+    # def test_nbPolif(self):
         
-        prophet=np.array(self.spProphet.loc[:self.length,'SURR_OUTGO'].to_numpy(),dtype=float)
+    #     prophet=np.array(self.spProphet.loc[:self.length,'NO_POLS_IF'].to_numpy(),dtype=float)
         
-        python=np.sum(self.sp.surrender()[:,:409,0],axis=0)
+    #     python=np.sum((self.sp.nbrPolIf)[:,:409,0],axis=0)
 
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='surrender outgo ERROR')
+    #     np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='NbrPolif ERROR ')
+
+
+
+
+    # def test_princpalClaim(self):
+        
+    #     prophet=np.array(self.spProphet.loc[:self.length,'DEATH_OUTGO'].to_numpy(),dtype=float)
+        
+    #     python=np.sum(self.sp.claimPrincipal()[:,:409,0],axis=0)
+
+    #     np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalClaim ERROR')
+            
+    # def test_claimCompl(self):
+        
+    #     prophet=np.array(self.spProphet.loc[:self.length,'RIDERC_OUTGO'].to_numpy(),dtype=float)
+        
+    #     python=np.sum(self.sp.claimCompl()[:,:409,0],axis=0)
+
+    #     np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='RIDERC OUTGO ERROR')
+            
+    # def test_maturity(self):
+        
+    #     prophet=np.array(self.spProphet.loc[:self.length,'MAT_OUTGO'].to_numpy(),dtype=float)
+        
+    #     python=np.sum(self.sp.maturity()[:,:409,0],axis=0)
+
+    #     np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='maturity outgo ERROR')
+            
+    # def test_surrender(self):
+        
+    #     prophet=np.array(self.spProphet.loc[:self.length,'SURR_OUTGO'].to_numpy(),dtype=float)
+        
+    #     python=np.sum(self.sp.surrender()[:,:409,0],axis=0)
+
+    #     np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='surrender outgo ERROR')
             
 
 
@@ -361,20 +379,6 @@ class Test_MOD_2_2(ut.TestCase):
 # =============================================================================
     
 
-# =============================================================================
-# VECTEUR SECONDAIRE A TESTER
-# =============================================================================
-
-    def test_nbPolif(self):
-        
-        prophet=np.array(self.spProphet.loc[:self.length,'NO_POLS_IF'].to_numpy(),dtype=float)
-        
-        python=np.sum((self.sp.nbrPolIf)[:,:409,0],axis=0)
-
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='NbrPolif ERROR ')
-
-
-
     def test_Premium(self):
         
         prophet=np.array(self.spProphet.loc[:self.length,'PREM_INC'].to_numpy(),dtype=float)
@@ -383,42 +387,80 @@ class Test_MOD_2_2(ut.TestCase):
 
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='Premium ERROR ')
 
-
-
-    def test_princpalClaim(self):
+    def test_Claim(self):
         
-        prophet=np.array(self.spProphet.loc[:self.length,'DEATH_OUTGO'].to_numpy(),dtype=float)
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_PREST'].to_numpy(),dtype=float)
         
-        python=np.sum(self.sp.claimPrincipal()[:,:409,0],axis=0)
+        python=np.sum(self.sp.totalClaim()[:,:409,0],axis=0)
 
+        
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalClaim ERROR')
+
+# =============================================================================
+# VECTEUR SECONDAIRE A TESTER
+# =============================================================================
+
+    # def test_nbPolif(self):
+        
+    #     prophet=np.array(self.spProphet.loc[:self.length,'NO_POLS_IF'].to_numpy(),dtype=float)
+        
+    #     python=np.sum((self.sp.nbrPolIf)[:,:409,0],axis=0)
+
+    #     np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='NbrPolif ERROR ')
+
+
+
+    # def test_Premium(self):
+        
+    #     prophet=np.array(self.spProphet.loc[:self.length,'PREM_INC'].to_numpy(),dtype=float)
+        
+    #     python=np.sum((self.sp.totalPremium())[:,:409,0],axis=0)
+
+    #     np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='Premium ERROR ')
+
+
+
+    # def test_princpalClaim(self):
+        
+    #     prophet=np.array(self.spProphet.loc[:self.length,'DEATH_OUTGO'].to_numpy(),dtype=float)
+        
+    #     python=np.sum(self.sp.claimPrincipal()[:,:409,0],axis=0)
+
+    #     np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalClaim ERROR')
             
 
-    def test_claimCompl(self):
+    # def test_claimCompl(self):
         
-        prophet=np.array(self.spProphet.loc[:self.length,'RIDERC_OUTGO'].to_numpy(),dtype=float)
+    #     prophet=np.array(self.spProphet.loc[:self.length,'RIDERC_OUTGO'].to_numpy(),dtype=float)
         
-        python=np.sum(self.sp.claimCompl()[:,:409,0],axis=0)
+    #     python=np.sum(self.sp.claimCompl()[:,:409,0],axis=0)
 
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='RIDERC OUTGO ERROR')
+    #     np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='RIDERC OUTGO ERROR')
             
-    def test_maturity(self):
+    # def test_maturity(self):
         
-        prophet=np.array(self.spProphet.loc[:self.length,'MAT_OUTGO'].to_numpy(),dtype=float)
+    #     prophet=np.array(self.spProphet.loc[:self.length,'MAT_OUTGO'].to_numpy(),dtype=float)
         
-        python=np.sum(self.sp.maturity()[:,:409,0],axis=0)
+    #     python=np.sum(self.sp.maturity()[:,:409,0],axis=0)
 
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='maturity outgo ERROR')
+    #     np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='maturity outgo ERROR')
             
-    def test_surrender(self):
+    # def test_surrender(self):
         
-        prophet=np.array(self.spProphet.loc[:self.length,'SURR_OUTGO'].to_numpy(),dtype=float)
+    #     prophet=np.array(self.spProphet.loc[:self.length,'SURR_OUTGO'].to_numpy(),dtype=float)
         
-        python=np.sum(self.sp.surrender()[:,:409,0],axis=0)
+    #     python=np.sum(self.sp.surrender()[:,:409,0],axis=0)
 
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='surrender outgo ERROR')
+    #     np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='surrender outgo ERROR')
             
+    # def test_Claim(self):
+        
+    #     prophet=np.array(self.spProphet.loc[:self.length,'TOT_PREST'].to_numpy(),dtype=float)
+        
+    #     python=np.sum(self.sp.totalClaim()[:,:409,0],axis=0)
 
+        
+    #     np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalClaim ERROR')
 
 class Test_MOD_6_7(ut.TestCase):
 
@@ -439,19 +481,36 @@ class Test_MOD_6_7(ut.TestCase):
 # =============================================================================
     
 
+    def test_Premium(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'PREM_INC'].to_numpy(),dtype=float)
+        
+        python=np.sum((self.sp.totalPremium())[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='Premium ERROR ')
+
+    def test_Claim(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_PREST'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.totalClaim()[:,:409,0],axis=0)
+
+        
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalClaim ERROR')
+
 # =============================================================================
 # VECTEUR SECONDAIRE A TESTER
 # =============================================================================
 
-    def test_nbPolif(self):
+    # def test_nbPolif(self):
         
-        prophet=np.array(self.spProphet.loc[:self.length,'NO_POLS_IF'].to_numpy(),dtype=float)
+    #     prophet=np.array(self.spProphet.loc[:self.length,'NO_POLS_IF'].to_numpy(),dtype=float)
         
-        # prophet=np.array(spProphet.loc[:length,'NO_POLS_IF'].to_numpy(),dtype=float)
+    #     # prophet=np.array(spProphet.loc[:length,'NO_POLS_IF'].to_numpy(),dtype=float)
         
-        python=np.sum((self.sp.nbrPolIf)[:,:409,0],axis=0)
+    #     python=np.sum((self.sp.nbrPolIf)[:,:409,0],axis=0)
 
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='NbrPolif ERROR ')
+    #     np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='NbrPolif ERROR ')
 
 
     def test_Premium(self):
@@ -462,43 +521,50 @@ class Test_MOD_6_7(ut.TestCase):
 
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='Premium ERROR ')
 
-
-
-
-    def test_princpalClaim(self):
+    def test_Claim(self):
         
-        prophet=np.array(self.spProphet.loc[:self.length,'DEATH_OUTGO'].to_numpy(),dtype=float)
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_PREST'].to_numpy(),dtype=float)
         
-        python=np.sum(self.sp.claimPrincipal()[:,:409,0],axis=0)
+        python=np.sum(self.sp.totalClaim()[:,:409,0],axis=0)
 
+        
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalClaim ERROR')
+
+
+    # def test_princpalClaim(self):
+        
+    #     prophet=np.array(self.spProphet.loc[:self.length,'DEATH_OUTGO'].to_numpy(),dtype=float)
+        
+    #     python=np.sum(self.sp.claimPrincipal()[:,:409,0],axis=0)
+
+    #     np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalClaim ERROR')
             
 
-    def test_claimCompl(self):
+    # def test_claimCompl(self):
         
-        prophet=np.array(self.spProphet.loc[:self.length,'RIDERC_OUTGO'].to_numpy(),dtype=float)
+    #     prophet=np.array(self.spProphet.loc[:self.length,'RIDERC_OUTGO'].to_numpy(),dtype=float)
         
-        python=np.sum(self.sp.claimCompl()[:,:409,0],axis=0)
+    #     python=np.sum(self.sp.claimCompl()[:,:409,0],axis=0)
 
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='RIDERC OUTGO ERROR')
+    #     np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='RIDERC OUTGO ERROR')
             
 
-    def test_maturity(self):
+    # def test_maturity(self):
         
-        prophet=np.array(self.spProphet.loc[:self.length,'MAT_OUTGO'].to_numpy(),dtype=float)
+    #     prophet=np.array(self.spProphet.loc[:self.length,'MAT_OUTGO'].to_numpy(),dtype=float)
         
-        python=np.sum(self.sp.maturity()[:,:409,0],axis=0)
+    #     python=np.sum(self.sp.maturity()[:,:409,0],axis=0)
 
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='maturity outgo ERROR')
+    #     np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='maturity outgo ERROR')
             
 
-    def test_surrender(self):
+    # def test_surrender(self):
         
-        prophet=np.array(self.spProphet.loc[:self.length,'SURR_OUTGO'].to_numpy(),dtype=float)
+    #     prophet=np.array(self.spProphet.loc[:self.length,'SURR_OUTGO'].to_numpy(),dtype=float)
         
-        python=np.sum(self.sp.surrender()[:,:409,0],axis=0)
+    #     python=np.sum(self.sp.surrender()[:,:409,0],axis=0)
 
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='surrender outgo ERROR')
+    #     np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='surrender outgo ERROR')
             
 
 
