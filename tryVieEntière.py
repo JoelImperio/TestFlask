@@ -19,7 +19,7 @@ start_time = time.time()
 # tableHommes = 'EKM05i'
     
 class VE(Portfolio):
-    mods=[1]
+    mods=[11]
 
     # LapseTimine à 0.5 pour les VE
     lapseTiming = 0.5
@@ -616,10 +616,7 @@ class VE(Portfolio):
     
     # PPURE_ENC
     def ppureEnc(self):
-
-        ppureEnc = pol.nbrPolIfSM* pol.purePremium() / pol.frac() * pol.isPremPay()
-        
-        
+        ppureEnc = pol.nbrPolIfSM * pol.purePremium() / pol.frac() * pol.isPremPay()
         return ppureEnc
         
     def mUfii(self):
@@ -627,6 +624,18 @@ class VE(Portfolio):
         rate = np.round(rate, decimals = 6)
         rate = (1+rate)**(1/12) - 1
         return rate
+   
+    def totalIntCred(self):
+        totalIntCred = self.intCredT() + self.intCredZill()
+        totalIntCred[(self.mask([11]))] = self.zero()[(self.mask([11]))]
+        return totalIntCred
+   
+    def intCredZill(self):
+        valzillPP = np.roll(self.valZillPP(), 1, axis = 1)
+        nbrPolIf = np.roll(self.nbrPolIf, 1, axis = 1)
+        intCredZill = (self.txInt()-1) * -1 * valzillPP * nbrPolIf
+        return intCredZill
+        
     
     def intCredT(self):
         return (self.txInt()-1) * self.provTechAj()
@@ -634,7 +643,7 @@ class VE(Portfolio):
     def provTechAj(self):
         provTechAj = self.zero()
         provTechIf = self.provTechIf()
-        primeInvest = self.ppureEnc() * self.nbrPolIfSM
+        primeInvest = self.ppureEnc()
         # primeInvest = self.one()
         riderCoutgo = self.claimCompl()
 
@@ -749,7 +758,7 @@ pol = VE()
 
 
 # police unique
-pol.ids([71601])
+# pol.ids([71601])
 
 # valZillPC = pol.p['tauxZill'].to_numpy()[:,np.newaxis,np.newaxis] * pol.one()
 
@@ -781,6 +790,7 @@ adjMathRes2 = pol.zero()
 resFinMois = pol.zero()
 provMathAj = pol.zero()
 oExp = pol.zero()
+oTaxblInc = pol.zero()
 totCom = pol.totalCommissions()
 
 # fonction existantes
@@ -794,7 +804,7 @@ mUfii = pol.mUfii()
 # durationIf = pol.durationIf()
 monthPb = pol.one() - pol.allocMonths()
 # isActive = pol.isActive()
-totIntCred = pol.intCredT() 
+totIntCred = pol.totalIntCred() 
 
 # PPURE_ENC
 premInvest = pol.purePremium() * pol.nbrPolIfSM / pol.frac() * pol.isPremPay()
@@ -811,14 +821,9 @@ for i in range(1,pol.shape[1]):
     totExp[:,i,:] = unitExp[:,i,:] + adjMathRes2[:,i,:] * txReserve[:,i,:] 
     oExp[:,i,:] = totExp[:,i,:] + totCom[:,i,:]
     provMathAj[:,i,:] = provMathIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInc[:,i,:] - riderCoutgo[:,i,:] - oExp[:,i,:]
-    resFinMois[:,i,:] = provMathAj[:,i,:] * mUfii[:,i,:] - totIntCred[:,i,:]
+    oTaxblInc[:,i,:] = provMathAj[:,i,:] * mUfii[:,i,:]
+    resFinMois[:,i,:] = oTaxblInc[:,i,:] - totIntCred[:,i,:]
     rfinAnn[:,i,:] = (rfinAnn[:,i-1,:] + resFinMois[:,i,:]) * monthPb[:,i,:] 
-
-
-
-
-
-
 
 
 
@@ -828,7 +833,7 @@ print("Class VE--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 x = pol.p
 x.to_excel(path+'/zFT/ptf.xlsx')
-monCas = pol.ppureEnc()
+monCas = pol.totalClaim()
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
