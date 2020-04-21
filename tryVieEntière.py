@@ -7,8 +7,8 @@ import time
 import os, os.path
 # import datetime
 #from MyPyliferisk import mortalitytables
-from MyPyliferisk import Actuarial
-from MyPyliferisk.mortalitytables import *
+# from MyPyliferisk import Actuarial
+# from MyPyliferisk.mortalitytables import *
 path = os.path.dirname(os.path.abspath(__file__))
 start_time = time.time()
 
@@ -19,7 +19,7 @@ start_time = time.time()
 # tableHommes = 'EKM05i'
     
 class VE(Portfolio):
-    mods=[11]
+    mods=[1]
 
     # LapseTimine à 0.5 pour les VE
     lapseTiming = 0.5
@@ -164,6 +164,9 @@ class VE(Portfolio):
         sinon = 0
         payPrimes = np.select(conditions,result,sinon)
         return payPrimes
+    
+
+
         
 # =============================================================================
     ### FONCTIONS A SUPPRIMER CAR FAUSSES
@@ -300,7 +303,8 @@ class VE(Portfolio):
 
     # SUM_ASSD_PP - capital de la police
     def insuredSum(self):
-        sumAssdPp = self.p['PMBCAPIT'].to_numpy()[:,np.newaxis,np.newaxis]*self.one()
+        mask99 = (self.durationIf() <= 99*12)
+        sumAssdPp = self.p['PMBCAPIT'].to_numpy()[:,np.newaxis,np.newaxis]*self.one() * mask99
         return sumAssdPp
     
     # VAL_SUM_ASSD
@@ -328,8 +332,7 @@ class VE(Portfolio):
        
     # PROV_GEST_PP - Provision de gestion par police, quelle logique?
     def provGestPP(self):
-        provGestPp = self.pmgSaPc() * (self.insuredSum() + self.valAccrbPP()) \
-        - self.valNetpFac() * (self.prInventPP() - self.purePremium())
+        provGestPp = self.pmgSaPc() * (self.insuredSum() + self.valAccrbPP()) - self.valNetpFac() * (self.prInventPP() - self.purePremium())
         return provGestPp
     
     # VAL_PREC_PP - risque en cours
@@ -448,7 +451,9 @@ class VE(Portfolio):
         valZillPC = self.p['tauxZill'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
         
         ValZillPP = np.minimum(valZillPC * self.prInventPP() * self.valNetpFac(), self.valSumAssd() - self.valNetpPP() + self.provGestPP())
-        # ValZillPP = np.minimum(valZillPC * self.prInventPP() * self.valNetpFac(), self.insuredSum() - self.valNetpPP() + self.provGestPP())
+        
+        
+        ValZillPP[(self.mask([11]))] = np.minimum(valZillPC[(self.mask([11]))] * self.prInventPP()[(self.mask([11]))] * self.valNetpFac()[(self.mask([11]))], self.insuredSum()[(self.mask([11]))] - self.valNetpPP()[(self.mask([11]))] + self.provGestPP()[(self.mask([11]))])
         return ValZillPP
     
     # MATH_RES_BA - provision mathématique 
@@ -589,23 +594,10 @@ class VE(Portfolio):
         provMathAj[:,0,:] = premInc[:,0,:] - totExp[:,0,:] - riderCoutgo[:,0,:]
 
         for i in range(1,self.shape[1]):
-            # Calcul adjMathRes2
             adjMathRes2[:,i,:] = np.maximum(0, fMathResIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInvest[:,i,:] - riderCoutgo[:,i,:])
-            
-            # Calcul totExp
             totExp[:,i,:] = unitExp[:,i,:] + adjMathRes2[:,i,:] * txReserve[:,i,:] 
-            
-            # Calcul ProvMathAj
             provMathAj[:,i,:] = provMathIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInc[:,i,:] - riderCoutgo[:,i,:] - (totExp[:,i,:] + totCom[:,i,:])
-            
-            # Calcul resFinMois, en ordre
             resFinMois[:,i,:] = provMathAj[:,i,:] * mUfii[:,i,:]
-            
-            # Calcul RFIN_ANN_NC, en ordre
-            # if durationIf[:,i,:] % 12 != self.zero():
-            #     rfinAnn[:,i,:] = rfinAnn[:,i-1,:] + resFinMois[:,i,:]
-            # else:
-            #     rfinAnn[:,i,:] = 0
             rfinAnn[:,i,:] = (rfinAnn[:,i-1,:] + resFinMois[:,i,:]) * monthPb[:,i,:] 
 
    #Définition des variables récursives
@@ -624,14 +616,46 @@ class VE(Portfolio):
     
     # PPURE_ENC
     def ppureEnc(self):
-        # Complètement faux, Prophet divise la prime pure mensuelle par le
-        # fractionnemenet et multiplie le résultat par les inforce...
-        # alors que la prime pure fractionnée est déjà calculée ailleurs
-        ppureEnc = pol.nbrPolIfSM * pol.purePremium() / pol.frac() * pol.isPremPay()
-        # Correct:
-        # ppureEnc = pol.nbrPolIfSM * pol.purePremium() * (12/pol.frac()) * pol.isPremPay()
+
+        ppureEnc = pol.nbrPolIfSM* pol.purePremium() / pol.frac() * pol.isPremPay()
+        
+        
         return ppureEnc
         
+    def mUfii(self):
+        rate = (1+self.rate())**12 - 1
+        rate = np.round(rate, decimals = 6)
+        rate = (1+rate)**(1/12) - 1
+        return rate
+    
+    def intCredT(self):
+        return (self.txInt()-1) * self.provTechAj()
+    
+    def provTechAj(self):
+        provTechAj = self.zero()
+        provTechIf = self.provTechIf()
+        primeInvest = self.ppureEnc() * self.nbrPolIfSM
+        # primeInvest = self.one()
+        riderCoutgo = self.claimCompl()
+
+        # tresRldMat = self.tresRldMat()
+        # pbIncorpIf = self.pbIncorpIF()
+        
+        for i in range(1,self.shape[1]):
+            # provTechAj[:,i,:] = provTechIf[:,i-1,:] + pbIncorpIf[:,i,:] + primeInvest[:,i,:] - riderCoutgo[:,i,:] - tresRldMat[:,i,:]
+            provTechAj[:,i,:] = provTechIf[:,i-1,:] + primeInvest[:,i,:] - riderCoutgo[:,i,:]
+        return provTechAj
+    
+    # calcul des provisions techniques en cours, inforce
+    def provTechIf(self):
+        provTechPP = self.provTechPP()
+        provTechIf = provTechPP * self.nbrPolIf 
+        return provTechIf
+    
+    # Provision technique par polices
+    def provTechPP(self):
+        prov = self.mathResBa() - self.provGestPP() - self.valPrecPP() + self.valZillPP()
+        return prov
 # =============================================================================
     ### CALCUL DES CLAIMS   
 # =============================================================================
@@ -725,7 +749,7 @@ pol = VE()
 
 
 # police unique
-pol.ids([1303])
+pol.ids([71601])
 
 # valZillPC = pol.p['tauxZill'].to_numpy()[:,np.newaxis,np.newaxis] * pol.one()
 
@@ -742,7 +766,56 @@ pol.ids([1303])
 # pol.ids([572405, 572503, 731902, 732001, 818202, 889603, 1132602, 1132701, 2211301])
 
 # selection de la modalité
-# pol.mod([1])
+# pol.mod([11])
+
+
+
+
+
+
+
+
+totExp = pol.zero()
+rfinAnn = pol.zero()
+adjMathRes2 = pol.zero()
+resFinMois = pol.zero()
+provMathAj = pol.zero()
+oExp = pol.zero()
+totCom = pol.totalCommissions()
+
+# fonction existantes
+fMathResIf = pol.fMathResIf()
+riderCoutgo = pol.claimCompl()
+premInc = pol.totalPremium()
+# mathResPP = pol.mathResBa()
+# pupMathRes = pol.pupMathRes()
+provMathIf = pol.mathResBa() * pol.nbrPolIf
+mUfii = pol.mUfii()
+# durationIf = pol.durationIf()
+monthPb = pol.one() - pol.allocMonths()
+# isActive = pol.isActive()
+totIntCred = pol.intCredT() 
+
+# PPURE_ENC
+premInvest = pol.purePremium() * pol.nbrPolIfSM / pol.frac() * pol.isPremPay()
+
+unitExp = pol.unitExpense()
+# provTechAj = pol.provTechAj()   
+txReserve = pol.fraisGestionPlacement()
+
+# calcul des exceptions
+provMathAj[:,0,:] = premInc[:,0,:] - totExp[:,0,:] - riderCoutgo[:,0,:]
+
+for i in range(1,pol.shape[1]):
+    adjMathRes2[:,i,:] = np.maximum(0, fMathResIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInvest[:,i,:] - riderCoutgo[:,i,:])
+    totExp[:,i,:] = unitExp[:,i,:] + adjMathRes2[:,i,:] * txReserve[:,i,:] 
+    oExp[:,i,:] = totExp[:,i,:] + totCom[:,i,:]
+    provMathAj[:,i,:] = provMathIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInc[:,i,:] - riderCoutgo[:,i,:] - oExp[:,i,:]
+    resFinMois[:,i,:] = provMathAj[:,i,:] * mUfii[:,i,:] - totIntCred[:,i,:]
+    rfinAnn[:,i,:] = (rfinAnn[:,i-1,:] + resFinMois[:,i,:]) * monthPb[:,i,:] 
+
+
+
 
 
 
@@ -755,7 +828,7 @@ print("Class VE--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 x = pol.p
 x.to_excel(path+'/zFT/ptf.xlsx')
-monCas = pol.prInventPP()
+monCas = pol.ppureEnc()
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
