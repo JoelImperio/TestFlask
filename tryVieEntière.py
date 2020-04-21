@@ -19,7 +19,7 @@ start_time = time.time()
 # tableHommes = 'EKM05i'
     
 class VE(Portfolio):
-    mods=[1]
+    mods=[11]
 
     # LapseTimine à 0.5 pour les VE
     lapseTiming = 0.5
@@ -371,8 +371,9 @@ class VE(Portfolio):
         purePremium = self.insuredSum() / self.axInitPrimes * self.policeActive() * self.payPrimes()
         
         # calcul erronnée pour la modalité 11, à enlever une fois PGG répliquée:
+        mask99 = (self.durationIf() <= 99*12)
         insuredSum = self.insuredSum()
-        purePremium[(self.mask([11]))] =  insuredSum[(self.mask([11]))] / 99
+        purePremium[(self.mask([11])) & mask99] =  insuredSum[(self.mask([11])) & mask99] / 99
         return purePremium
    
     # Primes mensuelles (ne dépend pas de isprempay)
@@ -397,7 +398,9 @@ class VE(Portfolio):
         
         prInventPp = self.zero()
         
-        prInventPp[(self.mask([11]))] = purePremium[(self.mask([11]))] + (cgSaPolPc[(self.mask([11]))]+cgSaPriPc[(self.mask([11]))] * insuredSum[(self.mask([11]))]) * policeActive[(self.mask([11]))]
+        mask99 = (self.durationIf() <= 99*12)
+        
+        prInventPp[(self.mask([11]))] = purePremium[(self.mask([11]))] + (cgSaPolPc[(self.mask([11]))]+cgSaPriPc[(self.mask([11]))]) * insuredSum[(self.mask([11]))] * policeActive[(self.mask([11]))] * mask99[(self.mask([11]))]
         prInventPp[(self.mask([1]))] = purePremium[(self.mask([1]))] + (cgSaPolPc[(self.mask([1]))] * aduePolVal[(self.mask([1]))] + cgSaPriPc[(self.mask([1]))]) * insuredSum[(self.mask([1]))] * policeActive[(self.mask([1]))]
         # PrInventPp = self.one()
         return prInventPp            
@@ -423,9 +426,10 @@ class VE(Portfolio):
         valNetpFac[masDureeNotEq99] = np.maximum(axp[masDureeNotEq99] * policeActive[masDureeNotEq99],0)
         
         # calcul erronnée pour la modalité 11, à enlever une fois PGG répliquée:
+        mask99 = (self.durationIf() <= 99*12)
         durationIf = self.durationIf()
         policeActive = self.policeActive()
-        valNetpFac[(self.mask([11]))] = (99 - (durationIf[(self.mask([11]))]/12))*policeActive[(self.mask([11]))]
+        valNetpFac[(self.mask([11])) & mask99] = (99 - (durationIf[(self.mask([11])) & mask99]/12))*policeActive[(self.mask([11])) & mask99]
 
         return valNetpFac
     
@@ -721,7 +725,7 @@ pol = VE()
 
 
 # police unique
-pol.ids([71601])
+pol.ids([1303])
 
 # valZillPC = pol.p['tauxZill'].to_numpy()[:,np.newaxis,np.newaxis] * pol.one()
 
@@ -744,14 +748,6 @@ pol.ids([71601])
 
 
 
-# mask99 = (pol.durationIf() <= 1188)
-# mask121 = (pol.age() <= 121)
-# maskotte1 = pol.durationIf() >= 98*12 
-# maskotte2 = pol.durationIf() < 99*12
-
-# test = maskotte1 & maskotte2
-
-
 
 
 print("Class VE--- %s sec" %'%.2f'%  (time.time() - start_time))
@@ -759,7 +755,7 @@ print("Class VE--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 x = pol.p
 x.to_excel(path+'/zFT/ptf.xlsx')
-monCas = pol.nbrDeath
+monCas = pol.prInventPP()
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
