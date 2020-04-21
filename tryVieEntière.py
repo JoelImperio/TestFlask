@@ -105,7 +105,7 @@ class VE(Portfolio):
     # Loop qui calcule les maturités, inforce annuels et mensuels, nombre de morts, nombre de surrenders.    
     def loopVE(self):
         
-        mask121 = (self.age() <= 121)
+        # mask121 = (self.age() <= 121)
         mask99 = (self.durationIf() <= 98*12+1)
         
         # Vecteur mise à zéro
@@ -184,19 +184,7 @@ class VE(Portfolio):
 # =============================================================================
     ### FONCTIONS ACTUARIELLES
 # =============================================================================       
-    
-    # def ageInit(self):
-    #     age = (self.p['Age1AtEntry'].to_numpy()[:,np.newaxis,np.newaxis]*self.one())
-    #     return age
-    
-    # def ageFinal(self):
-    #     age = ((self.p['Age1AtEntry'] + (self.p['residualTermM'] + self.p['DurationIfInitial'])/12).to_numpy()[:,np.newaxis,np.newaxis]*self.one())
-    #     return age
-    
-    # def agePrimes(self):
-    #     age = ((self.p['Age1AtEntry'].to_numpy() + self.p['POLDURP'].to_numpy())[:,np.newaxis,np.newaxis]*self.one())
-    #     return age
-        
+ 
     # Fonction qui sert à retourner les valeurs actuarielles, Ax, ax, etc.
     def commutations(self):
         
@@ -250,53 +238,7 @@ class VE(Portfolio):
         self.Ax = Ax
         self.aduePolVal = aduePolVal
         self.axInitPrimes = axInitPrimes
-      
-         
-#  # Fonction générique actuarielle
-#     def actu(self, var, x):
-        
-#         table = self.p['POLTBMORT'].unique()
-#         tbMort = self.p['POLTBMORT']
-               
-#         if x == 'x':
-#             myAge = self.ageInit().astype(int)
-#         elif x == 't':
-#             myAge = self.age().astype(int) 
-#         elif x == 't+1':
-#             myAge = self.age().astype(int) + 1
-#         elif x == 'n':
-#             myAge = self.ageFinal().astype(int) 
-#         elif x == 'p':
-#             myAge = self.agePrimes().astype(int)
-       
-#         txTech = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis] / 100
-#         txTechLoop = np.unique(self.p['PMBTXINT'].to_numpy())
-#         tbMort = tbMort[:,np.newaxis,np.newaxis]
-#         myVarx = self.zero()
-#         one = self.one()
-#         zero = self.zero()
-        
-#         for tb in table:
-#             mask_tableMort = ((tbMort == tb)*one).astype(bool)
-#             for i in np.nditer(txTechLoop):
-#                 txInt = i / 100
-#                 mask_txTech = ((txTech == txInt)*one).astype(bool)
-#                 mt = Actuarial(nt=eval(tb), i=txInt)
-#                 aVARx = pd.DataFrame(getattr(mt, var)).to_numpy()
-#                 myAge2 = np.where(myAge>=mt.w, mt.w, myAge)
-#                 myVarx[mask_txTech & mask_tableMort] = np.take(aVARx, myAge2[mask_txTech & mask_tableMort])
-#                 myVarx[mask_txTech & mask_tableMort & (myAge>mt.w)] = zero[mask_txTech & mask_tableMort & (myAge>mt.w)]
-#         return myVarx      
-   
-# # Créer un vecteur permettant d'interpolé les vecteur en fonction de la date début de la police
-#     def interp(self, var, varDec):
-#         dur = self.durationIf()
-#         interp = np.int16(dur/12) + 1-(dur/12)
-#         resultat = (var * interp) + ((1-interp) * varDec)
-#         return resultat * self.isActive()
-#         # return resultat 
-        
-        
+             
 # =============================================================================
     ### CALCUL DES SURRENDER
 # =============================================================================
@@ -569,8 +511,10 @@ class VE(Portfolio):
         adjMathRes2 = self.zero()
         resFinMois = self.zero()
         provMathAj = self.zero()
+        oExp = self.zero()
+        oTaxblInc = self.zero()
         totCom = self.totalCommissions()
-
+        
         # fonction existantes
         fMathResIf = self.fMathResIf()
         riderCoutgo = self.claimCompl()
@@ -578,10 +522,11 @@ class VE(Portfolio):
         # mathResPP = self.mathResBa()
         # pupMathRes = self.pupMathRes()
         provMathIf = self.mathResBa() * self.nbrPolIf
-        mUfii = self.rate()
+        mUfii = self.mUfii()
         # durationIf = self.durationIf()
         monthPb = self.one() - self.allocMonths()
         # isActive = self.isActive()
+        totIntCred = self.totalIntCred() 
         
         # PPURE_ENC
         premInvest = self.purePremium() * self.nbrPolIfSM / self.frac() * self.isPremPay()
@@ -589,15 +534,17 @@ class VE(Portfolio):
         unitExp = self.unitExpense()
         # provTechAj = self.provTechAj()   
         txReserve = self.fraisGestionPlacement()
-    
+        
         # calcul des exceptions
         provMathAj[:,0,:] = premInc[:,0,:] - totExp[:,0,:] - riderCoutgo[:,0,:]
-
+        
         for i in range(1,self.shape[1]):
             adjMathRes2[:,i,:] = np.maximum(0, fMathResIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInvest[:,i,:] - riderCoutgo[:,i,:])
             totExp[:,i,:] = unitExp[:,i,:] + adjMathRes2[:,i,:] * txReserve[:,i,:] 
-            provMathAj[:,i,:] = provMathIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInc[:,i,:] - riderCoutgo[:,i,:] - (totExp[:,i,:] + totCom[:,i,:])
-            resFinMois[:,i,:] = provMathAj[:,i,:] * mUfii[:,i,:]
+            oExp[:,i,:] = totExp[:,i,:] + totCom[:,i,:]
+            provMathAj[:,i,:] = provMathIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInc[:,i,:] - riderCoutgo[:,i,:] - oExp[:,i,:]
+            oTaxblInc[:,i,:] = provMathAj[:,i,:] * mUfii[:,i,:]
+            resFinMois[:,i,:] = oTaxblInc[:,i,:] - totIntCred[:,i,:]
             rfinAnn[:,i,:] = (rfinAnn[:,i-1,:] + resFinMois[:,i,:]) * monthPb[:,i,:] 
 
    #Définition des variables récursives
@@ -613,6 +560,14 @@ class VE(Portfolio):
         self.totExp = totExp
         self.provMathIf = provMathIf
 
+
+    def unitExpense(self):
+        unitExpense = self.unitExp
+        return unitExpense
+        
+    def reserveExpense(self):
+        reserveExpense = self.adjMathRes2 * self.txReserve
+        return reserveExpense
     
     # PPURE_ENC
     def ppureEnc(self):
@@ -735,10 +690,10 @@ class VE(Portfolio):
         # return self.totalCommissions()
 
 #Retourne les dépense totales 
-    def totalExpense(self):
-        # return self.initialExpenses() + self.renewableExpenses()
-        totalExpense = self.totExp
-        return totalExpense
+    # def totalExpense(self):
+    #     # return self.initialExpenses() + self.renewableExpenses()
+    #     totalExpense = self.totExp
+    #     return totalExpense
 
 # =============================================================================
     ### Tester mon code 
@@ -776,13 +731,6 @@ pol = VE()
 
 # selection de la modalité
 # pol.mod([11])
-
-
-
-
-
-
-
 
 totExp = pol.zero()
 rfinAnn = pol.zero()
@@ -833,7 +781,7 @@ print("Class VE--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 x = pol.p
 x.to_excel(path+'/zFT/ptf.xlsx')
-monCas = pol.totalClaim()
+monCas = totExp
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
