@@ -14,29 +14,29 @@ start_time = time.time()
 
     ### Fichier résultat
 #L'ensemble des variables Prophet par produit
-DataProphet=pd.read_excel(path+'\Resultats_Prophet_VE.xls',sheet_name=None,skiprows=7)
+DataProphet = pd.read_excel(path+'\Resultats_Prophet_VE.xls',sheet_name = None,skiprows = 7)
 
 
 #Celui-ci est générique ne pas modifier
 #Les resultats de la PGG selon la répartition en vigueur
-ResultatPGG=pd.read_excel(path+'\Resultats_PGG.xls',sheet_name='Synthese',skiprows=3)
+ResultatPGG = pd.read_excel(path+'\Resultats_PGG.xls',sheet_name = 'Synthese',skiprows = 3)
 
 
 
     ### Précision souhaitée
-RTOL=0.0001
-ATOL=0.001
-decimalPrecision=2
+RTOL = 0.0001
+ATOL = 0.001
+decimalPrecision = 2
 
-Test spécifique produit pour le Best Estimate et la PGG
+# Test spécifique produit pour le Best Estimate et la PGG
 class Test_VE(ut.TestCase):
     
     ### Onglet fichier résultat 
-    ongletResultat='VE'
+    ongletResultat = 'VE'
     spProphet = DataProphet[ongletResultat].replace('-',0)
     
     ### Sous portefeuille à tester
-    sp=VE()
+    sp = VE()
     sp.mod([11,1])
 
     length = len(sp.totalPremium()[0,:,0]) - 1
@@ -44,40 +44,40 @@ class Test_VE(ut.TestCase):
     def test_Premium(self):
         
     ### La variable à tester 'PREM_INC'
-        prophet=np.array(self.spProphet.loc[:self.length,'PREM_INC'].to_numpy(),dtype=float)
+        prophet = np.array(self.spProphet.loc[:self.length,'PREM_INC'].to_numpy(),dtype = float)
         
     ### La méthode à tester 'totalPremium()'
-        python=np.sum(self.sp.totalPremium()[:,:1104,0],axis=0)
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalPremium ERROR ')
+        python = np.sum(self.sp.totalPremium()[:,:1190,0],axis = 0)
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg = 'totalPremium ERROR ')
             
     def test_Claim(self):
-        prophet=np.array(self.spProphet.loc[:self.length,'TOT_PREST'].to_numpy(),dtype=float)
-        python=np.sum(self.sp.totalClaim()[:,:1104,0],axis=0,dtype=float)
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalClaim ERROR')
+        prophet = np.array(self.spProphet.loc[:self.length,'TOT_PREST'].to_numpy(),dtype = float)
+        python = np.sum(self.sp.totalClaim()[:,:1190,0],axis = 0,dtype = float)
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg = 'totalClaim ERROR')
             
     def test_Commissions(self):  
-        prophet=np.array(self.spProphet.loc[:self.length,'TOT_COMM'].to_numpy(),dtype=float)
-        python=np.array(np.sum(self.sp.totalCommissions()[:,:1104,0],axis=0),dtype=float)
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalCommissions ERROR')
+        prophet = np.array(self.spProphet.loc[:self.length,'TOT_COMM'].to_numpy(),dtype = float)
+        python = np.array(np.sum(self.sp.totalCommissions()[:,:1190,0],axis = 0),dtype = float)
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg = 'totalCommissions ERROR')
       
     def test_Expense(self):
-        prophet=np.array(self.spProphet.loc[:self.length,'TOT_EXP'].to_numpy(),dtype=float)
-        python=np.sum(self.sp.totalExpense()[:,:1104,0],axis=0)
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalExpense ERROR')
+        prophet = np.array(self.spProphet.loc[:self.length,'TOT_EXP'].to_numpy(),dtype = float)
+        python = np.sum(self.sp.totalExpense()[:,:1190,0],axis = 0)
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg = 'totalExpense ERROR')
             
     def test_BEL(self):
-        prophet=np.array(self.spProphet.loc[:self.length,'BEL_B'].to_numpy(),dtype=float)
-        python=np.sum(self.sp.BEL()[:,:1104,0],axis=0)
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='BEL ERROR')
+        prophet = np.array(self.spProphet.loc[:self.length,'BEL_B'].to_numpy(),dtype = float)
+        python = np.sum(self.sp.BEL()[:,:1190,0],axis = 0)
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg = 'BEL ERROR')
 
 
 class Test_MOD11(ut.TestCase): 
     ### Onglet fichier résultat 
-    ongletResultat='MOD11'
+    ongletResultat = 'MOD11'
     spProphet = DataProphet[ongletResultat].replace('-',0)
     
     ### Sous portefeuille à tester
-    sp=VE()
+    sp = VE()
     sp.mod([11])
 
     length = len(sp.totalPremium()[0,:,0]) - 1
@@ -85,41 +85,41 @@ class Test_MOD11(ut.TestCase):
     def test_Premium(self):
         
     ### La variable à tester 'PREM_INC'
-        prophet=np.array(self.spProphet.loc[:self.length,'PREM_INC'].to_numpy(),dtype=float)
+        prophet = np.array(self.spProphet.loc[:self.length,'PREM_INC'].to_numpy(),dtype = float)
         
     ### La méthode à tester 'totalPremium()'
-        python=np.sum(self.sp.totalPremium()[:,:1104,0],axis=0) 
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalPremium ERROR ')
+        python = np.sum(self.sp.totalPremium()[:,:1190,0],axis = 0) 
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg = 'totalPremium ERROR ')
             
     def test_Claim(self):
-        prophet=np.array(self.spProphet.loc[:self.length,'TOT_PREST'].to_numpy(),dtype=float)
-        python=np.sum(self.sp.totalClaim()[:,:1104,0],axis=0,dtype=float)
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalClaim ERROR')
+        prophet = np.array(self.spProphet.loc[:self.length,'TOT_PREST'].to_numpy(),dtype = float)
+        python = np.sum(self.sp.totalClaim()[:,:1190,0],axis = 0,dtype = float)
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg = 'totalClaim ERROR')
             
     def test_Commissions(self):
-        prophet=np.array(self.spProphet.loc[:self.length,'TOT_COMM'].to_numpy(),dtype=float)
-        python=np.array(np.sum(self.sp.totalCommissions()[:,:1104,0],axis=0),dtype=float)
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalCommissions ERROR')
+        prophet = np.array(self.spProphet.loc[:self.length,'TOT_COMM'].to_numpy(),dtype = float)
+        python = np.array(np.sum(self.sp.totalCommissions()[:,:1190,0],axis = 0),dtype = float)
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg = 'totalCommissions ERROR')
     
     def test_Expense(self):
-        prophet=np.array(self.spProphet.loc[:self.length,'TOT_EXP'].to_numpy(),dtype=float)
-        python=np.sum(self.sp.totalExpense()[:,:1104,0],axis=0)
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalExpense ERROR')
+        prophet = np.array(self.spProphet.loc[:self.length,'TOT_EXP'].to_numpy(),dtype = float)
+        python = np.sum(self.sp.totalExpense()[:,:1190,0],axis = 0)
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg = 'totalExpense ERROR')
             
     def test_BEL(self):
-        prophet=np.array(self.spProphet.loc[:self.length,'BEL_B'].to_numpy(),dtype=float)
-        python=np.sum(self.sp.BEL()[:,:1104,0],axis=0)
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='BEL ERROR')         
+        prophet = np.array(self.spProphet.loc[:self.length,'BEL_B'].to_numpy(),dtype = float)
+        python = np.sum(self.sp.BEL()[:,:1190,0],axis = 0)
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg = 'BEL ERROR')         
 
 
 class Test_MOD01(ut.TestCase):
     
     ### Onglet fichier résultat 
-    ongletResultat='MOD01'
+    ongletResultat = 'MOD01'
     spProphet = DataProphet[ongletResultat].replace('-',0)
     
     ### Sous portefeuille à tester
-    sp=VE()
+    sp = VE()
     sp.mod([1])
 
     length = len(sp.totalPremium()[0,:,0]) - 1
@@ -127,31 +127,31 @@ class Test_MOD01(ut.TestCase):
     def test_Premium(self):
         
     ### La variable à tester 'PREM_INC'
-        prophet=np.array(self.spProphet.loc[:self.length,'PREM_INC'].to_numpy(),dtype=float)
+        prophet = np.array(self.spProphet.loc[:self.length,'PREM_INC'].to_numpy(),dtype = float)
         
     ### La méthode à tester 'totalPremium()'
-        python=np.sum(self.sp.totalPremium()[:,:1104,0],axis=0)
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalPremium ERROR ')
+        python = np.sum(self.sp.totalPremium()[:,:1164,0],axis = 0)
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg = 'totalPremium ERROR ')
             
     def test_Claim(self):
-        prophet=np.array(self.spProphet.loc[:self.length,'TOT_PREST'].to_numpy(),dtype=float)
-        python=np.sum(self.sp.totalClaim()[:,:1104,0],axis=0,dtype=float)
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalClaim ERROR')
+        prophet = np.array(self.spProphet.loc[:self.length,'TOT_PREST'].to_numpy(),dtype = float)
+        python = np.sum(self.sp.totalClaim()[:,:1164,0],axis = 0,dtype = float)
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg = 'totalClaim ERROR')
 
     def test_Commissions(self):
-        prophet=np.array(self.spProphet.loc[:self.length,'TOT_COMM'].to_numpy(),dtype=float)
-        python=np.array(np.sum(self.sp.totalCommissions()[:,:1104,0],axis=0),dtype=float)
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalCommissions ERROR')
+        prophet = np.array(self.spProphet.loc[:self.length,'TOT_COMM'].to_numpy(),dtype = float)
+        python = np.array(np.sum(self.sp.totalCommissions()[:,:1164,0],axis = 0),dtype = float)
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg = 'totalCommissions ERROR')
      
     def test_Expense(self):
-        prophet=np.array(self.spProphet.loc[:self.length,'TOT_EXP'].to_numpy(),dtype=float)
-        python=np.sum(self.sp.totalExpense()[:,:1104,0],axis=0)
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalExpense ERROR')
+        prophet = np.array(self.spProphet.loc[:self.length,'TOT_EXP'].to_numpy(),dtype = float)
+        python = np.sum(self.sp.totalExpense()[:,:1164,0],axis = 0)
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg = 'totalExpense ERROR')
 
     def test_BEL(self):
-        prophet=np.array(self.spProphet.loc[:self.length,'BEL_B'].to_numpy(),dtype=float)
-        python=np.sum(self.sp.BEL()[:,:1104,0],axis=0)
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='BEL ERROR')    
+        prophet = np.array(self.spProphet.loc[:self.length,'BEL_B'].to_numpy(),dtype = float)
+        python = np.sum(self.sp.BEL()[:,:1164,0],axis = 0)
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg = 'BEL ERROR')    
 
 
 ### Lancer mes tests
