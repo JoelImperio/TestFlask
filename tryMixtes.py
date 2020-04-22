@@ -25,7 +25,7 @@ class MI(Portfolio):
     # age limite pour la garantie complémentaire CPL1
     ageLimiteCPL1 = 60
     ageLimiteCPL2 = 65
-    tableHommes = EKM1995
+
     def __init__(self,run=allRuns,\
                  PortfolioNew=True, SinistralityNew=True,LapseNew=True,CostNew=True,RateNew=True ):
         super().__init__(runs=run,\
@@ -53,7 +53,7 @@ class MI(Portfolio):
 
 # Celle-ci vient aussi de produit EP, je pense qu'on peut remplacé celle qui existe dans portefeuille (la différence est qu'ici il y a nbrPupIfSM 
 # et celui-ci est à 0 dans les mixtes, funérailles...) A tester si cela ne casse pas les produits déjà existant
-#Retourne le coût par police pour les polices avec réduction possible (RENEXP_XRSE)
+# Retourne le coût par police pour les polices avec réduction possible (RENEXP_XRSE)
     def unitExpense(self):
         
         inflation=np.roll(self.inflation(),[1],axis=1)
@@ -69,7 +69,7 @@ class MI(Portfolio):
         
         capPA = self.zero()
         capPA[self.age() <= 55]= 25000
-        capPA[(self.age() > 55)]= 5000
+        capPA[self.age() > 55]= 5000
         capPA[self.age() > 65]= 0
         capPA[self.p['POLPRCPL9'] == 0]=0
         return capPA
@@ -292,8 +292,7 @@ class MI(Portfolio):
         lapseTiming=0.5
         polTermM=self.polTermM()       
         lapseD=lapseTiming * self.lapse()
-        lapse = self.lapse()        
-        reduction = self.reduction()    
+        lapse = self.lapse()          
         qxy = self.qxExpMens() 
         qx = self.qxExp()
         
@@ -302,7 +301,6 @@ class MI(Portfolio):
         qxy[mask] = qx[mask] + qx[mask] - qx[mask]*qx[mask]
         qxy[mask] = 1-(1-qxy[mask])**(1/12)
         qxyD = lapseTiming * qxy
-        txInteret = self.txInt()
 
         # Variable actuarielle
         AExn = self.AExn
@@ -921,10 +919,8 @@ class MI(Portfolio):
         
           # Nombre polices
           nbrPolIf = self.nbrPolIf
-          nbrPupsIf = self.nbrPupsIf
           noMat = self.nbrNewMat
-          nbrPupMat = self.nbrPupMat
-        
+ 
           # fonction existantes
           fMathResIF = self.provMathIf() + self.fondPB()
           provMathIf = self.provMathIf()
