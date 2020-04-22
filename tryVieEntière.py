@@ -318,7 +318,7 @@ class VE(Portfolio):
         # calcul erronnée pour la modalité 11, à enlever une fois PGG répliquée:
         mask99 = (self.durationIf() <= 99*12)
         insuredSum = self.insuredSum()
-        purePremium[(self.mask([11])) & mask99] =  insuredSum[(self.mask([11])) & mask99] / 99
+        purePremium[(self.mask([11])) & mask99] = insuredSum[(self.mask([11])) & mask99] / 99
         return purePremium
    
     # Primes mensuelles (ne dépend pas de isprempay)
@@ -380,9 +380,7 @@ class VE(Portfolio):
     
     # VAL_POL_FAC - annuité qui dépend de la durée du contrat (faux pour sérénité)
     def valPolFac(self):
-        
         valPolFac = self.ax
-
         # calcul erronnée pour la modalité 11, à enlever une fois PGG répliquée:
         durationIf = self.durationIf()
         valPolFac[(self.mask([11]))] = (99 - (durationIf[(self.mask([11]))]/12))
@@ -391,10 +389,7 @@ class VE(Portfolio):
     # VAL_ZILL_PP - valeur de zillmérisation    
     def valZillPP(self):
         valZillPC = self.p['tauxZill'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
-        
         ValZillPP = np.minimum(valZillPC * self.prInventPP() * self.valNetpFac(), self.valSumAssd() - self.valNetpPP() + self.provGestPP())
-        
-        
         ValZillPP[(self.mask([11]))] = np.minimum(valZillPC[(self.mask([11]))] * self.prInventPP()[(self.mask([11]))] * self.valNetpFac()[(self.mask([11]))], self.insuredSum()[(self.mask([11]))] - self.valNetpPP()[(self.mask([11]))] + self.provGestPP()[(self.mask([11]))])
         return ValZillPP
     
