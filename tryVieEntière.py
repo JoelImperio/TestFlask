@@ -425,9 +425,7 @@ class VE(Portfolio):
         result =[np.ceil(durationif[:,0,:]/frac[:,0,:]), 1]
         isPremPay[:,0,:] = np.select(conditions,result)
         
-        # premiumsPaid = isPremPay * pol.p['POLPRTOT'][:,np.newaxis,np.newaxis] / pol.frac() 
         premiumsPaid = isPremPay * self.p['POLPRTOT'][:,np.newaxis,np.newaxis] / self.frac()           
-        # cumulatedPremiums = pol.zero()
         cumulatedPremiums = self.zero()
         cumulatedPremiums = np.cumsum(premiumsPaid, axis=1)      
         
@@ -678,36 +676,10 @@ pol = VE()
 # pol.ids([572405, 572503, 731902, 732001, 818202, 889603, 1132602, 1132701, 2211301])
 
 # selection de la modalité
-# pol.mod([11])
+pol.mod([11])
 
 
 
-# capital = pol.p['PMBCAPIT'].to_numpy()[:,np.newaxis,np.newaxis]    
-# frac = 12 / pol.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis] * pol.onm
-# pbAcq = pol.p['PMBPBEN'].to_numpy()[:,np.newaxis,np.newaxis]
-# durationif = pol.durationIf()  
-# isPremPay = pol.isPremPay()
-
-# conditions = [durationif[:,0,:] != 1, durationif[:,0,:] == 1]
-# result =[np.ceil(durationif[:,0,:]/frac[:,0,:]), 1]
-# isPremPay[:,0,:] = np.select(conditions,result)
-
-# premiumsPaid = isPremPay * pol.p['POLPRTOT'][:,np.newaxis,np.newaxis]/pol.frac()           
-# cumulatedPremiums = pol.zero()
-# cumulatedPremiums = np.cumsum(premiumsPaid, axis=1)      
-
-# conditions = [(durationif>12)]
-# result =[(0)]
-# sinon = 1
-# deathBenPP1 = np.select(conditions,result,sinon) * cumulatedPremiums
-
-# conditions = [(durationif>12)]
-# result =[(1)]
-# sinon = 0
-# durationif12plus = np.select(conditions,result,sinon)
-
-# deathBenPP2 = (capital + pbAcq) * durationif12plus  
-# deathBenPP = deathBenPP1 + deathBenPP2
         
         
         
@@ -719,7 +691,7 @@ print("Class VE--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 x = pol.p
 x.to_excel(path+'/zFT/ptf.xlsx')
-monCas = pol.totalExpense()
+monCas = pol.BEL()
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
