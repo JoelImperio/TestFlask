@@ -19,7 +19,7 @@ start_time = time.time()
 # tableHommes = 'EKM05i'
     
 class VE(Portfolio):
-    mods=[1]
+    mods=[1, 11]
 
     # LapseTimine à 0.5 pour les VE
     lapseTiming = 0.5
@@ -416,6 +416,7 @@ class VE(Portfolio):
     def deathBenefit(self):
         capital = self.p['PMBCAPIT'].to_numpy()[:,np.newaxis,np.newaxis]    
         frac = 12 / self.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
+        frac = 12 / self.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
         pbAcq = self.p['PMBPBEN'].to_numpy()[:,np.newaxis,np.newaxis]
         durationif = self.durationIf()  
         isPremPay = self.isPremPay()
@@ -424,17 +425,19 @@ class VE(Portfolio):
         result =[np.ceil(durationif[:,0,:]/frac[:,0,:]), 1]
         isPremPay[:,0,:] = np.select(conditions,result)
         
-        premiumsPaid = isPremPay * pol.p['POLPRTOT'][:,np.newaxis,np.newaxis]/pol.frac()           
-        cumulatedPremiums = pol.zero()
+        # premiumsPaid = isPremPay * pol.p['POLPRTOT'][:,np.newaxis,np.newaxis] / pol.frac() 
+        premiumsPaid = isPremPay * self.p['POLPRTOT'][:,np.newaxis,np.newaxis] / self.frac()           
+        # cumulatedPremiums = pol.zero()
+        cumulatedPremiums = self.zero()
         cumulatedPremiums = np.cumsum(premiumsPaid, axis=1)      
         
         conditions = [(durationif>12)]
-        result =[(0)]
+        result = [(0)]
         sinon = 1
         deathBenPP1 = np.select(conditions,result,sinon) * cumulatedPremiums
         
         conditions = [(durationif>12)]
-        result =[(1)]
+        result = [(1)]
         sinon = 0
         durationif12plus = np.select(conditions,result,sinon)
         
@@ -676,6 +679,39 @@ pol = VE()
 
 # selection de la modalité
 # pol.mod([11])
+
+
+
+# capital = pol.p['PMBCAPIT'].to_numpy()[:,np.newaxis,np.newaxis]    
+# frac = 12 / pol.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis] * pol.onm
+# pbAcq = pol.p['PMBPBEN'].to_numpy()[:,np.newaxis,np.newaxis]
+# durationif = pol.durationIf()  
+# isPremPay = pol.isPremPay()
+
+# conditions = [durationif[:,0,:] != 1, durationif[:,0,:] == 1]
+# result =[np.ceil(durationif[:,0,:]/frac[:,0,:]), 1]
+# isPremPay[:,0,:] = np.select(conditions,result)
+
+# premiumsPaid = isPremPay * pol.p['POLPRTOT'][:,np.newaxis,np.newaxis]/pol.frac()           
+# cumulatedPremiums = pol.zero()
+# cumulatedPremiums = np.cumsum(premiumsPaid, axis=1)      
+
+# conditions = [(durationif>12)]
+# result =[(0)]
+# sinon = 1
+# deathBenPP1 = np.select(conditions,result,sinon) * cumulatedPremiums
+
+# conditions = [(durationif>12)]
+# result =[(1)]
+# sinon = 0
+# durationif12plus = np.select(conditions,result,sinon)
+
+# deathBenPP2 = (capital + pbAcq) * durationif12plus  
+# deathBenPP = deathBenPP1 + deathBenPP2
+        
+        
+        
+        
 
 
 print("Class VE--- %s sec" %'%.2f'%  (time.time() - start_time))
