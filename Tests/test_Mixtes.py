@@ -27,7 +27,7 @@ ResultatPGG=pd.read_excel(path+'\Resultats_PGG.xls',sheet_name='Synthese',skipro
 # cov=coverage.Coverage()
 # cov.start()
 
-sp=MI()
+# sp=MI()
     ### Précision souhaitée
 RTOL=0.0001
 ATOL=0.001
