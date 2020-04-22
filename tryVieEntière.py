@@ -19,7 +19,7 @@ start_time = time.time()
 # tableHommes = 'EKM05i'
     
 class VE(Portfolio):
-    mods=[11]
+    mods=[1]
 
     # LapseTimine à 0.5 pour les VE
     lapseTiming = 0.5
@@ -37,8 +37,6 @@ class VE(Portfolio):
     def update(self,subPortfolio):
         super().update(subPortfolio)
         self.loopVE()
-        # self.lapse()
-        # self.isActive()
         self.commutations()
         self.reserveForExp()
     
@@ -48,7 +46,6 @@ class VE(Portfolio):
         check1 = (self.frac() * (self.durationIf()+12)/12)
         check2 = np.floor((self.frac()*(self.durationIf()+12)/12))
         condlist = [check1 - check2 == 0, check1 - check2 != 0]
-        # choicelist = [lapse[:,:,:]==0, lapse[:,:,:] ==1 ]
         choicelist = [lapse[:,:,:]==0, lapse[:,:,:]==0]
         myLapse=np.select(condlist, choicelist)
         # Le premier mois il n'y a pas de payement car la prime est payé en début de mois et les date de calcul sont en fin de mois
@@ -164,9 +161,6 @@ class VE(Portfolio):
         sinon = 0
         payPrimes = np.select(conditions,result,sinon)
         return payPrimes
-    
-
-
         
 # =============================================================================
     ### FONCTIONS A SUPPRIMER CAR FAUSSES
@@ -259,13 +253,6 @@ class VE(Portfolio):
     def valAccrbPP(self):
         valAccrbPp = self.p['PMBPBEN'].to_numpy()[:,np.newaxis,np.newaxis]*self.one()
         return valAccrbPp
-    
-    # # ADUE_VAL - Annuité actuarielle
-    # def adueVal(self):
-    #     polTerm = self.p['POLDURC'].to_numpy()[:,np.newaxis,np.newaxis]
-    #     adueVal = polTerm - ((self.durationIf()+1)/12)
-    #     adueVal = np.floor(adueVal)
-    #     return adueVal
 
     # PMG_SA_PC - traitement des frais pour provGestPP
     def pmgSaPc(self):
@@ -302,17 +289,10 @@ class VE(Portfolio):
             precPPbis[:,i,:] = precPPbis[:,i-1,:] + riderIncPP[:,i,:] - ((frek[:,i,:] / 12) * riderIncPP2[:,i,:])
         
         precPP = precPPbis * self.isActive()
-        return precPP
-    
-    # def valSaFac(self):
-    #     valSaFac = self.abar()
-    #     return valSaFac
-        
+        return precPP      
         
     # PR_PURE_PP - Prime pure calcul éronné pour la mod11
     def purePremium(self):
-        # purePremium = self.insuredSum() / self.axInit() * self.policeActive()
-        # purePremium = self.insuredSum() / self.axInitPrimes() * self.policeActive() * self.payPrimes()
         purePremium = self.insuredSum() / self.axInitPrimes * self.policeActive() * self.payPrimes()
         
         # calcul erronnée pour la modalité 11, à enlever une fois PGG répliquée:
@@ -352,11 +332,6 @@ class VE(Portfolio):
                       
     # VAL_NETP_FAC - annuité qui dépend de la durée de paiemnet des primes (ax, axp, faux pour sérénité)
     def valNetpFac(self):
-        # situation = self.p['POLSIT'][:,np.newaxis,np.newaxis]
-        # conditions = [(situation != 4) & (situation != 8) & (situation != 9)]
-        # result = [(99 - (self.durationIf()/12))]
-        # sinon = 0
-        # valNetpFac = np.select(conditions,result,sinon)
         dureePayPrimes = self.p['POLDURP'][:,np.newaxis,np.newaxis] * self.one()
         maskDureeEq99 = dureePayPrimes == 99 
         masDureeNotEq99 = dureePayPrimes != 99
@@ -408,11 +383,6 @@ class VE(Portfolio):
         # pour la 01:
         # mathResBa[(self.mask([1]))] = np.maximum(self.valSumAssd()[(self.mask([1]))] + self.valPrecPP()[(self.mask([1]))] - self.valNetpPP()[(self.mask([1]))] + self.provGestPP()[(self.mask([1]))] - self.valZillPP()[(self.mask([1]))], 0)
         mathResBa[mask01] = np.maximum(self.valSumAssd()[mask01] + self.valPrecPP()[mask01] - self.valNetpPP()[mask01] + self.provGestPP()[mask01] - self.valZillPP()[mask01], 0)
-        
-        
-        # mathResBa = np.maximum(self.insuredSum() + self.valAccrbPP() + self.provGestPP() + self.valPrecPP() - self.valNetpPP() - self.valZillPP(), 0)
-        # mathResBa = np.maximum(self.valSumAssd() + self.valPrecPP() - self.valNetpPP() + self.provGestPP() - self.valZillPP(), 0)
-        
         return mathResBa
     
 # =============================================================================
@@ -433,21 +403,12 @@ class VE(Portfolio):
     ### FONCTIONS DOUBLONS
 # =============================================================================
 
-    # NO_SURRS - nombre de surrenders - a priori à effacer après vérification
-    # def numberSurrenders(self):
-    #     noSurrs = self.nbrPolIfSM * self.lapse() * (1 - self.lapseTiming * self.qxExpMens())
-    #     return noSurrs
-    
     # Prime totale, doublon à effecer après avoir corrigé les références
     def primeTotale(self):
         frac = self.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
         primeTotale = self.p['POLPRTOT'].to_numpy()[:,np.newaxis,np.newaxis] / frac * self.isPremPay()
         return primeTotale 
 
-    # NO_DEATHS - nombre de morts
-    # def numberDeaths(self):
-    #     noDeaths= self.qxExpMens() * self.nbrPolIfSM * (1 - self.lapse() * self.lapseTiming)
-    #     return noDeaths
 # =============================================================================
 # =============================================================================    
 
@@ -458,20 +419,25 @@ class VE(Portfolio):
         pbAcq = self.p['PMBPBEN'].to_numpy()[:,np.newaxis,np.newaxis]
         durationif = self.durationIf()  
         isPremPay = self.isPremPay()
+        
         conditions = [durationif[:,0,:] != 1, durationif[:,0,:] == 1]
         result =[np.ceil(durationif[:,0,:]/frac[:,0,:]), 1]
         isPremPay[:,0,:] = np.select(conditions,result)
+        
         premiumsPaid = isPremPay * pol.p['POLPRTOT'][:,np.newaxis,np.newaxis]/pol.frac()           
         cumulatedPremiums = pol.zero()
         cumulatedPremiums = np.cumsum(premiumsPaid, axis=1)      
+        
         conditions = [(durationif>12)]
         result =[(0)]
         sinon = 1
         deathBenPP1 = np.select(conditions,result,sinon) * cumulatedPremiums
+        
         conditions = [(durationif>12)]
         result =[(1)]
         sinon = 0
         durationif12plus = np.select(conditions,result,sinon)
+        
         deathBenPP2 = (capital + pbAcq) * durationif12plus  
         deathBenPP = deathBenPP1 + deathBenPP2
         return deathBenPP
@@ -555,11 +521,6 @@ class VE(Portfolio):
         self.totExp = totExp
         self.provMathIf = provMathIf
 
-
-    # def unitExpense(self):
-    #     unitExpense = self.unitExp()
-    #     return unitExpense
-        
     def reserveExpense(self):
         reserveExpense = self.adjMathRes2 * self.fraisGestionPlacement()
         return reserveExpense
@@ -598,14 +559,9 @@ class VE(Portfolio):
         provTechAj = self.zero()
         provTechIf = self.provTechIf()
         primeInvest = self.ppureEnc()
-        # primeInvest = self.one()
         riderCoutgo = self.claimCompl()
 
-        # tresRldMat = self.tresRldMat()
-        # pbIncorpIf = self.pbIncorpIF()
-        
         for i in range(1,self.shape[1]):
-            # provTechAj[:,i,:] = provTechIf[:,i-1,:] + pbIncorpIf[:,i,:] + primeInvest[:,i,:] - riderCoutgo[:,i,:] - tresRldMat[:,i,:]
             provTechAj[:,i,:] = provTechIf[:,i-1,:] + primeInvest[:,i,:] - riderCoutgo[:,i,:]
         return provTechAj
     
@@ -629,8 +585,6 @@ class VE(Portfolio):
         result =[(self.mathResBa() * self.nbrSurrender)]
         sinon = 0
         surrOutgo = np.select(conditions,result,sinon)
-        
-        # surrOutgo = self.mathResBa() * self.numberSurrenders()
         return surrOutgo
     
     # DEATH_OUTGO - Claims garantie principale
@@ -667,36 +621,28 @@ class VE(Portfolio):
 # Retourne les primes totales perçues
     def totalPremium(self):
         
-        primetot = (self.p['POLPRTOT'])[:,np.newaxis,np.newaxis]/self.frac()
-        primecompl = (self.p['POLPRCPL3'])[:,np.newaxis,np.newaxis]/self.frac() 
-        modalite = (self.p['PMBMOD'])[:,np.newaxis,np.newaxis]
-        # ? Dans la réalité aussi, je sais pas si le il continue pas de payer sans être couvert
-        conditions = [(self.age() <= 85) | (modalite == 11), (self.age() > 85) & (modalite == 1)]
-        result =[(primetot), (primetot - primecompl)]
-        premInc = np.select(conditions,result) 
+        agelimite = (self.age()>85) 
+        mask11 = self.p['PMBMOD'].isin([11])
+        prTot = self.p['POLPRTOT'][:,np.newaxis,np.newaxis]
+        prCompl = self.p['POLPRCPL3'][:,np.newaxis,np.newaxis]
         
-        prem=premInc*self.nbrPolIfSM*self.isPremPay()*self.indexation()
+        # ? La prime complémentaire est déduite après 85 ans pour la mod1 mais pas pour la 11
+        premInc = (prTot - (prCompl * agelimite)) / self.frac()
+        premInc[mask11] = prTot[mask11] / self.frac()[mask11]
         
-        return prem
+        prem = premInc * self.nbrPolIfSM * self.isPremPay() * self.indexation()
+        
+        return prem * self.payPrimes() 
 
 
 #Retourne le total des prestations payés 
     # def totalClaim(self):
-        # return self.totalClaim()
-
+        
 #Retourne le total des commissions payées
     # def totalCommissions(self):
-        # return self.totalCommissions()
 
 #Retourne les dépense totales 
     # def totalExpense(self):
-    #     # return self.initialExpenses() + self.renewableExpenses()
-    #     totalExpense = self.totExp
-    #     return totalExpense
-
-# =============================================================================
-    ### Tester mon code 
-# =============================================================================
 
 # définition de pol
 pol = VE()
@@ -712,7 +658,7 @@ pol = VE()
 
 
 # police unique
-# pol.ids([2172401])
+# pol.ids([2168202])
 
 # valZillPC = pol.p['tauxZill'].to_numpy()[:,np.newaxis,np.newaxis] * pol.one()
 
@@ -730,64 +676,6 @@ pol = VE()
 
 # selection de la modalité
 # pol.mod([11])
-
-
-
-
-
-
-
-
-
-
-# totExp = pol.zero()
-# rfinAnn = pol.zero()
-# adjMathRes2 = pol.zero()
-# resFinMois = pol.zero()
-# provMathAj = pol.zero()
-# oExp = pol.zero()
-# oTaxblInc = pol.zero()
-# totCom = pol.totalCommissions()
-
-# # fonction existantes
-# fMathResIf = pol.fMathResIf()
-# riderCoutgo = pol.claimCompl()
-# premInc = pol.totalPremium()
-# # mathResPP = pol.mathResBa()
-# # pupMathRes = pol.pupMathRes()
-# provMathIf = pol.mathResBa() * pol.nbrPolIf
-# mUfii = pol.mUfii()
-# # durationIf = pol.durationIf()
-# monthPb = pol.one() - pol.allocMonths()
-# # isActive = pol.isActive()
-# totIntCred = pol.totalIntCred() 
-
-# # PPURE_ENC
-# premInvest = pol.purePremium() * pol.nbrPolIfSM / pol.frac() * pol.isPremPay()
-
-# unitExp = pol.unitExpense()
-# # provTechAj = pol.provTechAj()   
-# txReserve = pol.fraisGestionPlacement()
-
-# # calcul des exceptions
-# provMathAj[:,0,:] = premInc[:,0,:] - totExp[:,0,:] - riderCoutgo[:,0,:]
-
-# for i in range(1,pol.shape[1]):
-#     adjMathRes2[:,i,:] = np.maximum(0, fMathResIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInvest[:,i,:] - riderCoutgo[:,i,:])
-#     totExp[:,i,:] = unitExp[:,i,:] + adjMathRes2[:,i,:] * txReserve[:,i,:] 
-#     oExp[:,i,:] = totExp[:,i,:] + totCom[:,i,:]
-#     provMathAj[:,i,:] = provMathIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInc[:,i,:] - riderCoutgo[:,i,:] - oExp[:,i,:]
-#     oTaxblInc[:,i,:] = provMathAj[:,i,:] * mUfii[:,i,:]
-#     resFinMois[:,i,:] = oTaxblInc[:,i,:] - totIntCred[:,i,:]
-#     rfinAnn[:,i,:] = (rfinAnn[:,i-1,:] + resFinMois[:,i,:]) * monthPb[:,i,:] 
-
-
-
-
-
-
-
-
 
 
 print("Class VE--- %s sec" %'%.2f'%  (time.time() - start_time))
