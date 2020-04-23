@@ -45,28 +45,25 @@ class MI(Portfolio):
 # =============================================================================
 
 # Vient de EP()
-# Calcul des expenses venant des reserves (les frais de gestion des placements)
+# Calcul des expenses venant des reserves (les frais de gestion des placements) (EXPENSES)
     def reserveExpense(self):
         reserveExpense = self.adjMathRes2 * self.fraisGestionPlacement()
         return reserveExpense
     
 
 # Celle-ci vient aussi de produit EP, je pense qu'on peut remplacé celle qui existe dans portefeuille (la différence est qu'ici il y a nbrPupIfSM 
-# et celui-ci est à 0 dans les mixtes, funérailles...) A tester si cela ne casse pas les produits déjà existant
-# Retourne le coût par police pour les polices avec réduction possible (RENEXP_XRSE)
+# et celui-ci est à 0 dans les mixtes, funérailles...) A tester si cela ne casse pas les produits déjà existant (EXPENSES)
+# Retourne le coût par police pour les polices avec réduction possible (RENEXP_XRSE) 
     def unitExpense(self):
-        
         inflation=np.roll(self.inflation(),[1],axis=1)
         inflation[:,0,:]=0
         coutParPolice=self.fraisGestion()
         cost=coutParPolice*inflation*(self.nbrPolIfSM + self.nbrPupIfSM)
         return cost
 
-
-## Fonction reprise de Produit EP
+## Fonction reprise de Produit EP (CLAIM)
 # ici on détermine le capital pour Protection d'avenir en fonction de l'âge
     def capPA(self):
-        
         capPA = self.zero()
         capPA[self.age() <= 55]= 25000
         capPA[self.age() > 55]= 5000
@@ -74,19 +71,15 @@ class MI(Portfolio):
         capPA[self.p['POLPRCPL9'] == 0]=0
         return capPA
 
-
-## Fonction reprise de Produit EP
+## Fonction reprise de Produit EP (Utilisé dans claim et expenses)
 # Vecteur de 1 et 0 permettant de savoir si police toujours active ou non
     def isActive(self):
-        
         moisRestant = self.p['residualTermM'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
         increment = np.cumsum(self.one(), axis = 1)-1
         mask = moisRestant >= increment
         return mask
 
-
-
-## Fonction reprise de Produit EP
+## Fonction reprise de Produit EP (EXPENSES)
 # Retourne un vecteur de 1 et 0, Met des 1 pour le mois de janvier (là ou la PB est versée)
     def allocMonths(self):
         calendarMonth=np.arange(start=self.p['DateCalcul'].dt.month.values[0].astype(int),stop=(self.shape[1]+self.p['DateCalcul'].dt.month.values[0].astype(int)))
@@ -95,10 +88,7 @@ class MI(Portfolio):
         mask = calendarMonth ==1
         return mask*1
     
-
-
-
-# A corriger afin de pouvoir prendre en compte dans le futur les 2ème têtes de manière correcte
+# A corriger afin de pouvoir prendre en compte dans le futur les 2ème têtes de manière correcte (remonté quand celle-ci sera juste)
 # Fonction présent dans l'update permettant de chargé une fois tous les symboles de commutation
     def commutations(self):
         
@@ -199,7 +189,7 @@ class MI(Portfolio):
         self.axn[mask2t & (~mask10)] = axn2t[mask2t & (~mask10)]
 
 
-
+# Ne plus remonté à partir d'ici
 # =============================================================================
 # AJUSTEMENT DE VARIABLES
 # =============================================================================
@@ -502,8 +492,7 @@ class MI(Portfolio):
         rate = np.round(rate, decimals = 6)
         
         txInt = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()/100
-        rate = np.maximum(0, rate - txInt)
-        return rate
+        return np.maximum(0, rate - txInt)
     
 # =============================================================================
     ### CALCUL DES PREMIUMS
@@ -543,11 +532,9 @@ class MI(Portfolio):
         total = self.zero()
         conditions = [ maskA * maskCPL1, maskA * maskCPL2, maskB * maskCPL1]
         choices = [primeCompl, primeCompl2, primeCompl]
-        total = np.select(conditions, choices, default=0)
-       
-        return total
+        return np.select(conditions, choices, default=0)
 
-#Retourne les primes totales perçues. Il faut prendr en compte les primes pouvant être indexé, et rajouté les autres primes sans indexation. POLPRCPLA pas dans ANNRIDER pourquoi ?
+#Retourne les primes totales perçues. Il faut prendre en compte les primes pouvant être indexé, et rajouté les autres primes sans indexation. POLPRCPLA pas dans ANNRIDER pourquoi ?
     def totalPremium(self):
         premInc=((self.p['POLPRVIEHT'] - self.p['POLPRCPLA'])[:,np.newaxis,np.newaxis])/self.frac()
         premCompl = self.annRider() / self.frac()
@@ -557,14 +544,13 @@ class MI(Portfolio):
         prem[mask67] = 0
         return prem
 
+
 # =============================================================================
     ### CALCUL DES CLAIMS
 # =============================================================================
-
 # retourne la somme assurée avec le bon format
-    def sumAss(self):
-        sumAss = self.p['PMBCAPIT'][:,np.newaxis, np.newaxis]*self.one()   
-        return sumAss
+    def sumAss(self): 
+        return self.p['PMBCAPIT'][:,np.newaxis, np.newaxis]*self.one() 
 
 # Calcul des primes d'inventaire annuelle (PA'')
     def prInventaire(self):
@@ -611,14 +597,13 @@ class MI(Portfolio):
     def annPremPP(self):
         premInc=((self.p['POLPRVIEHT'] - self.p['POLPRCPLA'])[:,np.newaxis,np.newaxis])
         premInc=premInc*self.indexation()
-        premCompl = self.annRider() 
-        return premInc + premCompl
+        return premInc + self.annRider() 
 
 #Retourne les provisions pour risque en cours. Reprendre une méthode commune à tout le portefeuille pour calculé les risque en cours !!
     def precPP(self):
         mask10 = self.mask([10])
         annPremPP = self.annPremPP()
-        # pourquoi prend-on en compte les AnnRider pour les mod10 ?
+    # pourquoi prend-on en compte les AnnRider pour les mod10 ?
         annPremPP[mask10] = self.annRider()[mask10]
         fraisFract = self.p['fraisFract'][:,np.newaxis, np.newaxis]*self.one() 
         loading = self.p['aquisitionLoading'][:,np.newaxis, np.newaxis]*self.one()  
@@ -642,9 +627,7 @@ class MI(Portfolio):
 # retourne la provision mathèmatique de gestion
     def pmgSA(self):
         tauxPM =self.p['gestionLoadingSA'][:,np.newaxis, np.newaxis]*self.one()  
-        valPolFac = self.axn
-        pm = tauxPM * valPolFac 
-        return pm
+        return tauxPM * self.axn 
 
 # Provision de gestion calculée sans pb
     def provGestPP(self):
@@ -655,9 +638,7 @@ class MI(Portfolio):
 
 # claim complémentaire par police RIDER INC PP
     def riderIncPP(self):
-        riderIncPP = self.annRider() / self.frac()
-        riderIncPP = riderIncPP * self.isPremPay()
-        return riderIncPP
+        return (self.annRider() / self.frac()) * self.isPremPay()
 
 
 # calcul du taux de sinistralité complémentaire
@@ -709,9 +690,8 @@ class MI(Portfolio):
         return tx
 
 # Coût des complémentaires
-    def riderCostPP(self):
-        riderCostPP = self.riderIncPP() * self.riderCRate()
-        return riderCostPP
+    def riderCostPP(self): 
+        return self.riderIncPP() * self.riderCRate()
      
  
 # Calcul des claim complémentaire
@@ -726,11 +706,7 @@ class MI(Portfolio):
     
 # calcul des benefices en cas de maturité par police
     def matBenPP(self):
-        pb = self.pbAcquPP
-        sumAss = self.sumAss()
-        pbSortMat = self.pbSortMatsPP
-        return pb + sumAss + pbSortMat
-    
+        return self.pbAcquPP + self.sumAss() + self.pbSortMatsPP
     
  # calcul des sorties total en cas de maturité 
     def maturity(self):
@@ -759,8 +735,7 @@ class MI(Portfolio):
     
 # calcul des sorties en cas de rachat
     def surrender(self):
-        surrOutgo = self.surrValPP() * self.nbrSurrender
-        return surrOutgo
+        return self.surrValPP() * self.nbrSurrender
     
 # retourne un vecteur de 1 à 12 selon la duration de la police, si + élevé de 12 mois alors 12
     def firstYear(self):
@@ -770,9 +745,7 @@ class MI(Portfolio):
 
 #Retourne les claims de la garantie principale (DEATH_OUTGO)
     def claimPrincipal(self):
-        deathBenPP = self.sumAss() + self.pbAcquPP
-        deathOutgo = deathBenPP * self.nbrDeath
-        return deathOutgo
+        return (self.sumAss() + self.pbAcquPP) * self.nbrDeath
 
 
 
@@ -782,19 +755,16 @@ class MI(Portfolio):
 
 # calcul des reserves par police
     def mathResBA(self):
-        mathResBA = np.maximum(self.valSaPP() + self.valAccrbPP + self.provGestPP() + self.precPP() - self.valNetPrem() - self.zill, 0) 
-        return mathResBA
+        return np.maximum(self.valSaPP() + self.valAccrbPP + self.provGestPP() + self.precPP() - self.valNetPrem() - self.zill, 0) 
 
 # reserves inforce
     def provMathIf(self):
-        prov = self.mathResPP * self.nbrPolIf
-        return prov
+        return self.mathResPP * self.nbrPolIf
     
 
 # Dotation PB inforce actualisé
     def dotationPB(self):
-        pb = self.pbCalcPP * self.AExn * self.nbrPolIf 
-        return pb
+        return self.pbCalcPP * self.AExn * self.nbrPolIf
 
 # Calcul de l'évolution du fond de PB
     def fondPB(self):
@@ -809,8 +779,7 @@ class MI(Portfolio):
     
 # Reprise pour incorporation de PB
     def reprisePB(self):
-        reprisePB = np.roll(self.fondPB(), 1, axis = 1)
-        return reprisePB
+        return np.roll(self.fondPB(), 1, axis = 1)
     
 # Reprise sur fond de PB suite à une maturité  
     def repPbMats(self):
@@ -819,8 +788,7 @@ class MI(Portfolio):
 # pb incorporée actualisé inforce
     def pbIncorpIF(self):
         AExn = np.roll(self.AExn, 1, axis = 1)
-        pbincorp = self.pbIncorPP * AExn * self.nbrPolIfSM
-        return pbincorp
+        return self.pbIncorPP * AExn * self.nbrPolIfSM
     
     
 # coût de la pb sur sorties
@@ -840,16 +808,11 @@ class MI(Portfolio):
     
 # calcul des provisions techniques en cours, inforce
     def provTechIf(self):
-        provTechPP = self.provTechPP
-        provTechIf = provTechPP * self.nbrPolIf 
-        return provTechIf
+        return self.provTechPP * self.nbrPolIf 
     
 # diminution de la provision non zilmérisée à la maturité du contrat 
     def tresRldMat(self):
-        provTechPP = np.roll(self.provTechPP, 1, axis = 1)
-        noMat = self.nbrNewMat
-        tresRldMat = provTechPP * noMat
-        return tresRldMat
+        return np.roll(self.provTechPP, 1, axis = 1) * self.nbrNewMat
      
 #  calcul des provisions techniques ajustée (PROV_TECH_AJ)
     def provTechAj(self):
@@ -869,27 +832,23 @@ class MI(Portfolio):
     def provGestIf(self):
         return self.provGestPP() * self.nbrPolIf
 
-# intêrets crédités sur provision de gestion en cours
-    def intCredPMG(self):
-        prov = np.roll(self.provGestIf(), 1, axis = 1)
-        return prov * (self.txInt()-1)
 
-# intêrets techniques crédité
-    def intCredT(self):
-        result = (self.txInt()-1) * self.provTechAj()
-        result[:,0,:] = 0
-        return result
-    
-# Intêrets crédités sur zillmérisation
-    def intCredZil(self):
-        valzillIf = np.roll(self.valZillIf(), 1, axis = 1)
-        result = (self.txInt()-1) *  valzillIf
-        result[:,0,:] = 0
-        return -result
-    
-  # calcul des intêret techniques crédités (INT_CRED_T) (Possibilité de mettre les 3 méthode dans celle-ci) (?)
+  # calcul des intêret techniques crédités (INT_CRED_T) 
     def totIntCred(self):
-        return self.intCredZil() + self.intCredT() + self.intCredPMG()
+        
+# intêrets techniques crédité        
+        intCredT = (self.txInt()-1) * self.provTechAj()
+        intCredT[:,0,:] = 0
+        
+# intêrets crédités sur provision de gestion en cours
+        intCredPMG = np.roll(self.provGestIf(), 1, axis = 1) * (self.txInt()-1)
+        
+# Intêrets crédités sur zillmérisation     
+        intCredZil = (self.txInt()-1) * np.roll(self.valZillIf(), 1, axis = 1)
+        intCredZil[:,0,:] = 0
+        
+        return intCredT + intCredPMG - intCredZil
+    
     
 # Arrondi des tables ACTU.FAC afin d'obtenir mUfii (table rdt est)
 # méthode suivante à supprimer, il n'y a aucune raison d'arrondir le taux d'intêret !!
@@ -995,7 +954,7 @@ pol = MI()
 #pol=MI(run=[4,5])
 
     ###  Mod 2_1 produit F1XT1
-pol.ids([301])
+# pol.ids([301])
 
 # pol.ids([106903])
 # pol.ids([301])
@@ -1025,8 +984,8 @@ pol.ids([301])
 
 # age = pol.age()
 
-# pol.mod([6,7,2,10])
-# check = pol.purePremium() 
+pol.mod([6,7,2,10])
+check = pol.PGG() 
 # pureprem = pol.purePremium()
 
 # a = pol.p
@@ -1070,7 +1029,7 @@ print("Class MI--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 # AExmTEST = pol.AExn(pol.age(), GKM95)
 
-# pol.p.to_excel(path+'/zJO/check portefeuille.xlsx', header = True )
+pol.p.to_excel(path+'/zJO/check portefeuille.xlsx', header = True )
 # aa.to_excel("check portefeuille.xlsx", header = True )
 
 
@@ -1082,53 +1041,53 @@ print("Class MI--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 
 
-# Mask35 =pol.p['ClassPGG'] == 'MI3.5'
-# pm35 = pol.p.loc[Mask35, 'PMbasePGG']
+Mask35 =pol.p['ClassPGG'] == 'MI3.5'
+pm35 = pol.p.loc[Mask35, 'PMbasePGG']
 
-# Mask25 =pol.p['ClassPGG'] == 'MI2.5'
-# pm25 = pol.p.loc[Mask25, 'PMbasePGG']
+Mask25 =pol.p['ClassPGG'] == 'MI2.5'
+pm25 = pol.p.loc[Mask25, 'PMbasePGG']
 
-# Mask20 =pol.p['ClassPGG'] == 'MI2.0'
-# pm20 = pol.p.loc[Mask20, 'PMbasePGG']
+Mask20 =pol.p['ClassPGG'] == 'MI2.0'
+pm20 = pol.p.loc[Mask20, 'PMbasePGG']
 
-# Mask10 =pol.p['ClassPGG'] == 'MI1.0'
-# pm10 = pol.p.loc[Mask10, 'PMbasePGG']
+Mask10 =pol.p['ClassPGG'] == 'MI1.0'
+pm10 = pol.p.loc[Mask10, 'PMbasePGG']
 
-# Mask175 =pol.p['ClassPGG'] == 'MI1.75'
-# pm175 = pol.p.loc[Mask175, 'PMbasePGG']
+Mask175 =pol.p['ClassPGG'] == 'MI1.75'
+pm175 = pol.p.loc[Mask175, 'PMbasePGG']
 
-# Mask125 =pol.p['ClassPGG'] == 'MI1.25'
-# pm125 = pol.p.loc[Mask125, 'PMbasePGG']
-
-
-# Mask075 =pol.p['ClassPGG'] == 'MI0.75'
-# pm075 = pol.p.loc[Mask075, 'PMbasePGG']
-
-# Mask05 =pol.p['ClassPGG'] == 'MI0.5'
-# pm05 = pol.p.loc[Mask05, 'PMbasePGG']
-
-# Mask025 =pol.p['ClassPGG'] == 'MI0.25'
-# pm025 = pol.p.loc[Mask025, 'PMbasePGG']
-
-# Mask0 =pol.p['ClassPGG'] == 'MI0.0'
-# pm0 = pol.p.loc[Mask0, 'PMbasePGG']
+Mask125 =pol.p['ClassPGG'] == 'MI1.25'
+pm125 = pol.p.loc[Mask125, 'PMbasePGG']
 
 
-# pmtot = pm0 + pm025 + pm05 + pm075 + pm10+pm20+pm25 + pm35 + pm125 + pm175
+Mask075 =pol.p['ClassPGG'] == 'MI0.75'
+pm075 = pol.p.loc[Mask075, 'PMbasePGG']
 
-# sum(pm0)
-# sum(pm025)
-# sum(pm05)
-# sum(pm075)
-# sum(pm10)
-# sum(pm20)
-# sum(pm25)
-# sum(pm35)
-# sum(pm125)
-# sum(pm175)
+Mask05 =pol.p['ClassPGG'] == 'MI0.5'
+pm05 = pol.p.loc[Mask05, 'PMbasePGG']
+
+Mask025 =pol.p['ClassPGG'] == 'MI0.25'
+pm025 = pol.p.loc[Mask025, 'PMbasePGG']
+
+Mask0 =pol.p['ClassPGG'] == 'MI0.0'
+pm0 = pol.p.loc[Mask0, 'PMbasePGG']
 
 
-# sum(pm0)+sum(pm025)+sum(pm05)+sum(pm075)+sum(pm10)+sum(pm20)+sum(pm25)+sum(pm35)+sum(pm125)+sum(pm175)
+
+
+sum(pm0)
+sum(pm025)
+sum(pm05)
+sum(pm075)
+sum(pm10)
+sum(pm20)
+sum(pm25)
+sum(pm35)
+sum(pm125)
+sum(pm175)
+
+
+sum(pm0)+sum(pm025)+sum(pm05)+sum(pm075)+sum(pm10)+sum(pm20)+sum(pm25)+sum(pm35)+sum(pm125)+sum(pm175)
 
 
 

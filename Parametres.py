@@ -540,7 +540,7 @@ def adjustAgesAndTerm(p):
 ########################################################################################################################
 
             
-    mask=(p['PMBMOD'].isin([28,29,30,31,32,33,36, 2, 6, 7]))
+    mask=(p['PMBMOD'].isin([28,29,30,31,32,33,36, 2, 6, 7, 3, 4]))
 
     date1=pd.to_datetime(p.loc[mask,'CLIDTNAISS'])
     
@@ -668,6 +668,14 @@ def portfolioPreProcessing(p):
     
     #Création des collones pour l'agragation de la PGG
     allocationDesClassPGG(p)
+    
+    # Traitement des classes PGG (celles-ci étaient fausses en 2018, on reproduit l'erreur mais ceci est à supprimer pour corriger !!) (A REVOIR) 
+    p.loc[(p['POLTARIF'] == 'B') & (p['PMBMOD'] == 2), 'ClassPGG'] = 'MI3.5'
+    p.loc[(p['POLTARIF'] == 'M1') & (p['PMBMOD'] == 6), 'ClassPGG'] = 'MI0.25'
+    p.loc[(p['POLTARIF'] == 'A') & (p['PMBMOD'] == 6), 'ClassPGG'] = 'MI2.5'
+    p.loc[(p['POLTARIF'] == 'J3') & (p['PMBMOD'] == 6), 'ClassPGG'] = 'MI2.5'
+    
+    
     
     #Création des PM servant de base pour le calcul de la PGG
     p['PMbasePGG']=p['PMBPRVMAT']+p['PMBPBEN']+p['PMBREC']+p['PMBRECCPL']

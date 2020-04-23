@@ -17,7 +17,7 @@ start_time = time.time()
     # Modalité 3 uniquement pour les 1 tête
 class TE(Portfolio):
     # mods=[3]
-    modHeads = [3],1
+    # modHeads = [3],1
     # complPremium=pol.p['POLPRCPL2']
 
     
@@ -35,6 +35,225 @@ class TE(Portfolio):
         self.loopNoSaving()
         
     
+    
+    def loopSaving(self):
+
+#Variables des actifs  
+# Condition me permettant de supprimer les polices qui ont un age à 999 (mis volontairement dans le preprocessing)
+        nbrPolIf = self.age() < 999
+        nbrPolIf = nbrPolIf * self.one()
+        
+        nbrPolIfSM=self.zero()
+        nbrDeath=self.zero()
+        nbrSurrender=self.zero()
+        nbrMaturities=self.zero()
+        nbrNewRed = self.zero()
+        matRate=self.zero()
+        
+#Variables des réduites
+        nbrPupsIf=self.zero()
+        nbrPupDeath=self.zero()
+        nbrPupSurrender=self.zero()
+        nbrPupIfSM=self.zero()
+        nbrPupMaturities=self.zero()
+
+#Variables biométriques et génériques
+        lapseTiming=0.5
+        polTermM=self.polTermM()       
+        lapseD=lapseTiming * self.lapse()
+        lapse = self.lapse()          
+        qxy = self.qxExpMens() 
+        qx = self.qxExp()
+        
+    # # Modification les mixtes 2 tetes sont en fait calculée en fonction de l'assuré 1 (Ce qui est faux) (A MODIFIER) ?
+    #     mask = (((self.p['PMBMOD']==2) & (self.p['POLNBTETE']==2))).astype(bool)
+    #     qxy[mask] = qx[mask] + qx[mask] - qx[mask]*qx[mask]
+    #     qxy[mask] = 1-(1-qxy[mask])**(1/12)
+        qxyD = lapseTiming * qxy
+
+        # Variable actuarielle
+        AExn = self.AExn
+
+        #Définition du vecteur des maturités (bool)        
+        matRate[polTermM+1 ==self.durationIf()]=1 
+        
+# Déclaration des variables pour le calcul des PM        
+        # Variable existante
+        # zill = self.zero()
+        # precPP = self.precPP()
+        # valSaPP = self.valSaPP()
+        # valNetPP = self.valNetPrem()
+        # prInventPP = self.prInventaire()
+        # alpha = self.p['tauxZill'][:,np.newaxis, np.newaxis]*self.one()  
+        # axn = self.axn
+        # valSumAss = self.sumAss() * self.AExn
+        # provGestPP = self.provGestPP()
+        # pmFirstYear = self.pmFirstYear()    
+        # allocMonths = self.allocMonths()
+        # txPartPB = self.txPartPB()
+
+        
+        nbtete = self.p['POLNBTETE'][:,np.newaxis, np.newaxis]*self.one() 
+        
+        
+        # # Nouvelles variables
+        # valAccrbPP = self.zero()
+        # pbIncorPP = self.zero()
+        # pbAcquPP = self.zero()
+        # pbAcquPP[:,0,:] = self.p['PMBPBEN'].to_numpy()[:,np.newaxis]
+        # pbCalcPP = self.zero()
+        # isActive = self.isActive()
+        # mathResPP = self.zero()  
+        # provTechPP = self.zero()
+        # pmZillCum = self.zero()
+        # pmZillPP = self.zero()
+        # pmPourPB = self.zero()
+        # tierPM = self.zero()
+        # zillTot = self.zero()
+        # pbSortMatsPP = self.zero()
+        # pbSortSurrPP = self.zero()
+        # pbSortDthPP = self.zero()
+        
+
+        # # Calcul des PM au temps 0 
+        # valAccrbPP[:,0,:] = pbAcquPP[:,0,:] * AExn[:,0,:] 
+        
+        # tierPM[:,0,:] = (1/3) * np.maximum(valSaPP[:,0,:] + valAccrbPP[:,0,:] + provGestPP[:,0,:] + precPP[:,0,:] - valNetPP[:,0,:], 0)
+            
+        # zillTot[:,0,:] = np.minimum(alpha[:,0,:] * prInventPP[:,0,:] * axn[:,0,:], np.maximum(valSumAss[:,0,:] - valNetPP[:,0,:] + provGestPP[:,0,:], 0))
+            
+        # zill[:,0,:] = np.where((tierPM[:,0,:] <= zillTot[:,0,:]) & (nbtete[:,0,:] != 2), tierPM[:,0,:], zillTot[:,0,:])
+        
+        # mathResPP[:,0,:] = np.maximum(valSaPP[:,0,:] + valAccrbPP[:,0,:] + provGestPP[:,0,:] - valNetPP[:,0,:] + precPP[:,0,:] - zill[:,0,:], 0 )
+
+        # provTechPP[:,0,:] = mathResPP[:,0,:] - provGestPP[:,0,:] - precPP[:,0,:] + zill[:,0,:]
+        
+        # pmZillPP[:,0,:] = provTechPP[:,0,:] - zill[:,0,:]
+        
+        
+        for i in range(1,self.shape[1]):
+
+#Définition des variables des actifs            
+            nbrMaturities[:,i,:]=nbrPolIf[:,i-1,:]*matRate[:,i,:]
+            
+            nbrPolIfSM[:,i,:]=nbrPolIf[:,i-1,:] - nbrMaturities[:,i,:]
+            
+            nbrDeath[:,i,:]=nbrPolIfSM[:,i,:]*qxy[:,i,:]*(1-(lapseD[:,i,:]))
+            
+            nbrSurrender[:,i,:]=nbrPolIfSM[:,i,:]*lapse[:,i,:]*(1-(qxyD[:,i,:]))
+            
+            nbrPolIf[:,i,:]=nbrPolIf[:,i-1,:]-nbrDeath[:,i,:]-nbrSurrender[:,i,:] - nbrMaturities[:,i,:]
+
+
+#Définition des variables des réduites
+            nbrPupMaturities[:,i,:]=nbrPupsIf[:,i-1,:]*matRate[:,i,:]
+            
+            nbrPupIfSM[:,i,:]=nbrPupsIf[:,i-1,:] - nbrPupMaturities[:,i,:]
+            
+            nbrPupDeath[:,i,:]=nbrPupIfSM[:,i,:]*qxy[:,i,:]*(1-(lapseTiming*lapse[:,i,:]))
+            
+            nbrPupSurrender[:,i,:]=nbrPupIfSM[:,i,:]*lapse[:,i,:]*(1-(lapseTiming*qxy[:,i,:]))
+            
+            nbrPupsIf[:,i,:]=nbrPupsIf[:,i-1,:]-nbrPupDeath[:,i,:]-nbrPupSurrender[:,i,:] - nbrPupMaturities[:,i,:] + nbrNewRed[:,i,:]
+
+
+# Variable permettant le calcul des reserves et pb
+
+            # pbIncorPP[:,i,:] = np.nan_to_num(pbCalcPP[:,i-1,:] *  isActive[:,i-1,:])
+            
+            # pbAcquPP[:,i,:] = (pbAcquPP[:,i-1,:] + pbIncorPP[:,i,:])  * isActive[:,i,:]             
+
+            # valAccrbPP[:,i,:] = pbAcquPP[:,i,:] * AExn[:,i,:] 
+            
+            # tierPM[:,i,:] = (1/3) * (np.maximum(valSaPP[:,i,:] + valAccrbPP[:,i,:] + provGestPP[:,i,:] + precPP[:,i,:] - valNetPP[:,i,:], 0))
+            
+            # zillTot[:,i,:] = np.minimum(alpha[:,i,:] * prInventPP[:,i,:] * axn[:,i,:], np.maximum(valSumAss[:,i,:] - valNetPP[:,i,:] + provGestPP[:,i,:], 0))
+            
+            # zill[:,i,:] = np.where((tierPM[:,i,:] <= zillTot[:,i,:]) & (nbtete[:,i,:] != 2), tierPM[:,i,:], zillTot[:,i,:])
+            
+            # mathResPP[:,i,:] = np.maximum(valSaPP[:,i,:] + valAccrbPP[:,i,:] + provGestPP[:,i,:] - valNetPP[:,i,:] + precPP[:,i,:] - zill[:,i,:], 0 )
+            
+            # provTechPP[:,i,:] = mathResPP[:,i,:] - provGestPP[:,i,:] - precPP[:,i,:] + zill[:,i,:]
+            
+            # pmZillPP[:,i,:] = provTechPP[:,i,:] - zill[:,i,:]
+            
+            # pmZillCum[:,i,:] = pmZillPP[:,i,:] + (1-allocMonths[:,i-1,:]) * pmZillCum[:,i-1,:]
+            
+            # pmPourPB[:,i,:] = (pmZillCum[:,i,:] / 12) * allocMonths[:,i,:]
+            
+            # pbCalpTEMP = pmPourPB[:,i,:] * txPartPB[:,i,:] * (pmFirstYear[:,i,:] / 12)
+            
+            # pbCalcPP[:,i,:] = np.divide( pbCalpTEMP, AExn[:,i,:], out=np.zeros_like(pbCalpTEMP), where=AExn[:,i,:]!=0 ) * allocMonths[:,i,:]
+            
+            # pbSortMatsPP[:,i,:] = pbCalcPP[:,i,:] * isActive[:,i,:]
+            
+            # pbSortSurrPP[:,i,:] = pbCalcPP[:,i,:] * isActive[:,i,:] * AExn[:,i,:]
+            
+            # pbSortDthPP[:,i,:] = pbCalcPP[:,i-1,:] * isActive[:,i,:]
+
+
+
+#Sauvegarde des variables des actifs 
+        #Nombre de polices actives                                 
+        self.nbrPolIf=nbrPolIf
+        #Nombre de police actives en déduisant les échéances du mois
+        self.nbrPolIfSM=nbrPolIfSM
+        #Nombre de décès
+        self.nbrDeath=nbrDeath
+        #Nombre d'annulation de contrat
+        self.nbrSurrender=nbrSurrender
+        #Nombre de nouvelle réduction
+        self.nbrNewRed = nbrNewRed
+        # Nombre de nouvelle maturités
+        self.nbrNewMat = nbrMaturities
+        
+#Sauvegarde des variables des réduites       
+        #Nombre de polices réduites                                
+        self.nbrPupsIf=nbrPupsIf
+        #Nombre de police réduites en déduisant les échéances du mois
+        self.nbrPupIfSM=nbrPupIfSM
+        #Nombre de décès de polices résuites
+        self.nbrPupDeath=nbrPupDeath
+        #Nombre d'annulation de contrat de polices réduites
+        self.nbrPupSurrender=nbrPupSurrender
+        # Nombre de police réduite arrivant à maturité
+        self.nbrPupMat = nbrPupMaturities
+
+
+
+# # Sauvegarde des variables concernant les PM
+#  # Montant de PB à affecter par police
+#         self.pbCalcPP = pbCalcPP
+#   # PB acquise des polices actives
+#         self.pbAcquPP = pbAcquPP
+# # PB dfdonnée par police en cas de maturité     
+#         self.pbSortMatsPP = pbSortMatsPP
+# # PB donnée par police en cas de rachat
+#         self.pbSortSurrPP = pbSortSurrPP
+# # PM utilisée pour le calcul de la PB
+#         self.pmPourPB = pmPourPB
+# # PM Zillmérisée cumulée 
+#         self.pmZillCum = pmZillCum
+# # Provisions technique par police 
+#         self.provTechPP = provTechPP
+# # Reserves mathématiques par polices       
+#         self.mathResPP = mathResPP
+# # Valeur actualisée de la PB 
+#         self.valAccrbPP = valAccrbPP
+# # PB incorporée par polices       
+#         self.pbIncorPP = pbIncorPP
+# # Provision zillmérisée par police     
+#         self.pmZillPP = pmZillPP
+# # Zillmérisation 
+#         self.zill = zill
+# # Zillmérisation en comptant le (1/3) de la pm comme zill       
+#         self.zillTot = zillTot
+# # Tiers de la pm comptée comme zill       
+#         self.tierPM = tierPM
+# # PB donnée par police en cas de décès
+#         self.pbSortDthPP = pbSortDthPP
+
+
     
 # #  Retourne un vecteur de temps t (représente t dans prophet)
         
@@ -135,125 +354,32 @@ class TE(Portfolio):
 
 pol = TE()
 
-
-
-monCas=pol.pbAcquAPPUP
-
-zz=np.sum(monCas, axis=0)
-zzz=np.sum(zz[:,0])
-z=pd.DataFrame(monCas[:,:,0])
-z=z.sum()
-z.to_csv(r'check.csv',header=False)
-
-
-
-
-# pol.ids([605701, 532301])
-# matougto = pol.matOutgo()
-# benpp = pol.matBenPP
-# nomat = pol.noMats
-# pupmat = pol.pupMatbPP
-# nopupmat = pol.noPupMat
-# surrOutgo = pol.surrOutgo()
-# eppAcquAPPUP = pol.eppAcquAPPUP
-# pbAcquAPPUP = pol.pbAcquAPPUP
-# riderincpp = pol.riderCostPP()
-# totclaim = pol.totalClaim()
-# protectionavenir = pol.capPA()
-# provtechIf = pol.provTechIf()
-# adjMathRes2 = pol.adjMathRes2
-# provMathAj = pol.provMathAj
-# oTaxblInc=pol.oTaxblInc
-# totalExpense = pol.totalExpense()
-# resfin = pol.rfinAnn
-# resfinmois = pol.resFinMois
-# resReldMat = pol.resReldMat
-# matoutgo = pol.matOutgo()
-# provmathif = pol.provMathIf()
-# provtechAj = pol.provTechAj()
-# riecostoutgo = pol.riderCOutgo()
-# provmathAj = pol.provMathAj()
-# testt = pol.test()
-# mathresBA = pol.mathresBA()
-# nopupif = pol.nbrPupsIf
-# nomat = pol.noMats
-# nonvewred = pol.nbrNewRed
-# epAcquAVPUP = pol.epAcquAVPUP
-# eppAcquAPPUP33 = pol.eppAcquAPPUP
-# pupEben = pol.pbAcqu()
-# deathbenef = pol.deathClaim()
-# pupdthbPP = pol.pupDeath()
-# pbAcquAVPUP = pol.pbAcquAVPUP
-# pbacquAPPUP = pol.pbAcquAPPUP
-# deathpup=pol.nbrPupDeath
-# epargneacquise = pol.epargAcqu()
-# pbacquPP= pol.pbAcquPP
-# eparPB = pol.eparPB()
-# check = pol.ppurePP()
-# check2 = pol.prEncInvPP()
-# epp = pol.epargAcqu()
-# pbb = pol.pbAcqu()
-# pol = HO()
-#pol=AX()
-#pol=AX(run=[4,5])
-# chck = pol.isVal()
-# adjustRES = pol.adjustedReserve()
-#pol.mod([70])
+# Mod 3 1tete
 # pol.modHead([3],1)
-# aa = pol.p
-# cc= pol.accidentalDeathClaim()
-# oo = pol.nbrNewPups
-# a=pol.nbrPolIf
-# b=pol.nbrPolIfSM
-#c=pol.nbrMaturities
-# d=pol.nbrDeath
-# e=pol.nbrSurrender
-#f=pol.premiumCompl()
-#g=pol.purePremium()
-# h=pol.deathClaim()
-#i=pol.fraisVisiteClaim()
-#j=pol.timeBeforeNextPay()
-#k=pol.risqueEnCour()
-# l=pol.adjustedReserve()
-# m=pol.reserveExpense()
-# n=pol.unitExpenseRed()
-# o=pol.totalPremium()
-q=pol.deathClaim()
-# r=pol.totalCommissions()
-# s=pol.totalExpense()
-# t=pol.BEL()
-#u=pol.polTermM
-# t = pol.claimCompl()
-# tt = pol.adjustedReserve()
-# bel=np.sum(pol.BEL(), axis=0)
-#pgg=pol.PGG()
-# ll = pol.l_val()
-# nn = pol.nbrNewRed
-# pupbenPPP = pol.pupBenPP
-print("Class TE--- %s sec" %'%.2f'%  (time.time() - start_time))
+# pol.ids([52001])
 
- # pol.p=pol.modHead(pol.modHeads)
-
-iii = pol.eppAcquAPPUP
+# Mod 3 2tete
+# pol.modHead([3],2)
+# pol.ids([111402])
 
 
-##############################################################################################################################
-#TESTER DES CAS
-##############################################################################################################################
 
-def testerCas(self):
-    return self
-# iii = pol.totalPrem()
-monCas=q
+# Mod4
+# pol.mod([4])
+# pol.ids([301])
+
+death = pol.nbrDeath
+
+
+
+check=pol.nbrPolIf
+
+monCas=check
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
 z=z.sum()
-z.to_csv(path+'/zFT/check.csv',header=False)
+z.to_csv(path+'/zJO/check.csv',header=False)
 
-ss = pol.p
-ss.to_excel(path+'/zFT/check portefeuille.xlsx', header = True )
-#Visualiser une dimension d'un numpy qui n'apparait pas
-# test = pol.reduction()
-# data=pupEben
-# a=pd.DataFrame(data[:,:,0])
+
+pol.p.to_excel(path+'/zJO/check portefeuille.xlsx', header = True )
