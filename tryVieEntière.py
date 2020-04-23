@@ -325,14 +325,10 @@ class VE(Portfolio):
         insuredSum = self.insuredSum()
         policeActive = self.policeActive()
         aduePolVal = self.aduePolVal
-        
         prInventPp = self.zero()
-        
         mask99 = (self.durationIf() <= 99*12)
-        
         prInventPp[(self.mask([11]))] = purePremium[(self.mask([11]))] + (cgSaPolPc[(self.mask([11]))] + cgSaPriPc[(self.mask([11]))]) * insuredSum[(self.mask([11]))] * policeActive[(self.mask([11]))] * mask99[(self.mask([11]))]
         prInventPp[(self.mask([1]))] = purePremium[(self.mask([1]))] + (cgSaPolPc[(self.mask([1]))] * aduePolVal[(self.mask([1]))] + cgSaPriPc[(self.mask([1]))]) * insuredSum[(self.mask([1]))] * policeActive[(self.mask([1]))]
-
         return prInventPp            
                       
     # VAL_NETP_FAC - annuité qui dépend de la durée de paiemnet des primes (ax, axp, faux pour sérénité)
@@ -404,45 +400,16 @@ class VE(Portfolio):
     ### FONCTIONS DOUBLONS
 # =============================================================================
 
-    # Prime totale, doublon à effecer après avoir corrigé les références
-    def primeTotale(self):
-        frac = self.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
-        primeTotale = self.p['POLPRTOT'].to_numpy()[:,np.newaxis,np.newaxis] / frac * self.isPremPay()
-        return primeTotale 
+    # # Prime totale, doublon à effecer après avoir corrigé les références
+    # def primeTotale(self):
+    #     frac = self.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
+    #     primeTotale = self.p['POLPRTOT'].to_numpy()[:,np.newaxis,np.newaxis] / frac * self.isPremPay()
+    #     return primeTotale 
 
 # =============================================================================
 # =============================================================================    
 
-    # DEATH_BEN_PP - calcul du death benefit
-    def deathBenefit(self):
-        capital = self.p['PMBCAPIT'].to_numpy()[:,np.newaxis,np.newaxis]    
-        frac = 12 / self.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
-        frac = 12 / self.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
-        pbAcq = self.p['PMBPBEN'].to_numpy()[:,np.newaxis,np.newaxis]
-        durationif = self.durationIf()  
-        isPremPay = self.isPremPay()
-        
-        conditions = [durationif[:,0,:] != 1, durationif[:,0,:] == 1]
-        result =[np.ceil(durationif[:,0,:]/frac[:,0,:]), 1]
-        isPremPay[:,0,:] = np.select(conditions,result)
-        
-        premiumsPaid = isPremPay * self.p['POLPRTOT'][:,np.newaxis,np.newaxis] / self.frac()           
-        cumulatedPremiums = self.zero()
-        cumulatedPremiums = np.cumsum(premiumsPaid, axis=1)      
-        
-        conditions = [(durationif>12)]
-        result = [(0)]
-        sinon = 1
-        deathBenPP1 = np.select(conditions,result,sinon) * cumulatedPremiums
-        
-        conditions = [(durationif>12)]
-        result = [(1)]
-        sinon = 0
-        durationif12plus = np.select(conditions,result,sinon)
-        
-        deathBenPP2 = (capital + pbAcq) * durationif12plus  
-        deathBenPP = deathBenPP1 + deathBenPP2
-        return deathBenPP
+
 
 # =============================================================================
     ### CALCUL DE TOTALEXPENSE
@@ -580,6 +547,36 @@ class VE(Portfolio):
 # =============================================================================
     ### CALCUL DES CLAIMS   
 # =============================================================================
+    # DEATH_BEN_PP - calcul du death benefit
+    def deathBenefit(self):
+        capital = self.p['PMBCAPIT'].to_numpy()[:,np.newaxis,np.newaxis]    
+        frac = 12 / self.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
+        frac = 12 / self.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
+        pbAcq = self.p['PMBPBEN'].to_numpy()[:,np.newaxis,np.newaxis]
+        durationif = self.durationIf()  
+        isPremPay = self.isPremPay()
+        
+        conditions = [durationif[:,0,:] != 1, durationif[:,0,:] == 1]
+        result =[np.ceil(durationif[:,0,:]/frac[:,0,:]), 1]
+        isPremPay[:,0,:] = np.select(conditions,result)
+        
+        premiumsPaid = isPremPay * self.p['POLPRTOT'][:,np.newaxis,np.newaxis] / self.frac()           
+        cumulatedPremiums = self.zero()
+        cumulatedPremiums = np.cumsum(premiumsPaid, axis=1)      
+        
+        conditions = [(durationif>12)]
+        result = [(0)]
+        sinon = 1
+        deathBenPP1 = np.select(conditions,result,sinon) * cumulatedPremiums
+        
+        conditions = [(durationif>12)]
+        result = [(1)]
+        sinon = 0
+        durationif12plus = np.select(conditions,result,sinon)
+        
+        deathBenPP2 = (capital + pbAcq) * durationif12plus  
+        deathBenPP = deathBenPP1 + deathBenPP2
+        return deathBenPP
     
     # SURRENDER_OUTGO - Claims réductions
     def surrender(self):
