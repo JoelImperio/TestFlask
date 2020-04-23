@@ -537,33 +537,33 @@ class VE(Portfolio):
         rate = (1+rate)**(1/12) - 1
         return rate
    
+    # Total des intérêts crédités
     def totalIntCred(self):
         totalIntCred = self.intCredT() + self.intCredZill() + self.intCredPgm()
         totalIntCred[(self.mask([11]))] = self.zero()[(self.mask([11]))]
         return totalIntCred
     
+    # Intérêts crédités sur PMG
     def intCredPgm(self):
         provGestIf = self.provGestPP() * self.nbrPolIf
         intCredPgm = (self.txInt()-1) * np.roll(provGestIf, 1, axis = 1)
         return intCredPgm
    
+    # Intérêts crédités sur zillmérisation
     def intCredZill(self):
         valZillIf = self.valZillPP() * self.nbrPolIf
         intCredZill = (self.txInt()-1) * -1 * np.roll(valZillIf, 1, axis = 1)
         return intCredZill
         
-    
+    # Intérêts techniques crédités
     def intCredT(self):
         return (self.txInt()-1) * self.provTechAj()
     
+    # Provision technique ajustée
     def provTechAj(self):
-        provTechAj = self.zero()
-        provTechIf = self.provTechIf()
-        primeInvest = self.ppureEnc()
-        riderCoutgo = self.claimCompl()
-
-        for i in range(1,self.shape[1]):
-            provTechAj[:,i,:] = provTechIf[:,i-1,:] + primeInvest[:,i,:] - riderCoutgo[:,i,:]
+        provTechIf = np.roll(self.provTechIf(), 1, axis = 1)
+        provTechIf[:,0,:] = 0
+        provTechAj = provTechIf + self.ppureEnc() - self.claimCompl()
         return provTechAj
     
     # calcul des provisions techniques en cours, inforce
@@ -680,57 +680,12 @@ pol = VE()
 
 
 
-        
-# totExp = pol.zero()
-# rfinAnn = pol.zero()
-# adjMathRes2 = pol.zero()
-# resFinMois = pol.zero()
-# provMathAj = pol.zero()
-# oExp = pol.zero()
-# oTaxblInc = pol.zero()
-# totCom = pol.totalCommissions()
-
-# # fonction existantes
-# fMathResIf = pol.fMathResIf()
-# riderCoutgo = pol.claimCompl()
-# premInc = pol.totalPremium()
-# # mathResPP = pol.mathResBa()
-# # pupMathRes = pol.pupMathRes()
-# provMathIf = pol.mathResBa() * pol.nbrPolIf
-# mUfii = pol.mUfii()
-# # durationIf = pol.durationIf()
-# monthPb = pol.one() - pol.allocMonths()
-# # isActive = pol.isActive()
-# totIntCred = pol.totalIntCred() 
-
-# # PPURE_ENC
-# premInvest = pol.purePremium() * pol.nbrPolIfSM / pol.frac() * pol.isPremPay() * pol.policeActive()
-
-# unitExp = pol.unitExpense()
-# # provTechAj = pol.provTechAj()   
-# txReserve = pol.fraisGestionPlacement()
-
-# # calcul des exceptions
-# provMathAj[:,0,:] = premInc[:,0,:] - totExp[:,0,:] - riderCoutgo[:,0,:]
-
-# for i in range(1,pol.shape[1]):
-#     adjMathRes2[:,i,:] = np.maximum(0, fMathResIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInvest[:,i,:] - riderCoutgo[:,i,:])
-#     totExp[:,i,:] = unitExp[:,i,:] + adjMathRes2[:,i,:] * txReserve[:,i,:] 
-#     oExp[:,i,:] = totExp[:,i,:] + totCom[:,i,:]
-#     provMathAj[:,i,:] = provMathIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInc[:,i,:] - riderCoutgo[:,i,:] - oExp[:,i,:]
-#     oTaxblInc[:,i,:] = provMathAj[:,i,:] * mUfii[:,i,:]
-#     resFinMois[:,i,:] = oTaxblInc[:,i,:] - totIntCred[:,i,:]
-#     rfinAnn[:,i,:] = (rfinAnn[:,i-1,:] + resFinMois[:,i,:]) * monthPb[:,i,:]        
-        
-        
-
-
 print("Class VE--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 
 x = pol.p
 x.to_excel(path+'/zFT/ptf.xlsx')
-monCas = pol.BEL()
+monCas = pol.provTechAj()
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])
