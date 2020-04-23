@@ -30,7 +30,7 @@ class VE(Portfolio):
         self.commutations()
         self.reserveForExp()
     
-    # Fonction mondifiée des lapse car VE lapsent mensuellement
+    # Fonction modifiée des lapse car VE lapsent mensuellement
     def isLapse(self):
         lapse = self.zero()
         check1 = (self.frac() * (self.durationIf()+12)/12)
@@ -42,9 +42,11 @@ class VE(Portfolio):
         myLapse[:,0,:] = 0
         return myLapse
     
-    # Fonction mondifiée des lapse car VE lapsent mensuellement   
+    # !! Fonction mondifiée des lapse car VE lapsent mensuellement, a effacer pour corriger 
+    # Par contre ne pas oublier le mask99 pour la durée
     def lapse(self):
         
+        # masque pour la durée de 99 ans
         mask99 = (self.durationIf() <= 99*12)
         
         h=self.hypoSet(self.LapseNew)
@@ -91,8 +93,8 @@ class VE(Portfolio):
     # Loop qui calcule les maturités, inforce annuels et mensuels, nombre de morts, nombre de surrenders.    
     def loopVE(self):
         
-        # mask121 = (self.age() <= 121)
-        mask99 = (self.durationIf() <= 98*12+1)
+        # Masque durée projections
+        mask98 = (self.durationIf() <= 98*12+1)
         
         # Vecteur mise à zéro
         nbrPolIf = self.one()
@@ -109,7 +111,7 @@ class VE(Portfolio):
          
         # Début du loop
         for i in range(1,self.shape[1]):
-            nbrPolIfSM[:,i,:] = nbrPolIf[:,i-1,:] * mask99[:,i,:]
+            nbrPolIfSM[:,i,:] = nbrPolIf[:,i-1,:] * mask98[:,i,:]
             nbrDeath[:,i,:] = nbrPolIfSM[:,i,:] * qxy[:,i,:] * (1-(lapse[:,i,:] * (1-self.lapseTiming))) 
             nbrSurrender[:,i,:] = nbrPolIfSM[:,i,:] * lapse[:,i,:] * (1-(qxy[:,i,:] * self.lapseTiming))
             nbrPolIf[:,i,:] = nbrPolIf[:,i-1,:] - nbrDeath[:,i,:] - nbrSurrender[:,i,:]
@@ -120,22 +122,9 @@ class VE(Portfolio):
         self.nbrPolIfSM = nbrPolIfSM
         #Nombre de décès
         self.nbrDeath = nbrDeath 
-        # self.nbrDeath=nbrDeath
         #Nombre d'annulation de contrat
-        self.nbrSurrender=nbrSurrender * mask99
-     
-        
-# =============================================================================
-    ### FONCTIONS A REMONTER
-# =============================================================================
-        
-    # Fonction prise des épargnes qui n'avait pas été remontée  
-    def isActive(self):
-        moisRestant = self.p['residualTermM'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
-        increment = np.cumsum(self.one(), axis = 1)-1
-        mask = moisRestant >= increment
-        return mask
-    
+        self.nbrSurrender = nbrSurrender * mask98
+
     # Fonction qui sert à déterminer si une police est active ou non par rapport à sa situation, peut-être doublon
     def policeActive(self):
         situation = self.p['POLSIT'][:,np.newaxis,np.newaxis] * self.one()
@@ -156,36 +145,6 @@ class VE(Portfolio):
         payPrimes = np.select(conditions,result,sinon)
         return payPrimes
     
-    # Retourne les primes totales perçues, fonction modifiée à cause de la complémentaire à déduire
-    def totalPremium(self):
-        agelimite = (self.age()>85) 
-        mask11 = self.p['PMBMOD'].isin([11])
-        prTot = self.p['POLPRTOT'][:,np.newaxis,np.newaxis]
-        prCompl = self.p['POLPRCPL3'][:,np.newaxis,np.newaxis]
-        # ? La prime complémentaire est déduite après 85 ans pour la mod1 mais pas pour la 11
-        premInc = (prTot - (prCompl * agelimite)) / self.frac()
-        premInc[mask11] = prTot[mask11] / self.frac()[mask11]
-        prem = premInc * self.nbrPolIfSM * self.isPremPay() * self.indexation()
-        return prem * self.payPrimes() 
-        
-# =============================================================================
-    ### FONCTIONS A SUPPRIMER APRES COUP CAR FAUSSES
-# =============================================================================       
-    
-    # !! Comportement bizarre en fin de projection répliqué
-    def qxyExpMens(self):
-        maskotte1 = self.durationIf() > 98*12
-        maskotte2 = self.durationIf() <= 99*12
-        mask = maskotte1 & maskotte2
-        mask121 = (self.age() <= 121)
-        qx = self.qxExpMens(ass=1)
-        qy = self.qxExpMens(ass=2)
-        return (qx + qy - qx * qy) * mask121 + mask
-    
-# =============================================================================
-    ### FONCTIONS ACTUARIELLES
-# =============================================================================       
- 
     # Fonction qui sert à retourner les valeurs actuarielles, Ax, ax, etc.
     def commutations(self):
         
@@ -239,63 +198,91 @@ class VE(Portfolio):
         self.Ax = Ax
         self.aduePolVal = aduePolVal
         self.axInitPrimes = axInitPrimes
-             
+   
 # =============================================================================
-    ### CALCUL DES SURRENDER
+    ### FONCTIONS A REMONTER
+# =============================================================================
+ 
+    # Fonction piquée dans les épargnes
+    def allocMonths(self):
+        calendarMonth=np.arange(start=self.p['DateCalcul'].dt.month.values[0].astype(int),stop=(self.shape[1]+self.p['DateCalcul'].dt.month.values[0].astype(int)))
+        calendarMonth=calendarMonth%12 + 1
+        calendarMonth=calendarMonth[np.newaxis,:,np.newaxis]*self.one()        
+        mask = calendarMonth == 1
+        return mask*1
+
+    # Fonction prise des épargnes qui n'avait pas été remontée  
+    def isActive(self):
+        moisRestant = self.p['residualTermM'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
+        increment = np.cumsum(self.one(), axis = 1)-1
+        mask = moisRestant >= increment
+        return mask
+    
+    # Piqué dans les épargnes
+    def mUfii(self):
+        rate = (1+self.rate())**12 - 1
+        rate = np.round(rate, decimals = 6)
+        rate = (1+rate)**(1/12) - 1
+        return rate
+      
+# =============================================================================
+    ### CALCUL DES PRIMES
 # =============================================================================
 
+    # Frais sur durée due la police
+    def fraisGestDureePoliceSA(self):
+        return self.p['fraisGestDureePoliceSA'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
+    
+    # Frais sur durée du paiement des primes
+    def fraisGestDureePrimesSA(self):
+        return self.p['fraisGestDureePrimesSA'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
+      
+    # Primes brutes mensuelles (ne dépend pas de isprempay)  
+    def primeTotaleMensuelle(self):
+        frac = self.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
+        primeTotale = self.p['POLPRTOT'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
+        return primeTotale / frac
+    
+    # !! Retourne les primes totales perçues, fonction modifiée à cause de la complémentaire à déduire, faux
+    # Sérénité:
+        # Au 85ème  anniversaire de l’assuré, lorsque la garantie complémentaire « Accident » cesse, 
+        # la prime total n’est pas réduite. L’assuré continue de régler le même montant de prime.  
+    # Force 3:
+        # Après le 85ème anniversaire de l’assuré, Império ne verse que le capital de base, 
+        # quelque soit la cause de l’accident. La prime reste constante : 
+        # la surprime qui en résulte sert de marge de sécurité pour les âges élevés.
+    def totalPremium(self):
+        agelimite = (self.age()>85) 
+        mask1 = self.p['PMBMOD'].isin([1])
+        prTot = self.p['POLPRTOT'][:,np.newaxis,np.newaxis]
+        prCompl = self.p['POLPRCPL3'][:,np.newaxis,np.newaxis]
+        # !! La prime complémentaire est déduite après 85 ans pour la mod1 mais pas pour la 11; elle ne doit pas être déduite
+        premInc = prTot / self.frac()
+        premInc[mask1] = (prTot[mask1] - (prCompl[mask1] * agelimite[mask1])) / self.frac()[mask1]
+        prem = premInc * self.nbrPolIfSM * self.isPremPay() * self.indexation()
+        return prem * self.payPrimes() 
+    
+    # !! Comportement bizarre en fin de projection répliqué
+    def qxyExpMens(self):
+        maskotte1 = self.durationIf() > 98*12
+        maskotte2 = self.durationIf() <= 99*12
+        mask = maskotte1 & maskotte2
+        mask121 = (self.age() <= 121)
+        qx = self.qxExpMens(ass=1)
+        qy = self.qxExpMens(ass=2)
+        return (qx + qy - qx * qy) * mask121 + mask
+    
     # SUM_ASSD_PP - capital de la police
     def insuredSum(self):
         mask99 = (self.durationIf() <= 99*12)
-        sumAssdPp = self.p['PMBCAPIT'].to_numpy()[:,np.newaxis,np.newaxis]*self.one() * mask99
-        return sumAssdPp
+        sumAssdPp = self.p['PMBCAPIT'].to_numpy()[:,np.newaxis,np.newaxis]*self.one() 
+        return sumAssdPp * mask99
     
-    # VAL_SUM_ASSD
-    def valSumAssd(self):
-        # valSaPP = self.p['PMBCAPIT'].to_numpy()[:,np.newaxis,np.newaxis]*self.one() * self.Ax()
-        valSaPP = self.p['PMBCAPIT'].to_numpy()[:,np.newaxis,np.newaxis]*self.one() * self.Ax
-        return valSaPP
-    
-    # VAL_ACCRB_PP - valeur de la PB acquise en début de projection               
-    def valAccrbPP(self):
-        valAccrbPp = self.p['PMBPBEN'].to_numpy()[:,np.newaxis,np.newaxis]*self.one()
-        return valAccrbPp
+    # VAL_SUM_ASSD - Capital multiplié par les Ax
+    def valSumAssd(self): 
+        valSumAssd = self.p['PMBCAPIT'].to_numpy()[:,np.newaxis,np.newaxis]*self.one() 
+        return valSumAssd * self.Ax
 
-    # PMG_SA_PC - traitement des frais pour provGestPP
-    def pmgSaPc(self):
-        pmgSaPc = self.cgSaPriPc() * self.valNetpFac() + self.cgSaPolPc() * self.valPolFac()
-        return pmgSaPc
-       
-    # PROV_GEST_PP - Provision de gestion par police, quelle logique
-    def provGestPP(self):
-        provGestPp = self.pmgSaPc() * (self.insuredSum() + self.valAccrbPP()) - self.valNetpFac() * (self.prInventPP() - self.purePremium())
-        return provGestPp
-    
-    # VAL_PREC_PP - risque en cours
-    def valPrecPP(self):
-        agelimite=(self.age()<=85)
-        primecompl = (self.p['POLPRCPL3'])[:,np.newaxis,np.newaxis] / self.frac()
-        riderIncPP = self.zero()
-        riderIncPP2 = self.zero()
-        primeTotaleMensuelle = self.primeTotaleMensuelle()
-        isPremPay = self.isPremPay()
-        payPrimes = self.payPrimes()
-        
-        # Calcul du risque en cours
-        riderIncPP = primecompl * self.isPremPay() * agelimite * payPrimes
-        riderIncPP2 = primecompl * agelimite * payPrimes
-        
-        riderIncPP[(self.mask([11]))] = primeTotaleMensuelle[(self.mask([11]))] * isPremPay[(self.mask([11]))] * agelimite[(self.mask([11]))] 
-        riderIncPP2[(self.mask([11]))] = primeTotaleMensuelle[(self.mask([11]))] * agelimite[(self.mask([11]))] 
-
-        precPPbis=self.zero()
-        frek=self.frac()
-        for i in range(1,self.shape[1]):
-            precPPbis[:,i,:] = precPPbis[:,i-1,:] + riderIncPP[:,i,:] - ((frek[:,i,:] / 12) * riderIncPP2[:,i,:])
-        
-        precPP = precPPbis * self.isActive()
-        return precPP      
-        
     # PR_PURE_PP - Prime pure calcul éronné pour la mod11
     def purePremium(self):
         purePremium = self.insuredSum() / self.axInitPrimes * self.policeActive() * self.payPrimes()
@@ -305,250 +292,29 @@ class VE(Portfolio):
         insuredSum = self.insuredSum()
         purePremium[(self.mask([11])) & mask99] = insuredSum[(self.mask([11])) & mask99] / 99
         return purePremium
-   
-    # Primes mensuelles (ne dépend pas de isprempay)
-    def primeTotaleMensuelle(self):
-        frac = self.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
-        primeTotaleMensuelle = self.p['POLPRTOT'].to_numpy()[:,np.newaxis,np.newaxis] * self.one() / frac
-        return primeTotaleMensuelle 
-
-    # VAL_NETP_PP valeur des primes nettes
-    def valNetpPP(self):
-        ValNetpPp = self.purePremium() * self.valNetpFac()
-        return ValNetpPp
     
     # PR_INVENT_PP prime d'inventaire (prime pure + les frais de gestion sur somme assurée)
     def prInventPP(self):
         purePremium = self.purePremium()
-        cgSaPolPc = self.cgSaPolPc()
-        cgSaPriPc = self.cgSaPriPc()
+        cgSaPolPc = self.fraisGestDureePoliceSA()
+        cgSaPriPc = self.fraisGestDureePrimesSA()
         insuredSum = self.insuredSum()
         policeActive = self.policeActive()
         aduePolVal = self.aduePolVal
-        prInventPp = self.zero()
         mask99 = (self.durationIf() <= 99*12)
+        prInventPp = purePremium + (cgSaPolPc * aduePolVal + cgSaPriPc) * insuredSum * policeActive
+        
+        # !! Le calcul pour la 1 devrait être commun à la 11 et la 1
         prInventPp[(self.mask([11]))] = purePremium[(self.mask([11]))] + (cgSaPolPc[(self.mask([11]))] + cgSaPriPc[(self.mask([11]))]) * insuredSum[(self.mask([11]))] * policeActive[(self.mask([11]))] * mask99[(self.mask([11]))]
-        prInventPp[(self.mask([1]))] = purePremium[(self.mask([1]))] + (cgSaPolPc[(self.mask([1]))] * aduePolVal[(self.mask([1]))] + cgSaPriPc[(self.mask([1]))]) * insuredSum[(self.mask([1]))] * policeActive[(self.mask([1]))]
         return prInventPp            
                       
-    # VAL_NETP_FAC - annuité qui dépend de la durée de paiemnet des primes (ax, axp, faux pour sérénité)
-    def valNetpFac(self):
-        dureePayPrimes = self.p['POLDURP'][:,np.newaxis,np.newaxis] * self.one()
-        maskDureeEq99 = dureePayPrimes == 99 
-        masDureeNotEq99 = dureePayPrimes != 99
-        
-        ax = self.ax
-        axp = self.axp
-        policeActive = self.policeActive()
-        
-        valNetpFac = self.zero()
-        # valNetpFac = self.ax() * self.policeActive()
-        valNetpFac[maskDureeEq99] = np.maximum(ax[maskDureeEq99] * policeActive[maskDureeEq99],0)
-        valNetpFac[masDureeNotEq99] = np.maximum(axp[masDureeNotEq99] * policeActive[masDureeNotEq99],0)
-        
-        # !! calcul erronnée pour la modalité 11, à enlever une fois PGG répliquée:
-        mask99 = (self.durationIf() <= 99*12)
-        durationIf = self.durationIf()
-        policeActive = self.policeActive()
-        valNetpFac[(self.mask([11])) & mask99] = (99 - (durationIf[(self.mask([11])) & mask99]/12))*policeActive[(self.mask([11])) & mask99]
-
-        return valNetpFac
-    
-    # VAL_POL_FAC - annuité qui dépend de la durée du contrat (faux pour sérénité)
-    def valPolFac(self):
-        valPolFac = self.ax
-        # !! calcul erronnée pour la modalité 11, à enlever une fois PGG répliquée:
-        durationIf = self.durationIf()
-        valPolFac[(self.mask([11]))] = (99 - (durationIf[(self.mask([11]))]/12))
-        return valPolFac
-    
-    # VAL_ZILL_PP - valeur de zillmérisation    
-    def valZillPP(self):
-        valZillPC = self.p['tauxZill'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
-        ValZillPP = np.minimum(valZillPC * self.prInventPP() * self.valNetpFac(), self.valSumAssd() - self.valNetpPP() + self.provGestPP())
-        ValZillPP[(self.mask([11]))] = np.minimum(valZillPC[(self.mask([11]))] * self.prInventPP()[(self.mask([11]))] * self.valNetpFac()[(self.mask([11]))], self.insuredSum()[(self.mask([11]))] - self.valNetpPP()[(self.mask([11]))] + self.provGestPP()[(self.mask([11]))])
-        return ValZillPP
-    
-    # MATH_RES_BA - provision mathématique 
-    def mathResBa(self):
-        mathResBa = self.zero()
-        mask11 = self.p['PMBMOD'].isin([11])
-        mask01 = self.p['PMBMOD'].isin([1])
-        
-        # pour la 11:
-        mathResBa[mask11] = np.maximum(self.insuredSum()[mask11] + self.valAccrbPP()[mask11] + self.provGestPP()[mask11] + self.valPrecPP()[mask11] - self.valNetpPP()[mask11] - self.valZillPP()[mask11], 0)
-        
-        # pour la 01:
-        mathResBa[mask01] = np.maximum(self.valSumAssd()[mask01] + self.valPrecPP()[mask01] - self.valNetpPP()[mask01] + self.provGestPP()[mask01] - self.valZillPP()[mask01], 0)
-        return mathResBa
-    
-# =============================================================================
-    ### DECLARATION DES FRAIS
-# =============================================================================
-
-    # Frais sur durée due la police
-    def cgSaPolPc(self):
-        cgSaPolPc = self.p['fraisGestDureePoliceSA'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
-        return cgSaPolPc
-    
-    # Frais sur durée du paiement des primes
-    def cgSaPriPc(self):
-        cgSaPriPc = self.p['fraisGestDureePrimesSA'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
-        return cgSaPriPc
-    
-# =============================================================================
-    ### FONCTIONS DOUBLONS
-# =============================================================================
-
-    # # Prime totale, doublon à effecer après avoir corrigé les références
-    # def primeTotale(self):
-    #     frac = self.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
-    #     primeTotale = self.p['POLPRTOT'].to_numpy()[:,np.newaxis,np.newaxis] / frac * self.isPremPay()
-    #     return primeTotale 
-
-# =============================================================================
-# =============================================================================    
-
-
-
-# =============================================================================
-    ### CALCUL DE TOTALEXPENSE
-# =============================================================================
-    # F_MATH_RES_IF - prov math actualisée avec les inforce
-    def fMathResIf(self):
-        fMathResIf = self.mathResBa() * self.nbrPolIf
-        return fMathResIf    
-   
-    def allocMonths(self):
-        calendarMonth=np.arange(start=self.p['DateCalcul'].dt.month.values[0].astype(int),stop=(self.shape[1]+self.p['DateCalcul'].dt.month.values[0].astype(int)))
-        calendarMonth=calendarMonth%12 + 1
-        calendarMonth=calendarMonth[np.newaxis,:,np.newaxis]*self.one()        
-        mask = calendarMonth == 1
-        return mask*1
-    
-    def unitExpense(self):
-        inflation=np.roll(self.inflation(),[1],axis=1)
-        inflation[:,0,:]=0
-        coutParPolice=self.fraisGestion()
-        cost=coutParPolice*inflation*self.nbrPolIfSM
-        return cost
-
-    #  Calcul des réserve mathématiques adjustées
-    def reserveForExp(self):
-        # déclaration des nouvelles variables
-        totExp = self.zero()
-        rfinAnn = self.zero()
-        adjMathRes2 = self.zero()
-        resFinMois = self.zero()
-        provMathAj = self.zero()
-        oExp = self.zero()
-        oTaxblInc = self.zero()
-        totCom = self.totalCommissions()
-        
-        # fonction existantes
-        fMathResIf = self.fMathResIf()
-        riderCoutgo = self.claimCompl()
-        premInc = self.totalPremium()
-        # mathResPP = self.mathResBa()
-        # pupMathRes = self.pupMathRes()
-        provMathIf = self.mathResBa() * self.nbrPolIf
-        mUfii = self.mUfii()
-        # durationIf = self.durationIf()
-        monthPb = self.one() - self.allocMonths()
-        # isActive = self.isActive()
-        totIntCred = self.totalIntCred() 
-        
-        # PPURE_ENC
-        premInvest = self.purePremium() * self.nbrPolIfSM / self.frac() * self.isPremPay() * self.policeActive()
-        
-        unitExp = self.unitExpense()
-        # provTechAj = self.provTechAj()   
-        txReserve = self.fraisGestionPlacement()
-        
-        # calcul des exceptions
-        provMathAj[:,0,:] = premInc[:,0,:] - totExp[:,0,:] - riderCoutgo[:,0,:]
-        
-        for i in range(1,self.shape[1]):
-            adjMathRes2[:,i,:] = np.maximum(0, fMathResIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInvest[:,i,:] - riderCoutgo[:,i,:])
-            totExp[:,i,:] = unitExp[:,i,:] + adjMathRes2[:,i,:] * txReserve[:,i,:] 
-            oExp[:,i,:] = totExp[:,i,:] + totCom[:,i,:]
-            provMathAj[:,i,:] = provMathIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInc[:,i,:] - riderCoutgo[:,i,:] - oExp[:,i,:]
-            oTaxblInc[:,i,:] = provMathAj[:,i,:] * mUfii[:,i,:]
-            resFinMois[:,i,:] = oTaxblInc[:,i,:] - totIntCred[:,i,:]
-            rfinAnn[:,i,:] = (rfinAnn[:,i-1,:] + resFinMois[:,i,:]) * monthPb[:,i,:] 
-
-   #Définition des variables récursives
-        # Résultat financier en fin de mois non constaté
-        self.resFinMois = resFinMois
-        # Résultat de l'année en cours non constaté
-        self.rfinAnn = rfinAnn
-        # Reserves mathématiques ajustées pour calculer les expenses
-        self.adjMathRes2 = adjMathRes2
-        # Provisions mathématiques ajustées
-        self.provMathAj = provMathAj
-        # Total des expenses
-        self.totExp = totExp
-        self.provMathIf = provMathIf
-
-    def reserveExpense(self):
-        reserveExpense = self.adjMathRes2 * self.fraisGestionPlacement()
-        return reserveExpense
-    
-    # PPURE_ENC
-    def ppureEnc(self):
-        ppureEnc = self.nbrPolIfSM * self.purePremium() / self.frac() * self.isPremPay()
-        return ppureEnc
-        
-    def mUfii(self):
-        rate = (1+self.rate())**12 - 1
-        rate = np.round(rate, decimals = 6)
-        rate = (1+rate)**(1/12) - 1
-        return rate
-   
-    # Total des intérêts crédités
-    def totalIntCred(self):
-        totalIntCred = self.intCredT() + self.intCredZill() + self.intCredPgm()
-        totalIntCred[(self.mask([11]))] = self.zero()[(self.mask([11]))]
-        return totalIntCred
-    
-    # Intérêts crédités sur PMG
-    def intCredPgm(self):
-        provGestIf = self.provGestPP() * self.nbrPolIf
-        intCredPgm = (self.txInt()-1) * np.roll(provGestIf, 1, axis = 1)
-        return intCredPgm
-   
-    # Intérêts crédités sur zillmérisation
-    def intCredZill(self):
-        valZillIf = self.valZillPP() * self.nbrPolIf
-        intCredZill = (self.txInt()-1) * -1 * np.roll(valZillIf, 1, axis = 1)
-        return intCredZill
-        
-    # Intérêts techniques crédités
-    def intCredT(self):
-        return (self.txInt()-1) * self.provTechAj()
-    
-    # Provision technique ajustée
-    def provTechAj(self):
-        provTechIf = np.roll(self.provTechIf(), 1, axis = 1)
-        provTechIf[:,0,:] = 0
-        provTechAj = provTechIf + self.ppureEnc() - self.claimCompl()
-        return provTechAj
-    
-    # calcul des provisions techniques en cours, inforce
-    def provTechIf(self):
-        provTechPP = self.provTechPP()
-        provTechIf = provTechPP * self.nbrPolIf 
-        return provTechIf
-    
-    # Provision technique par polices
-    def provTechPP(self):
-        prov = self.mathResBa() - self.provGestPP() - self.valPrecPP() + self.valZillPP()
-        return prov
 # =============================================================================
     ### CALCUL DES CLAIMS   
 # =============================================================================
+
     # DEATH_BEN_PP - calcul du death benefit
     def deathBenefit(self):
+        
         capital = self.p['PMBCAPIT'].to_numpy()[:,np.newaxis,np.newaxis]    
         frac = 12 / self.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
         frac = 12 / self.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
@@ -575,8 +341,8 @@ class VE(Portfolio):
         durationif12plus = np.select(conditions,result,sinon)
         
         deathBenPP2 = (capital + pbAcq) * durationif12plus  
-        deathBenPP = deathBenPP1 + deathBenPP2
-        return deathBenPP
+        
+        return deathBenPP1 + deathBenPP2
     
     # SURRENDER_OUTGO - Claims réductions
     def surrender(self):
@@ -588,8 +354,7 @@ class VE(Portfolio):
     
     # DEATH_OUTGO - Claims garantie principale
     def claimPrincipal(self):
-        deathOutgo = self.deathBenefit() * self.nbrDeath
-        return deathOutgo
+        return self.deathBenefit() * self.nbrDeath
     
     # RIDERC_OUTGO - Claims complémentaires
     def claimCompl(self):
@@ -606,15 +371,214 @@ class VE(Portfolio):
         mask_infeqf85 = (self.age() <= 85) & (situation != 4) & (situation != 8) & (situation != 9)
         mask_sup85 = (self.age() > 85) & (situation != 4) & (situation != 8) & (situation != 9)  
         
+        ridercOutgo[mask_infeqf85] = cpl3[mask_infeqf85] * dcAccident[mask_infeqf85] * isPremPay[mask_infeqf85] * nbrPolIfSM[mask_infeqf85]
+        ridercOutgo[mask_sup85] = zero[mask_sup85] 
+        
+        # !! Faux, à enlever, il ne faut pas prendre le totalPremium mais la cpl3
         ridercOutgo[(self.mask([11])) & mask_infeqf85] = totalPremium[(self.mask([11])) & mask_infeqf85] * dcAccident[(self.mask([11])) & mask_infeqf85]
         ridercOutgo[(self.mask([11])) & mask_sup85] = zero[(self.mask([11])) & mask_sup85] 
-        
-        ridercOutgo[(self.mask([1])) & mask_infeqf85] = cpl3[(self.mask([1])) & mask_infeqf85] * dcAccident[(self.mask([1])) & mask_infeqf85] * isPremPay[(self.mask([1])) & mask_infeqf85] * nbrPolIfSM[(self.mask([1])) & mask_infeqf85]
-        ridercOutgo[(self.mask([1])) & mask_sup85] = zero[(self.mask([1])) & mask_sup85] 
-    
+
         return ridercOutgo * self.payPrimes()
 
+    # MATH_RES_BA - provision mathématique 
+    def mathResBa(self):
+        mathResBa = self.zero()
+        mask11 = self.p['PMBMOD'].isin([11])
+        mask01 = self.p['PMBMOD'].isin([1])
+        
+        # pour la 11:
+        mathResBa[mask11] = np.maximum(self.insuredSum()[mask11] + self.valPrecPP()[mask11] - self.valNetpPP()[mask11]  + self.provGestPP()[mask11]   - self.valZillPP()[mask11] + self.valAccrbPP()[mask11], 0)
+        
+        # pour la 01:
+        mathResBa[mask01] = np.maximum(self.valSumAssd()[mask01] + self.valPrecPP()[mask01] - self.valNetpPP()[mask01] + self.provGestPP()[mask01] - self.valZillPP()[mask01], 0)
+        return mathResBa
+    
+    # VAL_ZILL_PP - valeur de zillmérisation    
+    def valZillPP(self):
+        valZillPC = self.p['tauxZill'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
+        ValZillPP = np.minimum(valZillPC * self.prInventPP() * self.valNetpFac(), self.valSumAssd() - self.valNetpPP() + self.provGestPP())
+        ValZillPP[(self.mask([11]))] = np.minimum(valZillPC[(self.mask([11]))] * self.prInventPP()[(self.mask([11]))] * self.valNetpFac()[(self.mask([11]))], self.insuredSum()[(self.mask([11]))] - self.valNetpPP()[(self.mask([11]))] + self.provGestPP()[(self.mask([11]))])
+        return ValZillPP
+    
+    # PROV_GEST_PP - Provision de gestion par police, quelle logique
+    def provGestPP(self):
+        return self.pmgSaPc() * (self.insuredSum() + self.valAccrbPP()) - self.valNetpFac() * (self.prInventPP() - self.purePremium())
+    
+    # PMG_SA_PC - traitement des frais pour provGestPP
+    def pmgSaPc(self):
+        return self.fraisGestDureePrimesSA() * self.valNetpFac() + self.fraisGestDureePoliceSA() * self.valPolFac()
+    
+    # VAL_PREC_PP - risque en cours
+    def valPrecPP(self):
+        agelimite=(self.age()<=85)
+        primecompl = (self.p['POLPRCPL3'])[:,np.newaxis,np.newaxis] / self.frac()
+        riderIncPP = self.zero()
+        riderIncPP2 = self.zero()
+        primeTotaleMensuelle = self.primeTotaleMensuelle()
+        isPremPay = self.isPremPay()
+        payPrimes = self.payPrimes()
+        
+        # Calcul du risque en cours
+        riderIncPP = primecompl * self.isPremPay() * agelimite * payPrimes
+        riderIncPP2 = primecompl * agelimite * payPrimes
+        
+        # !! Faux, à enlever, il ne faut pas prendre le totalPremium mais la cpl3
+        riderIncPP[(self.mask([11]))] = primeTotaleMensuelle[(self.mask([11]))] * isPremPay[(self.mask([11]))] * agelimite[(self.mask([11]))] 
+        riderIncPP2[(self.mask([11]))] = primeTotaleMensuelle[(self.mask([11]))] * agelimite[(self.mask([11]))] 
 
+        precPPbis=self.zero()
+        frek=self.frac()
+        
+        for i in range(1,self.shape[1]):
+            precPPbis[:,i,:] = precPPbis[:,i-1,:] + riderIncPP[:,i,:] - ((frek[:,i,:] / 12) * riderIncPP2[:,i,:])
+        
+        return precPPbis * self.isActive() 
+    
+    # VAL_POL_FAC - annuité qui dépend de la durée du contrat (faux pour sérénité)
+    def valPolFac(self):
+        valPolFac = self.ax
+        # !! calcul erronné pour la modalité 11, à enlever une fois PGG répliquée:
+        durationIf = self.durationIf()
+        valPolFac[(self.mask([11]))] = (99 - (durationIf[(self.mask([11]))]/12))
+        return valPolFac
+    
+    # VAL_NETP_PP valeur des primes nettes
+    def valNetpPP(self):
+        return self.purePremium() * self.valNetpFac()
+    
+    # VAL_NETP_FAC - annuité qui dépend de la durée de paiemnet des primes (ax, axp, faux pour sérénité)
+    def valNetpFac(self):
+        dureePayPrimes = self.p['POLDURP'][:,np.newaxis,np.newaxis] * self.one()
+        maskDureeEq99 = dureePayPrimes == 99 
+        masDureeNotEq99 = dureePayPrimes != 99
+        
+        ax = self.ax
+        axp = self.axp
+        policeActive = self.policeActive()
+        
+        valNetpFac = self.zero()
+        valNetpFac[maskDureeEq99] = np.maximum(ax[maskDureeEq99] * policeActive[maskDureeEq99],0)
+        valNetpFac[masDureeNotEq99] = np.maximum(axp[masDureeNotEq99] * policeActive[masDureeNotEq99],0)
+        
+        # !! calcul erronnée pour la modalité 11, à enlever une fois PGG répliquée:
+        mask99 = (self.durationIf() <= 99*12)
+        durationIf = self.durationIf()
+        policeActive = self.policeActive()
+        valNetpFac[(self.mask([11])) & mask99] = (99 - (durationIf[(self.mask([11])) & mask99]/12))*policeActive[(self.mask([11])) & mask99]
+
+        return valNetpFac
+    
+    # VAL_ACCRB_PP - valeur de la PB acquise en début de projection               
+    def valAccrbPP(self):
+        valAccrbPp = self.p['PMBPBEN'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
+        return valAccrbPp
+    
+# =============================================================================
+    ### CALCUL DES EXPENSES
+# =============================================================================
+
+    # F_MATH_RES_IF - prov math actualisée avec les inforce
+    def fMathResIf(self):
+        fMathResIf = self.mathResBa() * self.nbrPolIf
+        return fMathResIf    
+   
+    def unitExpense(self):
+        inflation=np.roll(self.inflation(),[1],axis=1)
+        inflation[:,0,:] = 0
+        coutParPolice=self.fraisGestion()
+        cost=coutParPolice*inflation*self.nbrPolIfSM
+        return cost
+
+    #  Calcul des réserve mathématiques adjustées
+    def reserveForExp(self):
+        
+        # déclaration des variables utilisées
+        totExp = self.zero()
+        rfinAnn = self.zero()
+        adjMathRes2 = self.zero()
+        resFinMois = self.zero()
+        provMathAj = self.zero()
+        oExp = self.zero()
+        oTaxblInc = self.zero()
+        totCom = self.totalCommissions()
+        fMathResIf = self.fMathResIf()
+        riderCoutgo = self.claimCompl()
+        premInc = self.totalPremium()
+        provMathIf = self.mathResBa() * self.nbrPolIf
+        mUfii = self.mUfii()
+        monthPb = self.one() - self.allocMonths()
+        totIntCred = self.totalIntCred() 
+        premInvest = self.purePremium() * self.nbrPolIfSM / self.frac() * self.isPremPay() * self.policeActive()
+        unitExp = self.unitExpense() 
+        txReserve = self.fraisGestionPlacement()
+        
+        # calcul des exceptions
+        provMathAj[:,0,:] = premInc[:,0,:] - totExp[:,0,:] - riderCoutgo[:,0,:]
+        
+        # Loop des expense
+        for i in range(1,self.shape[1]):
+            adjMathRes2[:,i,:] = np.maximum(0, fMathResIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInvest[:,i,:] - riderCoutgo[:,i,:])
+            totExp[:,i,:] = unitExp[:,i,:] + adjMathRes2[:,i,:] * txReserve[:,i,:] 
+            oExp[:,i,:] = totExp[:,i,:] + totCom[:,i,:]
+            provMathAj[:,i,:] = provMathIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInc[:,i,:] - riderCoutgo[:,i,:] - oExp[:,i,:]
+            oTaxblInc[:,i,:] = provMathAj[:,i,:] * mUfii[:,i,:]
+            resFinMois[:,i,:] = oTaxblInc[:,i,:] - totIntCred[:,i,:]
+            rfinAnn[:,i,:] = (rfinAnn[:,i-1,:] + resFinMois[:,i,:]) * monthPb[:,i,:] 
+
+   #Définition des variables récursives (celles inutiles pour runner le code sont commentées)
+        # Résultat financier en fin de mois non constaté
+        # self.resFinMois = resFinMois
+        # Résultat de l'année en cours non constaté
+        # self.rfinAnn = rfinAnn
+        # Reserves mathématiques ajustées pour calculer les expenses
+        self.adjMathRes2 = adjMathRes2
+        # Provisions mathématiques ajustées
+        # self.provMathAj = provMathAj
+        # Total des expenses
+        # self.totExp = totExp
+
+    def reserveExpense(self):
+        reserveExpense = self.adjMathRes2 * self.fraisGestionPlacement()
+        return reserveExpense
+    
+    # PPURE_ENC
+    def ppureEnc(self):
+        ppureEnc = self.nbrPolIfSM * self.purePremium() / self.frac() * self.isPremPay()
+        return ppureEnc
+        
+    # Total des intérêts crédités
+    def totalIntCred(self):
+        
+        # Intérêts crédités sur zillmérisation
+        valZillIf = self.valZillPP() * self.nbrPolIf
+        intCredZill = (self.txInt()-1) * -1 * np.roll(valZillIf, 1, axis=1)
+        
+        # Intérêts techniques crédités
+        intCredT = (self.txInt()-1) * self.provTechAj()
+        
+        # Intérêts crédités sur PMG
+        provGestIf = self.provGestPP() * self.nbrPolIf
+        intCredPgm = (self.txInt()-1) * np.roll(provGestIf, 1, axis=1)
+        
+        # totalIntCred = self.intCredT() + self.intCredZill() + self.intCredPgm()
+        totalIntCred = intCredT + intCredZill + intCredPgm
+        # ? Doivent-ils être à zéro pour la 11? Positifs pour la 1?
+        totalIntCred[(self.mask([11]))] = self.zero()[(self.mask([11]))]
+        return totalIntCred
+      
+    # Provision technique ajustée
+    def provTechAj(self):
+        
+        # Provision technique par polices
+        provTechPP = self.mathResBa() - self.provGestPP() - self.valPrecPP() + self.valZillPP()
+        
+        # calcul des provisions techniques en cours
+        provTechIf = provTechPP * self.nbrPolIf 
+        provTechIf = np.roll(provTechIf, 1, axis = 1)
+        provTechIf[:,0,:] = 0
+        provTechAj = provTechIf + self.ppureEnc() - self.claimCompl()
+        return provTechAj
+   
 # Retourne les primes totales perçues
     # def totalPremium(self):
         
@@ -658,7 +622,7 @@ print("Class VE--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 x = pol.p
 x.to_excel(path+'/zFT/ptf.xlsx')
-monCas = pol.provTechAj()
+monCas = pol.totalPremium()
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])

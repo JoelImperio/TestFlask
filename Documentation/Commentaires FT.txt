@@ -4,15 +4,14 @@ passent subitement à zéro alors qu'en tout logique elles devraient continuer �
 - Le vecteur des ax (a tester avec les autres valeurs) fini avec la valeur de 1, alors que tous les autres mois après la fin de projection sont à zéro.
 Du coup pour les 12 derniers mois les valeurs ne sont pas à zéero à cause de l'interpolation mensuelle.
 Ca a pour effet d'afficher des valeurs erronnées qui apparaissent très loin dans les projections pour les claims.
-
-
+- Les polices lapsent mensuellement quel que soit le fractionnement
 
 Modalité 11:
-- La prime pure c'est le capital divisé par 99. Ca devrait être le capital * Mx/Nx
-- Les polices lapsent mensuellement quelque soit le fractionnement
-- L'annual riderpp est faux, car il prendre la prime totale et non juste la complémentaire
-- valNetpFac (ax, axp si durée paiement des primes != durée contrat) et valPolFac (ax) sont complètement faux (99 - durationif/12)
-- mathResBa prend la somme assurée au lieu de prendre la somme assurée * Ax 
-
+- La prime pure est le capital divisé par 99. Ca devrait être le capital * Mx/Nx
+- valPrecPP / ClaimCompl sont faux, car il prend la prime totale et non juste la complémentaire cpl3
+- valNetpFac (ax, axp si durée paiement des primes != durée contrat) et valPolFac (ax) sont faux (99 - durationif / 12)
+- mathResBa prend la somme assurée au lieu de prendre la somme assurée * Ax (faux? juste?) 
+- Pas de PB, à importer des épargnes/mixtes
 
 Modalité 01:
+- totalPremium déduit la garantie secondaire à partir de 85 ans, c'est faux
