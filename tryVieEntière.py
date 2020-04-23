@@ -491,7 +491,7 @@ class VE(Portfolio):
         totIntCred = self.totalIntCred() 
         
         # PPURE_ENC
-        premInvest = self.purePremium() * self.nbrPolIfSM / self.frac() * self.isPremPay()
+        premInvest = self.purePremium() * self.nbrPolIfSM / self.frac() * self.isPremPay() * self.policeActive()
         
         unitExp = self.unitExpense()
         # provTechAj = self.provTechAj()   
@@ -659,7 +659,7 @@ pol = VE()
 
 
 # police unique
-# pol.ids([2168202])
+# pol.ids([2314102])
 
 # valZillPC = pol.p['tauxZill'].to_numpy()[:,np.newaxis,np.newaxis] * pol.one()
 
@@ -676,12 +676,51 @@ pol = VE()
 # pol.ids([572405, 572503, 731902, 732001, 818202, 889603, 1132602, 1132701, 2211301])
 
 # selection de la modalité
-pol.mod([11])
+# pol.mod([11])
 
 
 
         
-        
+# totExp = pol.zero()
+# rfinAnn = pol.zero()
+# adjMathRes2 = pol.zero()
+# resFinMois = pol.zero()
+# provMathAj = pol.zero()
+# oExp = pol.zero()
+# oTaxblInc = pol.zero()
+# totCom = pol.totalCommissions()
+
+# # fonction existantes
+# fMathResIf = pol.fMathResIf()
+# riderCoutgo = pol.claimCompl()
+# premInc = pol.totalPremium()
+# # mathResPP = pol.mathResBa()
+# # pupMathRes = pol.pupMathRes()
+# provMathIf = pol.mathResBa() * pol.nbrPolIf
+# mUfii = pol.mUfii()
+# # durationIf = pol.durationIf()
+# monthPb = pol.one() - pol.allocMonths()
+# # isActive = pol.isActive()
+# totIntCred = pol.totalIntCred() 
+
+# # PPURE_ENC
+# premInvest = pol.purePremium() * pol.nbrPolIfSM / pol.frac() * pol.isPremPay() * pol.policeActive()
+
+# unitExp = pol.unitExpense()
+# # provTechAj = pol.provTechAj()   
+# txReserve = pol.fraisGestionPlacement()
+
+# # calcul des exceptions
+# provMathAj[:,0,:] = premInc[:,0,:] - totExp[:,0,:] - riderCoutgo[:,0,:]
+
+# for i in range(1,pol.shape[1]):
+#     adjMathRes2[:,i,:] = np.maximum(0, fMathResIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInvest[:,i,:] - riderCoutgo[:,i,:])
+#     totExp[:,i,:] = unitExp[:,i,:] + adjMathRes2[:,i,:] * txReserve[:,i,:] 
+#     oExp[:,i,:] = totExp[:,i,:] + totCom[:,i,:]
+#     provMathAj[:,i,:] = provMathIf[:,i-1,:] + rfinAnn[:,i-1,:] + premInc[:,i,:] - riderCoutgo[:,i,:] - oExp[:,i,:]
+#     oTaxblInc[:,i,:] = provMathAj[:,i,:] * mUfii[:,i,:]
+#     resFinMois[:,i,:] = oTaxblInc[:,i,:] - totIntCred[:,i,:]
+#     rfinAnn[:,i,:] = (rfinAnn[:,i-1,:] + resFinMois[:,i,:]) * monthPb[:,i,:]        
         
         
 
