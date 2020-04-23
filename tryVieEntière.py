@@ -28,9 +28,8 @@ class VE(Portfolio):
         super().update(subPortfolio)
         self.loopVE()
         self.commutations()
-        self.reserveForExp()
     
-    # Fonction modifiée des lapse car VE lapsent mensuellement
+    # !! Fonction modifiée des lapse car VE lapsent mensuellement, a effacer pour corriger 
     def isLapse(self):
         lapse = self.zero()
         check1 = (self.frac() * (self.durationIf()+12)/12)
@@ -83,6 +82,8 @@ class VE(Portfolio):
         
         # Fractionnement à 0 sont remplacer par 1
         frac[frac==0]=12
+        
+        # Modfication, forçage du fractionnement à 12
         # mylapse=1-(1-mylapse)**(1/frac)
         mylapse=1-(1-mylapse)**(1/12)
         
@@ -229,28 +230,7 @@ class VE(Portfolio):
     ### CALCUL DES PRIMES
 # =============================================================================
 
-    # Frais sur durée due la police
-    def fraisGestDureePoliceSA(self):
-        return self.p['fraisGestDureePoliceSA'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
-    
-    # Frais sur durée du paiement des primes
-    def fraisGestDureePrimesSA(self):
-        return self.p['fraisGestDureePrimesSA'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
-      
-    # Primes brutes mensuelles (ne dépend pas de isprempay)  
-    def primeTotaleMensuelle(self):
-        frac = self.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
-        primeTotale = self.p['POLPRTOT'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
-        return primeTotale / frac
-    
     # !! Retourne les primes totales perçues, fonction modifiée à cause de la complémentaire à déduire, faux
-    # Sérénité:
-        # Au 85ème  anniversaire de l’assuré, lorsque la garantie complémentaire « Accident » cesse, 
-        # la prime total n’est pas réduite. L’assuré continue de régler le même montant de prime.  
-    # Force 3:
-        # Après le 85ème anniversaire de l’assuré, Império ne verse que le capital de base, 
-        # quelque soit la cause de l’accident. La prime reste constante : 
-        # la surprime qui en résulte sert de marge de sécurité pour les âges élevés.
     def totalPremium(self):
         agelimite = (self.age()>85) 
         mask1 = self.p['PMBMOD'].isin([1])
@@ -272,6 +252,20 @@ class VE(Portfolio):
         qy = self.qxExpMens(ass=2)
         return (qx + qy - qx * qy) * mask121 + mask
     
+    # Frais sur durée due la police
+    def fraisGestDureePoliceSA(self):
+        return self.p['fraisGestDureePoliceSA'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
+    
+    # Frais sur durée du paiement des primes
+    def fraisGestDureePrimesSA(self):
+        return self.p['fraisGestDureePrimesSA'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
+      
+    # Primes brutes mensuelles (ne dépend pas de isprempay)  
+    def primeTotaleMensuelle(self):
+        frac = self.p['PMBFRACT'].to_numpy()[:,np.newaxis,np.newaxis]
+        primeTotale = self.p['POLPRTOT'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
+        return primeTotale / frac
+
     # SUM_ASSD_PP - capital de la police
     def insuredSum(self):
         mask99 = (self.durationIf() <= 99*12)
@@ -382,15 +376,14 @@ class VE(Portfolio):
 
     # MATH_RES_BA - provision mathématique 
     def mathResBa(self):
-        mathResBa = self.zero()
         mask11 = self.p['PMBMOD'].isin([11])
-        mask01 = self.p['PMBMOD'].isin([1])
+        
+        # pour la 01 (cas général?):
+        mathResBa = np.maximum(self.valSumAssd() + self.valPrecPP() - self.valNetpPP() + self.provGestPP() - self.valZillPP() + self.valAccrbPP(), 0)
         
         # pour la 11:
         mathResBa[mask11] = np.maximum(self.insuredSum()[mask11] + self.valPrecPP()[mask11] - self.valNetpPP()[mask11]  + self.provGestPP()[mask11]   - self.valZillPP()[mask11] + self.valAccrbPP()[mask11], 0)
         
-        # pour la 01:
-        mathResBa[mask01] = np.maximum(self.valSumAssd()[mask01] + self.valPrecPP()[mask01] - self.valNetpPP()[mask01] + self.provGestPP()[mask01] - self.valZillPP()[mask01], 0)
         return mathResBa
     
     # VAL_ZILL_PP - valeur de zillmérisation    
@@ -402,11 +395,11 @@ class VE(Portfolio):
     
     # PROV_GEST_PP - Provision de gestion par police, quelle logique
     def provGestPP(self):
-        return self.pmgSaPc() * (self.insuredSum() + self.valAccrbPP()) - self.valNetpFac() * (self.prInventPP() - self.purePremium())
-    
-    # PMG_SA_PC - traitement des frais pour provGestPP
-    def pmgSaPc(self):
-        return self.fraisGestDureePrimesSA() * self.valNetpFac() + self.fraisGestDureePoliceSA() * self.valPolFac()
+        
+        # PMG_SA_PC - traitement des frais pour provGestPP
+        pmgSaPc = self.fraisGestDureePrimesSA() * self.valNetpFac() + self.fraisGestDureePoliceSA() * self.valPolFac()
+        
+        return pmgSaPc * (self.insuredSum() + self.valAccrbPP()) - self.valNetpFac() * (self.prInventPP() - self.purePremium())
     
     # VAL_PREC_PP - risque en cours
     def valPrecPP(self):
@@ -470,8 +463,7 @@ class VE(Portfolio):
     
     # VAL_ACCRB_PP - valeur de la PB acquise en début de projection               
     def valAccrbPP(self):
-        valAccrbPp = self.p['PMBPBEN'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
-        return valAccrbPp
+        return self.p['PMBPBEN'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()
     
 # =============================================================================
     ### CALCUL DES EXPENSES
@@ -531,21 +523,18 @@ class VE(Portfolio):
         # Résultat de l'année en cours non constaté
         # self.rfinAnn = rfinAnn
         # Reserves mathématiques ajustées pour calculer les expenses
-        self.adjMathRes2 = adjMathRes2
+        # self.adjMathRes2 = adjMathRes2
         # Provisions mathématiques ajustées
         # self.provMathAj = provMathAj
         # Total des expenses
         # self.totExp = totExp
+        return adjMathRes2
 
     def reserveExpense(self):
-        reserveExpense = self.adjMathRes2 * self.fraisGestionPlacement()
-        return reserveExpense
-    
-    # PPURE_ENC
-    def ppureEnc(self):
-        ppureEnc = self.nbrPolIfSM * self.purePremium() / self.frac() * self.isPremPay()
-        return ppureEnc
-        
+        # reserveExpense = self.adjMathRes2 * self.fraisGestionPlacement()
+        # reserveExpense = self.reserveForExp() * self.fraisGestionPlacement()
+        return self.reserveForExp() * self.fraisGestionPlacement()
+          
     # Total des intérêts crédités
     def totalIntCred(self):
         
@@ -569,6 +558,9 @@ class VE(Portfolio):
     # Provision technique ajustée
     def provTechAj(self):
         
+        # Prime pure encourue
+        ppureEnc = self.nbrPolIfSM * self.purePremium() / self.frac() * self.isPremPay()
+        
         # Provision technique par polices
         provTechPP = self.mathResBa() - self.provGestPP() - self.valPrecPP() + self.valZillPP()
         
@@ -576,8 +568,7 @@ class VE(Portfolio):
         provTechIf = provTechPP * self.nbrPolIf 
         provTechIf = np.roll(provTechIf, 1, axis = 1)
         provTechIf[:,0,:] = 0
-        provTechAj = provTechIf + self.ppureEnc() - self.claimCompl()
-        return provTechAj
+        return provTechIf + ppureEnc - self.claimCompl()
    
 # Retourne les primes totales perçues
     # def totalPremium(self):
@@ -622,7 +613,7 @@ print("Class VE--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 x = pol.p
 x.to_excel(path+'/zFT/ptf.xlsx')
-monCas = pol.totalPremium()
+monCas = pol.valAccrbPP()
 zz=np.sum(monCas, axis=0)
 zzz=np.sum(zz[:,0])
 z=pd.DataFrame(monCas[:,:,0])

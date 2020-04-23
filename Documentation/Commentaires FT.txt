@@ -1,10 +1,10 @@
 VE:
 - La durée limite des projections ne dépend pas de 99 ans, mais de la longueur de la table de mortalité d'expérience (121), qui fait que les valeurs calculées dans loopVE 
-passent subitement à zéro alors qu'en tout logique elles devraient continuer à être calculées
+  passent subitement à zéro alors qu'en tout logique elles devraient continuer à être calculées
 - Le vecteur des ax (a tester avec les autres valeurs) fini avec la valeur de 1, alors que tous les autres mois après la fin de projection sont à zéro.
-Du coup pour les 12 derniers mois les valeurs ne sont pas à zéero à cause de l'interpolation mensuelle.
-Ca a pour effet d'afficher des valeurs erronnées qui apparaissent très loin dans les projections pour les claims.
-- Les polices lapsent mensuellement quel que soit le fractionnement
+  Du coup pour les 12 derniers mois les valeurs ne sont pas à zéero à cause de l'interpolation mensuelle.
+  Ca a pour effet d'afficher des valeurs erronnées qui apparaissent très loin dans les projections pour les claims.
+- Les polices lapsent mensuellement quel que soit le fractionnement (fonctions isLapse, lapse)
 
 Modalité 11:
 - La prime pure est le capital divisé par 99. Ca devrait être le capital * Mx/Nx
@@ -12,6 +12,14 @@ Modalité 11:
 - valNetpFac (ax, axp si durée paiement des primes != durée contrat) et valPolFac (ax) sont faux (99 - durationif / 12)
 - mathResBa prend la somme assurée au lieu de prendre la somme assurée * Ax (faux? juste?) 
 - Pas de PB, à importer des épargnes/mixtes
+- totalIntCred (Total des intérêts crédités) est à zéro, normal?
 
 Modalité 01:
-- totalPremium déduit la garantie secondaire à partir de 85 ans, c'est faux
+- totalPremium déduit la garantie secondaire à partir de 85 ans, c'est faux:
+    # Sérénité:
+        # Au 85ème  anniversaire de l’assuré, lorsque la garantie complémentaire « Accident » cesse, 
+        # la prime total n’est pas réduite. L’assuré continue de régler le même montant de prime.  
+    # Force 3:
+        # Après le 85ème anniversaire de l’assuré, Império ne verse que le capital de base, 
+        # quelque soit la cause de l’accident. La prime reste constante : 
+        # la surprime qui en résulte sert de marge de sécurité pour les âges élevés.
