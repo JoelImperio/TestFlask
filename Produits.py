@@ -2741,6 +2741,7 @@ print("Class MI--- %s sec" %'%.2f'%  (time.time() - start_time))
 # pol=PR()
 # pol = EP()
 # pol=VE()
+# pol=MI()
 
 # o=pol.totalPremium()
 # q=pol.totalClaim()
