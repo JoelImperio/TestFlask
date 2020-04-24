@@ -670,11 +670,11 @@ def portfolioPreProcessing(p):
     #Création des collones pour l'agragation de la PGG
     allocationDesClassPGG(p)
     
-    # Traitement des classes PGG (celles-ci étaient fausses en 2018, on reproduit l'erreur mais ceci est à supprimer pour corriger !!) (A REVOIR) 
-    p.loc[(p['POLTARIF'] == 'B') & (p['PMBMOD'] == 2), 'ClassPGG'] = 'MI3.5'
-    p.loc[(p['POLTARIF'] == 'M1') & (p['PMBMOD'] == 6), 'ClassPGG'] = 'MI0.25'
-    p.loc[(p['POLTARIF'] == 'A') & (p['PMBMOD'] == 6), 'ClassPGG'] = 'MI2.5'
-    p.loc[(p['POLTARIF'] == 'J3') & (p['PMBMOD'] == 6), 'ClassPGG'] = 'MI2.5'
+    # # Traitement des classes PGG (celles-ci étaient fausses en 2018, on reproduit l'erreur mais ceci est à supprimer pour corriger !!) (A REVOIR) 
+    # p.loc[(p['POLTARIF'] == 'B') & (p['PMBMOD'] == 2), 'ClassPGG'] = 'MI3.5'
+    # p.loc[(p['POLTARIF'] == 'M1') & (p['PMBMOD'] == 6), 'ClassPGG'] = 'MI0.25'
+    # p.loc[(p['POLTARIF'] == 'A') & (p['PMBMOD'] == 6), 'ClassPGG'] = 'MI2.5'
+    # p.loc[(p['POLTARIF'] == 'J3') & (p['PMBMOD'] == 6), 'ClassPGG'] = 'MI2.5'
     
     
     

@@ -6,8 +6,8 @@ import numpy as np
 import pandas as pd
 import time
 import os, os.path
-from MyPyliferisk import Actuarial
-from MyPyliferisk.mortalitytables import *
+# from MyPyliferisk import Actuarial
+# from MyPyliferisk.mortalitytables import *
 path = os.path.dirname(os.path.abspath(__file__))
 start_time = time.time()
 
@@ -17,8 +17,8 @@ start_time = time.time()
 # =============================================================================
 
 class MI(Portfolio):
-    # mods=[2,10,6,7]
-    # mods=[10]
+    mods=[2,10,6,7]
+
 
 #Products: F1XT_1,F2XT_1,F1XT14,F1XT11
     
@@ -30,7 +30,7 @@ class MI(Portfolio):
                  PortfolioNew=True, SinistralityNew=True,LapseNew=True,CostNew=True,RateNew=True ):
         super().__init__(runs=run,\
              myPortfolioNew=PortfolioNew, mySinistralityNew=SinistralityNew,myLapseNew=LapseNew,myCostNew=CostNew,myRateNew=RateNew)
-        # self.p=self.mod(self.mods)
+        self.p=self.mod(self.mods)
         
 
 #Permet de relancer l'update() en intégrant des methodes de la sous-classe
@@ -984,8 +984,8 @@ pol = MI()
 
 # age = pol.age()
 
-pol.mod([6,7,2,10])
-check = pol.PGG() 
+# pol.mod([6,7,2,10])
+# check = pol.PGG() 
 # pureprem = pol.purePremium()
 
 # a = pol.p
@@ -1004,7 +1004,7 @@ check = pol.PGG()
 # m=pol.adjustedReserve()
 #n=pol.reserveExpense()
 #o=pol.unitExpense()
-p=pol.totalPremium()
+# p=pol.totalPremium()
 # q=pol.totalClaim()
 # r=pol.totalCommissions()
 # s=pol.totalExpense()
@@ -1029,7 +1029,7 @@ print("Class MI--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 # AExmTEST = pol.AExn(pol.age(), GKM95)
 
-pol.p.to_excel(path+'/zJO/check portefeuille.xlsx', header = True )
+# pol.p.to_excel(path+'/zJO/check portefeuille.xlsx', header = True )
 # aa.to_excel("check portefeuille.xlsx", header = True )
 
 
@@ -1041,53 +1041,53 @@ pol.p.to_excel(path+'/zJO/check portefeuille.xlsx', header = True )
 
 
 
-Mask35 =pol.p['ClassPGG'] == 'MI3.5'
-pm35 = pol.p.loc[Mask35, 'PMbasePGG']
+# Mask35 =pol.p['ClassPGG'] == 'MI3.5'
+# pm35 = pol.p.loc[Mask35, 'PMbasePGG']
 
-Mask25 =pol.p['ClassPGG'] == 'MI2.5'
-pm25 = pol.p.loc[Mask25, 'PMbasePGG']
+# Mask25 =pol.p['ClassPGG'] == 'MI2.5'
+# pm25 = pol.p.loc[Mask25, 'PMbasePGG']
 
-Mask20 =pol.p['ClassPGG'] == 'MI2.0'
-pm20 = pol.p.loc[Mask20, 'PMbasePGG']
+# Mask20 =pol.p['ClassPGG'] == 'MI2.0'
+# pm20 = pol.p.loc[Mask20, 'PMbasePGG']
 
-Mask10 =pol.p['ClassPGG'] == 'MI1.0'
-pm10 = pol.p.loc[Mask10, 'PMbasePGG']
+# Mask10 =pol.p['ClassPGG'] == 'MI1.0'
+# pm10 = pol.p.loc[Mask10, 'PMbasePGG']
 
-Mask175 =pol.p['ClassPGG'] == 'MI1.75'
-pm175 = pol.p.loc[Mask175, 'PMbasePGG']
+# Mask175 =pol.p['ClassPGG'] == 'MI1.75'
+# pm175 = pol.p.loc[Mask175, 'PMbasePGG']
 
-Mask125 =pol.p['ClassPGG'] == 'MI1.25'
-pm125 = pol.p.loc[Mask125, 'PMbasePGG']
-
-
-Mask075 =pol.p['ClassPGG'] == 'MI0.75'
-pm075 = pol.p.loc[Mask075, 'PMbasePGG']
-
-Mask05 =pol.p['ClassPGG'] == 'MI0.5'
-pm05 = pol.p.loc[Mask05, 'PMbasePGG']
-
-Mask025 =pol.p['ClassPGG'] == 'MI0.25'
-pm025 = pol.p.loc[Mask025, 'PMbasePGG']
-
-Mask0 =pol.p['ClassPGG'] == 'MI0.0'
-pm0 = pol.p.loc[Mask0, 'PMbasePGG']
+# Mask125 =pol.p['ClassPGG'] == 'MI1.25'
+# pm125 = pol.p.loc[Mask125, 'PMbasePGG']
 
 
+# Mask075 =pol.p['ClassPGG'] == 'MI0.75'
+# pm075 = pol.p.loc[Mask075, 'PMbasePGG']
+
+# Mask05 =pol.p['ClassPGG'] == 'MI0.5'
+# pm05 = pol.p.loc[Mask05, 'PMbasePGG']
+
+# Mask025 =pol.p['ClassPGG'] == 'MI0.25'
+# pm025 = pol.p.loc[Mask025, 'PMbasePGG']
+
+# Mask0 =pol.p['ClassPGG'] == 'MI0.0'
+# pm0 = pol.p.loc[Mask0, 'PMbasePGG']
 
 
-sum(pm0)
-sum(pm025)
-sum(pm05)
-sum(pm075)
-sum(pm10)
-sum(pm20)
-sum(pm25)
-sum(pm35)
-sum(pm125)
-sum(pm175)
 
 
-sum(pm0)+sum(pm025)+sum(pm05)+sum(pm075)+sum(pm10)+sum(pm20)+sum(pm25)+sum(pm35)+sum(pm125)+sum(pm175)
+# sum(pm0)
+# sum(pm025)
+# sum(pm05)
+# sum(pm075)
+# sum(pm10)
+# sum(pm20)
+# sum(pm25)
+# sum(pm35)
+# sum(pm125)
+# sum(pm175)
+
+
+# sum(pm0)+sum(pm025)+sum(pm05)+sum(pm075)+sum(pm10)+sum(pm20)+sum(pm25)+sum(pm35)+sum(pm125)+sum(pm175)
 
 
 
