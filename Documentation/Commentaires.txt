@@ -109,6 +109,7 @@ nous prenons pas en compte les complémentaire protection d'avenir dans ANN_RIDE
     ligne loop zill[:,i,:] supprimer condition sur nb tete pour corriger
 
 - MI la répartition de la PGG est erronée, elle ne correspond pas totalement aux taux d'intérêt
+il faudra aussi supprimer le fichier "CorrespondanceProduit.xlsx"
 
 -MI le fichier de résultat à été modifier par une modification de VPORTPOLPM car 2 produits Prophète étaient inversé pour les PM F1XT12 et F1XT13
 cela implique une diminution de la PGG de 52'064
