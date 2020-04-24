@@ -601,7 +601,21 @@ def adjustAgesAndTerm(p):
 
      
     p.loc[mask,'residualTermM']= p.loc[mask,'POLDURC']*12-p.loc[mask,'DurationIfInitial']    
+ 
     
+ 
+#Création d'une réalocation de la classe PGG pour les polices Mixte
+#Afin de reproduire l'erreur dans le fichier d'extraction des résultats actuel
+#A supprimer
+
+def ReAllocClassPGG_Mixte(p):
+    return
+    
+newClass=pd.read_excel(path+'/Portefeuille\CorrespondanceProduit.xlsx',sheet_name='MIXTES')
+
+
+    
+ 
 ##############################################################################################################################
 #Permet de formater la dataframe du portefeuille des polices avant d'entrer dans la classe Hypo
 #traitement des anomalies et mise en forme des colonnes
@@ -676,7 +690,7 @@ def portfolioPreProcessing(p):
     # p.loc[(p['POLTARIF'] == 'A') & (p['PMBMOD'] == 6), 'ClassPGG'] = 'MI2.5'
     # p.loc[(p['POLTARIF'] == 'J3') & (p['PMBMOD'] == 6), 'ClassPGG'] = 'MI2.5'
     
-    
+    ReAllocClassPGG_Mixte(p)
     
     #Création des PM servant de base pour le calcul de la PGG
     p['PMbasePGG']=p['PMBPRVMAT']+p['PMBPBEN']+p['PMBREC']+p['PMBRECCPL']
