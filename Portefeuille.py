@@ -267,30 +267,13 @@ class Portfolio(Hypo):
         txInteret = ((1+tx/100)**(1/12)).to_numpy()[:,np.newaxis,np.newaxis] * self.one()
         
         return txInteret
-    
-    ### COMPOSANTES DU TOTAL EXPENSE
-#Retourne les coûts de gestion des placements appliqué sur les réserves   
-    def reserveExpense(self):
-        
-        reserve=self.adjustedReserve()
-        
-        tauxFraisGestion=self.fraisGestionPlacement()
-        
-        return reserve*tauxFraisGestion
 
-#Retourne le coût par police
-    def unitExpense(self):
+    ### TOTAL PREMIUM
+# Retourne le premium à prendre en compte
+    def premInc(self):
+        return (self.p['POLPRTOT'])[:,np.newaxis,np.newaxis]/self.frac()
         
-        inflation=np.roll(self.inflation(),[1],axis=1)
-        inflation[:,0,:]=0
-        
-        coutParPolice=self.fraisGestion()
-        
-        cost=coutParPolice*inflation*self.nbrPolIfSM
-        
-        return cost
-        
-    ### COMPOSANTES DU TOTAL CLAIM
+    ### TOTAL CLAIM
 #Retourne les claims de la garantie principale (DEATH_OUTGO)
     def claimPrincipal(self):
         return self.zero()
@@ -311,17 +294,35 @@ class Portfolio(Hypo):
     def maturity(self):
         return self.zero()
 
+    ### TOTAL EXPENSE
+#Retourne les coûts de gestion des placements appliqué sur les réserves   
+    def reserveExpense(self):
+        
+        reserve=self.adjustedReserve()
+        
+        tauxFraisGestion=self.fraisGestionPlacement()
+        
+        return reserve*tauxFraisGestion
+
+#Retourne le coût par police
+    def unitExpense(self):
+        
+        inflation=np.roll(self.inflation(),[1],axis=1)
+        inflation[:,0,:]=0
+        
+        coutParPolice=self.fraisGestion()
+        
+        cost=coutParPolice*inflation*self.nbrPolIfSM
+        
+        return cost
+
 ##############################################################################################################################
     ### COMPOSANTES DU BEL
 ##############################################################################################################################
 
 #Retourne les primes totales perçues
-    def totalPremium(self):
-        premInc=(self.p['POLPRTOT'])[:,np.newaxis,np.newaxis]/self.frac()
-           
-        prem=premInc*self.nbrPolIfSM*self.isPremPay()*self.indexation()
-        
-        return prem
+    def totalPremium(self):        
+        return self.premInc()*self.nbrPolIfSM*self.isPremPay()*self.indexation()
 
 #Retourne le total des prestations payées  
     def totalClaim(self):  
@@ -355,7 +356,7 @@ class Portfolio(Hypo):
         return bel
    
 ##############################################################################################################################
-    ### DEBUT DU CALCUL DE LA PGG
+    ### CALCUL DE LA PGG
 ##############################################################################################################################     
 
     def PGG(self):
