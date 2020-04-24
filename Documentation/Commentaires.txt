@@ -105,5 +105,5 @@ nous prenons pas en compte les complémentaire protection d'avenir dans ANN_RIDE
 
 - MI le taux de décès accident du parent pour la modalité 10 est toujours à 100%, il faut prendre en compte le taux décès accidentel
 
-
-
+- MI la zillmérisation est calculée de manière différente entre les 2 têtes et les 1 têtes (pour les 2 têtes on ne prend pas compte d'une zillmérisation qui est égal à 1/3 des PM lorsque la pmZill n'entre pas en compte)
+    ligne loop zill[:,i,:] supprimer condition sur nb tete pour corriger

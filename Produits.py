@@ -718,10 +718,7 @@ class EP(Portfolio):
       
         return premInvest
 
-#Retourn la réserve mathémathique incluant la PB
-    def mathresBA(self):
-
-        return  self.epargnAcquPP + self.pbAcquPP + self.riskEnCours()      
+   
 
 #Retourne le risque en cours
     def riskEnCours(self):
@@ -787,7 +784,9 @@ class EP(Portfolio):
     def claimPrincipal(self):
         return self.deathClaim()
 
-
+#Retourn la réserve mathémathique incluant la PB
+    def mathresBA(self):
+        return  self.epargnAcquPP + self.pbAcquPP + self.riskEnCours()   
 
 #Retourne les rachats totaux (SURR_OUTGO)
     def surrender(self):
@@ -1101,9 +1100,7 @@ class EP(Portfolio):
             fondPB[:,i,:] =  fondPB[:,i-1,:] + dotationPB[:,i,:] - reprisePB[:,i,:]
   
         return fondPB
-    
-    
-    
+     
 
 # # Reprise sur fond de PB suite à une maturité
 #     def repPbMats(self):
@@ -1125,12 +1122,9 @@ class EP(Portfolio):
 #         return pb
     
     
-    
 # Reprise sur fond de PB suite à une maturité  
     def repPbMats(self):
         return self.zero()
-    
-    
     
     
 # Arrondi des tables ACTU.FAC afin d'obtenir mUfii (table rdt est)
@@ -1141,8 +1135,6 @@ class EP(Portfolio):
         
         rate = (1+rate)**(1/12) - 1
         return rate
-    
-    
     
     
 #  Calcul des réserve mathématiques adjustées afin de calculer les expenses
@@ -1206,7 +1198,6 @@ class EP(Portfolio):
             resFinMois[:,i,:] = oTaxblInc[:,i,:] + reprisePB[:,i,:] - totIntCred[:,i,:] - pbIncorpIF[:,i,:] - dotationPB[:,i,:] - pbSortie[:,i,:]
             
             rfinAnn[:,i,:] = (rfinAnn[:,i-1,:] + resFinMois[:,i,:]) * monthPb[:,i,:] * isActive[:,i,:]
-            
             
             
    #Définition des variables récursives
