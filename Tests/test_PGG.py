@@ -5,8 +5,8 @@ import coverage
 import time
 import os, os.path
 path = os.path.dirname(os.path.abspath(__file__))
-from Produits import FU,AX,HO,PR,EP,VE
-from tryMixtes import MI
+from Produits import FU,AX,HO,PR,EP,VE,MI
+
 
 start_time = time.time()
 
@@ -552,7 +552,7 @@ class Test_MI(ut.TestCase):
         python=np.array(self.sp.PGG().to_numpy(),dtype=float)
         python= np.squeeze(python)         
                 
-        prophet=ResultatPGG.loc[ResultatPGG['Prophet'].isin(['M0','M0.25','M0.5','M0.75','M1','M1.25','M1.75','M2.5','M2','M3.5']),'PGG']
+        prophet=ResultatPGG.loc[ResultatPGG['Prophet'].isin(['M0','M0.25','M0.5','M0.75','M1','M1.25','M1.75','M2','M2.5','M3.5']),'PGG']
         prophet=np.array(prophet[0:len(python)].to_numpy(),dtype=float)
         np.testing.assert_allclose(np.around(prophet,decimals=decimalPrecision),np.around(python,decimals=decimalPrecision), rtol = RTOL, atol = (decimalPrecision/(decimalPrecision*100)), err_msg='PGG ERROR')
 

@@ -1,5 +1,5 @@
 from Parametres import allRuns
-from Produits import FU,AX,HO,PR,EP,VE
+from Produits import FU,AX,HO,PR,EP,VE,MI
 import pandas as pd
 import time
 import os, os.path
@@ -42,14 +42,19 @@ class RUNPGG():
               LapseNew=isLapseNew,CostNew=isCostNew,RateNew=isRateNew)    
         ep=ep.PGG()
         
-#Ajout des épargnes     
+#Ajout des vie entières    
         ve=VE(run=runNumber,PortfolioNew=isPortfolioNew, SinistralityNew=isSinistralityNew,\
               LapseNew=isLapseNew,CostNew=isCostNew,RateNew=isRateNew)    
         ve=ve.PGG()
 
+#Ajout des mixtes  
+        mi=MI(run=runNumber,PortfolioNew=isPortfolioNew, SinistralityNew=isSinistralityNew,\
+              LapseNew=isLapseNew,CostNew=isCostNew,RateNew=isRateNew)    
+        mi=mi.PGG()
+
 #Agrégation des sous-portefeuille dans une DF       
         pggTotal=pd.DataFrame(fu)
-        pggTotal=pggTotal.append([ax,ho,pr,ep,ve])
+        pggTotal=pggTotal.append([ax,ho,pr,ep,ve,mi])
         
         
         return pggTotal

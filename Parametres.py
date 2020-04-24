@@ -609,13 +609,17 @@ def adjustAgesAndTerm(p):
 #A supprimer
 
 def ReAllocClassPGG_Mixte(p):
-    return
     
-newClass=pd.read_excel(path+'/Portefeuille\CorrespondanceProduit.xlsx',sheet_name='MIXTES')
-
-
+    newClass=pd.read_excel(path+'/Portefeuille\CorrespondanceProduit.xlsx',sheet_name='MIXTES')
     
- 
+    newClasse=pd.Series(newClass['ClassePGG'].values, index=newClass['ID'] ).to_dict()
+    
+    p['ClassPGG2']=p['PMBPOL'].map(newClasse)
+    
+    p.loc[p['ClassPGG2'].isnull()==False,'ClassPGG']= p.loc[p['ClassPGG2'].isnull()==False,'ClassPGG2']    
+    
+    return p 
+
 ##############################################################################################################################
 #Permet de formater la dataframe du portefeuille des polices avant d'entrer dans la classe Hypo
 #traitement des anomalies et mise en forme des colonnes
@@ -684,12 +688,7 @@ def portfolioPreProcessing(p):
     #Création des collones pour l'agragation de la PGG
     allocationDesClassPGG(p)
     
-    # # Traitement des classes PGG (celles-ci étaient fausses en 2018, on reproduit l'erreur mais ceci est à supprimer pour corriger !!) (A REVOIR) 
-    # p.loc[(p['POLTARIF'] == 'B') & (p['PMBMOD'] == 2), 'ClassPGG'] = 'MI3.5'
-    # p.loc[(p['POLTARIF'] == 'M1') & (p['PMBMOD'] == 6), 'ClassPGG'] = 'MI0.25'
-    # p.loc[(p['POLTARIF'] == 'A') & (p['PMBMOD'] == 6), 'ClassPGG'] = 'MI2.5'
-    # p.loc[(p['POLTARIF'] == 'J3') & (p['PMBMOD'] == 6), 'ClassPGG'] = 'MI2.5'
-    
+    #A supprimer car permet de reproduire l'erreur d'affectation des classesPGG pour les Mixtes    
     ReAllocClassPGG_Mixte(p)
     
     #Création des PM servant de base pour le calcul de la PGG
@@ -698,7 +697,7 @@ def portfolioPreProcessing(p):
     #Traitement des ages et policy terme selon Prophet pour mod70 (nous pensons que cela est erroné)
     adjustAgesAndTerm(p)
     
-    # On enlève les 18 polices que prophet ne prenait pas en compte pour les mod6
+    #? On enlève les 18 polices que prophet ne prenait pas en compte pour les mod6
     p.loc[p['PMBPOL'].isin([1302, 96803, 96804, 96805, 96806, 150003, 150004, 150005, 150103, 150104, 150105, 262905, 263003, 448502, 448503, 514408, 514409, 2547101]), 'Age1AtEntry'] = 999
         
     # Ajout de la colonne contenant les chargements d'acquisition

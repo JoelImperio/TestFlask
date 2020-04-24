@@ -953,6 +953,7 @@ class MI(Portfolio):
 pol = MI()
 #pol=MI(run=[4,5])
 
+
     ###  Mod 2_1 produit F1XT1
 # pol.ids([301])
 
@@ -1013,7 +1014,8 @@ pol = MI()
 # bel=np.sum(pol.BEL(), axis=0)
 # pgg=pol.PGG()
 
-
+# a=pol.p.groupby('ClassPGG').sum()
+# a=a['PMbasePGG']
 
 print("Class MI--- %s sec" %'%.2f'%  (time.time() - start_time))
 
