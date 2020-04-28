@@ -78,14 +78,14 @@ class Test_TEMP(ut.TestCase):
 
 
 
-    # def test_Claim(self):
+    def test_Claim(self):
         
-    #     prophet=np.array(self.spProphet.loc[:self.length,'TOT_PREST'].to_numpy(),dtype=float)
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_PREST'].to_numpy(),dtype=float)
         
-    #     python=np.sum(self.sp.totalClaim()[:,:409,0],axis=0)
+        python=np.sum(self.sp.totalClaim()[:,:409,0],axis=0)
 
         
-    #     np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalClaim ERROR')
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalClaim ERROR')
             
             
     # def test_Expense(self):
@@ -129,6 +129,14 @@ class Test_TEMP(ut.TestCase):
 
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='riderCoutgo ERROR')
 
+
+    def test_ClaimPrincip(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'DEATH_OUTGO'].to_numpy(),dtype=float)
+        
+        python=np.array(np.sum(self.sp.claimPrincipal()[:,:409,0],axis=0),dtype=float)
+
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='death outgo ERROR')
 
 
 

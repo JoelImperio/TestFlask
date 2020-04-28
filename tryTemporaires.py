@@ -51,6 +51,51 @@ class TE(Portfolio):
         increment = np.cumsum(self.one(), axis = 1)-1
         mask = moisRestant >= increment
         return mask
+  
+# Reprise des mixtes (POUR CLAIM)
+# Retourne un vecteur de 1 et 0, Met des 1 pour le mois de janvier (là ou la PB est versée)
+    def allocMonths(self):
+        calendarMonth=np.arange(start=self.p['DateCalcul'].dt.month.values[0].astype(int),stop=(self.shape[1]+self.p['DateCalcul'].dt.month.values[0].astype(int)))
+        calendarMonth=calendarMonth%12 + 1
+        calendarMonth=calendarMonth[np.newaxis,:,np.newaxis]*self.one()        
+        mask = calendarMonth ==1
+        return mask*1  
+  
+ # Reprises des mixtes (POUR CLAIM)
+ # Arrondi des tables afin d'obtenir taux pb (table rdt est). Le taux PB va également dépendre du taux d'intêret 
+    def txPartPB(self):
+        rate = (1+self.pbRate())**12 - 1
+        rate = (1+rate)**(1/12) - 1
+
+        # ligne à supprimer pour corriger !! il ne faut pas arrondir ce taux
+        rate = np.round(rate, decimals = 6)
+        
+        txInt = self.p['PMBTXINT'].to_numpy()[:,np.newaxis,np.newaxis] * self.one()/100
+        return np.maximum(0, rate - txInt) 
+  
+ # reprise des mixtes (POUR CLAIM) 
+ # Met un vecteur de 1 et 0 (1 si la police possède moins de 12 mois)
+    def pmFirstYear(self):
+        vec = self.one() * 12
+        mask = self.durationIf() <= 12
+        vec[mask] = self.durationIf()[mask]
+        return vec 
+     
+# Reprise des Mixtes (POUR CLAIM)
+# Valeur actualisé SA (Net single premium value) AExn * capital
+    def valSaPP(self):
+        # mask ici car au moment de l'échéance de la police, le net Single premium = 0 et non Capital
+        mask = self.polTermM() > self.durationIf() 
+        valSaPP = self.zero()
+        valSaPP[mask] = self.AExn[mask] * self.sumAss()[mask]
+        return valSaPP
+    
+    
+# Reprise des mixtes sans le mask pour mod6 et 7 (POUR CLAIM)
+# Calcul de la valeur actualisée des premiums
+    def valNetPrem(self):
+        return self.purePremium() * self.axn 
+    
     
     
     # A corriger afin de pouvoir prendre en compte dans le futur les 2ème têtes de manière correcte (remonté quand celle-ci sera juste)
@@ -75,13 +120,13 @@ class TE(Portfolio):
         # Mxp = self.actu('Mx', 'p')
         MxDec = self.actu('Mx', 't+1')
   
-# AExn endowment insurance
+# AExn
         AExn = self.zero()
-        AExn[Dxt>0] = (Mxt[Dxt>0] - Mxn[Dxt>0] + Dxn[Dxt>0]) / Dxt[Dxt>0]
+        AExn[Dxt>0] = AExn[Dxt>0] = (Mxt[Dxt>0] - Mxn[Dxt>0] ) / Dxt[Dxt>0]
         AExn = np.roll(AExn, -1, axis = 1)
         
         AExnDec = self.zero()
-        AExnDec[DxDec>0] = (MxDec[DxDec>0] - Mxn[DxDec>0] + Dxn[DxDec>0]) / DxDec[DxDec>0]
+        AExnDec[DxDec>0] = (MxDec[DxDec>0] - Mxn[DxDec>0]) / DxDec[DxDec>0]
         AExnDec = np.roll(AExnDec, -1, axis = 1)
         
         AExn = self.interp(AExn, AExnDec)
@@ -118,11 +163,11 @@ class TE(Portfolio):
 
 # AExn endowment insurance 2 tetes
         AExn2t = self.zero()
-        AExn2t[Dxt>0] = (Mxt[Dxt>0] - Mxn[Dxt>0] + Dxn[Dxt>0]) / Dxt[Dxt>0]
+        AExn2t[Dxt>0] = (Mxt[Dxt>0] - Mxn[Dxt>0] ) / Dxt[Dxt>0]
         AExn2t = np.roll(AExn2t, -1, axis = 1)
         
         AExnDec2t = self.zero()
-        AExnDec2t[DxDec>0] = (MxDec[DxDec>0] - Mxn[DxDec>0] + Dxn[DxDec>0]) / DxDec[DxDec>0]
+        AExnDec2t[DxDec>0] = (MxDec[DxDec>0] - Mxn[DxDec>0])  / DxDec[DxDec>0]
         AExnDec2t = np.roll(AExnDec2t, -1, axis = 1)
         
         AExn2t = self.interp(AExn2t, AExnDec2t)
@@ -204,35 +249,35 @@ class TE(Portfolio):
         
 # Déclaration des variables pour le calcul des PM        
         # Variable existante
-        # zill = self.zero()
-        # precPP = self.precPP()
+        zill = self.zero()
+        precPP = self.precPP()
         valSaPP = self.valSaPP()
         valNetPP = self.valNetPrem()
         prInventPP = self.prInventaire()
         alpha = self.p['tauxZill'][:,np.newaxis, np.newaxis]*self.one()  
         
         valSumAss = self.sumAss() * self.AExn
-        # provGestPP = self.provGestPP()
-        # pmFirstYear = self.pmFirstYear()    
-        # allocMonths = self.allocMonths()
-        # txPartPB = self.txPartPB()
+        provGestPP = self.provGestPP()
+        pmFirstYear = self.pmFirstYear()    
+        allocMonths = self.allocMonths()
+        txPartPB = self.txPartPB()
         duration = self.durationIf()
         
         # nbtete = self.p['POLNBTETE'][:,np.newaxis, np.newaxis]*self.one() 
         
         
         # # Nouvelles variables
-        # valAccrbPP = self.zero()
-        # pbIncorPP = self.zero()
-        # pbAcquPP = self.zero()
-        # pbAcquPP[:,0,:] = self.p['PMBPBEN'].to_numpy()[:,np.newaxis]
-        # pbCalcPP = self.zero()
-        # isActive = self.isActive()
-        # mathResPP = self.zero()  
-        # provTechPP = self.zero()
-        # pmZillCum = self.zero()
-        # pmZillPP = self.zero()
-        # pmPourPB = self.zero()
+        valAccrbPP = self.zero()
+        pbIncorPP = self.zero()
+        pbAcquPP = self.zero()
+        pbAcquPP[:,0,:] = self.p['PMBPBEN'].to_numpy()[:,np.newaxis]
+        pbCalcPP = self.zero()
+        isActive = self.isActive()
+        mathResPP = self.zero()  
+        provTechPP = self.zero()
+        pmZillCum = self.zero()
+        pmZillPP = self.zero()
+        pmPourPB = self.zero()
         # tierPM = self.zero()
         # zillTot = self.zero()
         # pbSortMatsPP = self.zero()
@@ -286,11 +331,11 @@ class TE(Portfolio):
 
 # Variable permettant le calcul des reserves et pb
 
-            # pbIncorPP[:,i,:] = np.nan_to_num(pbCalcPP[:,i-1,:] *  isActive[:,i-1,:])
+            pbIncorPP[:,i,:] = np.nan_to_num(pbCalcPP[:,i-1,:] *  isActive[:,i-1,:])
             
-            # pbAcquPP[:,i,:] = (pbAcquPP[:,i-1,:] + pbIncorPP[:,i,:])  * isActive[:,i,:]             
+            pbAcquPP[:,i,:] = (pbAcquPP[:,i-1,:] + pbIncorPP[:,i,:])  * isActive[:,i,:]             
 
-            # valAccrbPP[:,i,:] = pbAcquPP[:,i,:] * AExn[:,i,:] 
+            valAccrbPP[:,i,:] = pbAcquPP[:,i,:] * AExn[:,i,:] 
             
             # tierPM[:,i,:] = (1/3) * (np.maximum(valSaPP[:,i,:] + valAccrbPP[:,i,:] + provGestPP[:,i,:] + precPP[:,i,:] - valNetPP[:,i,:], 0))
             
@@ -298,7 +343,7 @@ class TE(Portfolio):
             
             # zill[:,i,:] = np.where((tierPM[:,i,:] <= zillTot[:,i,:]) & (nbtete[:,i,:] != 2), tierPM[:,i,:], zillTot[:,i,:])
             
-            
+            # Différence par rapport au mixtes
             zill1[:,i,:] = np.minimum(alpha[:,i,:] * prInventPP[:,i,:] * axn[:,i,:], valSumAss[:,i,:] - valNetPP[:,i,:] + provGestPP[:,i,:])
             zill2[:,i,:] = np.minimum(alpha[:,i,:] * prInventPP[:,i,:] * axn[:,i,:], 0.8 * (valSumAss[:,i,:] - valNetPP[:,i,:] + provGestPP[:,i,:]))
             
@@ -413,9 +458,51 @@ class TE(Portfolio):
         return ((self.premInc() * self.indexation()) + self.premiumCompl()) * self.nbrPolIfSM * self.isPremPay()
 
 
+# calcul de la prime pure
+    def purePremium(self):
+        Nx = self.actu('Nx', 'x')
+        Nxn = self.actu('Nx', 'n')
+        Dx = self.actu('Dx', 'x')
+        Mx = self.actu('Mx', 'x')
+        Mxn = self.actu('Mx', 'n')
+
+        AExn = self.zero()
+        AExn = (Mx - Mxn ) / Dx
+        
+        axn = self.zero()
+        axn = (Nx - Nxn ) / Dx
+        
+        
+       
+        Dxt = self.actu('Dx', 't')
+
+        
+        
+        return (AExn / axn)  * self.sumAss()
+
+
+# Calcul de la valeur actualisée des primes
+    def aduePolVal(self):
+        Nx = self.actu('Nx', 'x')
+        Nxp = self.actu('Nx', 'p')
+        Dx = self.actu('Dx', 'x')
+        return (Nx - Nxp ) / Dx
+
+
+# Valeur actualisée des primes au temps 0 
+    def valNetPfac(self):
+        Nx = self.actu('Nx', 'x')
+        Nxn = self.actu('Nx', 'n')
+        Dx = self.actu('Dx', 'x')
+        
+        return (Nx - Nxn) / Dx
+
+
 # Calcul de la prime d'inventaire
     def prInventaire(self):
-        pass
+        return self.purePremium() + self.p['fraisGestDureePoliceSA'][:,np.newaxis, np.newaxis] * self.sumAss() * (self.aduePolVal() / self.valNetPfac()) + self.p['fraisGestDureePrimesSA'][:,np.newaxis, np.newaxis] * self.sumAss()
+        
+   
 
 
 
@@ -451,17 +538,42 @@ class TE(Portfolio):
         return self.riderCost() * self.nbrPolIfSM
 
 
-# Calcul du single benefit premium AExn * C
-    def valSaPP(self):
-        pass
-
-# Calcul de la valeur actualisée des premiums
-    def valNetPrem(self):
-        pass
 
 
+# Calcul de la provision de gestion
+    def provGestPP(self):
+        return self.zero()
 
+# Pris des Epargne (S'appelle riskEnCours) (POUR CLAIM) (N'est pas exactement la même formule mais presque, à voir si on la remonte)
+#Retourne le risque en cours
+    def precPP(self):
 
+        frek=self.frac()
+          
+        premCompl =  self.premiumCompl()/frek 
+        
+        #Calcul du risque en cours
+        riderIncPP=premCompl*self.isPremPay()
+        riderIncPP2=premCompl   
+        precPP = self.zero()
+        
+# A rajouté pour corrigé les risque en cours 
+        # precPP[:,0,:] = pol.p['PMBREC'].to_numpy()[:,np.newaxis] 
+
+        for i in range(1,self.shape[1]):
+            precPP[:,i,:]=precPP[:,i-1,:]+riderIncPP[:,i,:] - ((frek[:,i,:]/12)*riderIncPP2[:,i,:])
+              
+        return precPP
+    
+    
+    
+# Calcul claim prrincipale
+    def claimPrincipal(self):
+        return self.sumAss() * self.nbrDeath
+    
+    
+    
+    
 #     def adjustedReserve(self):
 
 #   # Age limite pour mod3
@@ -516,7 +628,7 @@ pol = TE()
 # pol.modHead([3],1)
 # pol.ids([52001])
 
-# pol.ids([2200601])
+# pol.ids([171803])
 
 # Mod 3 2tete
 # pol.modHead([3],2)
@@ -525,19 +637,19 @@ pol = TE()
 
 
 # Mod4
-# pol.mod([4])
+pol.mod([4])
 # pol.ids([301])
 
 
 
-pol.mod([4,3])
+# pol.mod([4,3])
 
 
 death = pol.nbrDeath
 
 
 
-check=pol.claimCompl()
+check=pol.claimPrincipal()
 
 monCas=check
 zz=np.sum(monCas, axis=0)

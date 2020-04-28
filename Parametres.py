@@ -265,6 +265,20 @@ def fraisGestionSumAss(p):
     p['fraisGestDureePrimesSA'] = p['fraisGestDureePrimesSA'].fillna(0)
     p['fraisGestDureePoliceSA'] = p['fraisGestDureePoliceSA'].fillna(0)
     
+    
+    # Mod3 et 4 1 tête
+    mask=(p['PMBMOD'].isin([3, 4])) & (p['POLNBTETE'] == 1)
+    p.loc[mask, 'fraisGestDureePoliceSA'] = 0.0008
+    p.loc[mask, 'fraisGestDureePrimesSA'] = 0
+    
+    # Mod3 2têtes
+    mask=(p['PMBMOD'].isin([3])) & (p['POLNBTETE'] == 2)
+    p.loc[mask, 'fraisGestDureePoliceSA'] = 0.0011
+    p.loc[mask, 'fraisGestDureePrimesSA'] = 0.0011
+    
+    
+    
+    
 def tauxZill(p):
     
     # mod2
