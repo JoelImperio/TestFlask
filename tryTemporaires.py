@@ -575,112 +575,112 @@ class TE(Portfolio):
 # --- CALCUL DES EXPENSES
 # =============================================================================
 
-#  calcul des provisions techniques ajustée (PROV_TECH_AJ)
-    def provTechAj(self):
-        provTechAj = self.zero()
-        provTechIf = self.provTechIf()
-        primeInvest = self.prPure() * self.nbrPolIfSM * self.isPremPay() / self.frac()
-        riderCoutgo = self.claimCompl()
-        tresRldMat = self.tresRldMat()
-        pbIncorpIf = self.pbIncorpIF()
+# #  calcul des provisions techniques ajustée (PROV_TECH_AJ)
+#     def provTechAj(self):
+#         provTechAj = self.zero()
+#         provTechIf = self.provTechIf()
+#         primeInvest = self.prPure() * self.nbrPolIfSM * self.isPremPay() / self.frac()
+#         riderCoutgo = self.claimCompl()
+#         tresRldMat = self.tresRldMat()
+#         pbIncorpIf = self.pbIncorpIF()
         
-        for i in range(1,self.shape[1]):
-            provTechAj[:,i,:] = provTechIf[:,i-1,:] + pbIncorpIf[:,i,:] + primeInvest[:,i,:] - riderCoutgo[:,i,:] - tresRldMat[:,i,:]
-        return provTechAj
+#         for i in range(1,self.shape[1]):
+#             provTechAj[:,i,:] = provTechIf[:,i-1,:] + pbIncorpIf[:,i,:] + primeInvest[:,i,:] - riderCoutgo[:,i,:] - tresRldMat[:,i,:]
+#         return provTechAj
 
 
 
 
-  # calcul des intêret techniques crédités (INT_CRED_T) 
-    def totIntCred(self):
+#   # calcul des intêret techniques crédités (INT_CRED_T) 
+#     def totIntCred(self):
         
-# intêrets techniques crédité        
-        intCredT = (self.txInt()-1) * self.provTechAj()
-        intCredT[:,0,:] = 0
-        return intCredT
+# # intêrets techniques crédité        
+#         intCredT = (self.txInt()-1) * self.provTechAj()
+#         intCredT[:,0,:] = 0
+#         return intCredT
 
 
-# # loop pour calculer les reserves pour expense ADJ_MATHRES2
-    def reserveForExp(self):
+# # # loop pour calculer les reserves pour expense ADJ_MATHRES2
+#     def reserveForExp(self):
         
-          # déclaration des nouvelles variables
-          # resReldMat = self.zero()
-          # totExp = self.zero()
-           rfinAnn = self.zero()
-           oTaxblInc = self.zero()
-          # adjMathRes2 = self.zero()
-           resFinMois = self.zero()
-          # provMathAj = self.zero()
-          reprisePB = self.zero()
+#           # déclaration des nouvelles variables
+#           # resReldMat = self.zero()
+#           # totExp = self.zero()
+#            rfinAnn = self.zero()
+#            oTaxblInc = self.zero()
+#           # adjMathRes2 = self.zero()
+#            resFinMois = self.zero()
+#           # provMathAj = self.zero()
+#           reprisePB = self.zero()
         
         
-          # Nombre polices
-          # nbrPolIf = self.nbrPolIf
-          # noMat = self.nbrNewMat
+#           # Nombre polices
+#           # nbrPolIf = self.nbrPolIf
+#           # noMat = self.nbrNewMat
  
-          # fonction existantes
-          # fMathResIF = self.provMathIf() + self.fondPB()
-          # provMathIf = self.provMathIf()
-          # riderCoutgo = self.claimCompl()
-          # pbIncorpIF = self.pbIncorpIF()
-          # premInc = self.totalPremium()
+#           # fonction existantes
+#           # fMathResIF = self.provMathIf() + self.fondPB()
+#           # provMathIf = self.provMathIf()
+#           # riderCoutgo = self.claimCompl()
+#           # pbIncorpIF = self.pbIncorpIF()
+#           # premInc = self.totalPremium()
 
-          # fondPB = self.fondPB()
-          # mUfii = self.mUfii()
-          # repPbMats = self.repPbMats()
-          # premInvest = self.prPure() * self.nbrPolIfSM * self.isPremPay() / self.frac()
-          # les primes investies sont à 0 pour les modalité à primes unique
-          # premInvest[self.p['PMBMOD'].isin([6,7])] = self.zero()[self.p['PMBMOD'].isin([6,7])]
-          # unitExp = self.unitExpense()
+#           # fondPB = self.fondPB()
+#           # mUfii = self.mUfii()
+#           # repPbMats = self.repPbMats()
+#           # premInvest = self.prPure() * self.nbrPolIfSM * self.isPremPay() / self.frac()
+#           # les primes investies sont à 0 pour les modalité à primes unique
+#           # premInvest[self.p['PMBMOD'].isin([6,7])] = self.zero()[self.p['PMBMOD'].isin([6,7])]
+#           # unitExp = self.unitExpense()
       
-          # dotationPB = self.dotationPB()
-          # pbSortie = self.pbSortie()
-           totIntCred = self.totIntCred() 
-          # txReserve = self.fraisGestionPlacement()
-          # mathresPP = self.mathResPP  
-          # totComm = self.totalCommissions()
-          # monthPb = self.one() - self.allocMonths()
-          # isActive = self.isActive()
+#           # dotationPB = self.dotationPB()
+#           # pbSortie = self.pbSortie()
+#            totIntCred = self.totIntCred() 
+#           # txReserve = self.fraisGestionPlacement()
+#           # mathresPP = self.mathResPP  
+#           # totComm = self.totalCommissions()
+#           # monthPb = self.one() - self.allocMonths()
+#           # isActive = self.isActive()
       
-          for i in range(1,self.shape[1]):
+#           for i in range(1,self.shape[1]):
             
-              # resReldMatTEMP =  (fondPB[:,i-1,:] + rfinAnn[:,i-1,:])
+#               # resReldMatTEMP =  (fondPB[:,i-1,:] + rfinAnn[:,i-1,:])
             
-              # resReldMat[:,i,:] = np.divide(resReldMatTEMP, (nbrPolIf[:,i-1,:]), out=np.zeros_like(resReldMatTEMP), where=(nbrPolIf[:,i-1,:])!=0)\
-              #     * noMat[:,i,:] + mathresPP[:,i-1,:] * noMat[:,i,:] 
+#               # resReldMat[:,i,:] = np.divide(resReldMatTEMP, (nbrPolIf[:,i-1,:]), out=np.zeros_like(resReldMatTEMP), where=(nbrPolIf[:,i-1,:])!=0)\
+#               #     * noMat[:,i,:] + mathresPP[:,i-1,:] * noMat[:,i,:] 
             
-              # adjMathRes2[:,i,:] = fMathResIF[:,i-1,:] + rfinAnn[:,i-1,:] + premInvest[:,i,:] - riderCoutgo[:,i,:] - resReldMat[:,i,:] - repPbMats[:,i,:]
+#               # adjMathRes2[:,i,:] = fMathResIF[:,i-1,:] + rfinAnn[:,i-1,:] + premInvest[:,i,:] - riderCoutgo[:,i,:] - resReldMat[:,i,:] - repPbMats[:,i,:]
         
-              # totExp[:,i,:] = unitExp[:,i,:] + adjMathRes2[:,i,:] * txReserve[:,i,:] 
+#               # totExp[:,i,:] = unitExp[:,i,:] + adjMathRes2[:,i,:] * txReserve[:,i,:] 
                 
-              # provMathAj[:,i,:] = provMathIf[:,i-1,:] + rfinAnn[:,i-1,:] + pbIncorpIF[:,i,:] + premInc[:,i,:] - riderCoutgo[:,i,:] - (totExp[:,i,:] + totComm[:,i,:]) - resReldMat[:,i,:]
+#               # provMathAj[:,i,:] = provMathIf[:,i-1,:] + rfinAnn[:,i-1,:] + pbIncorpIF[:,i,:] + premInc[:,i,:] - riderCoutgo[:,i,:] - (totExp[:,i,:] + totComm[:,i,:]) - resReldMat[:,i,:]
         
-              # oTaxblInc[:,i,:] = provMathAj[:,i,:] * mUfii[:,i,:]
+#               # oTaxblInc[:,i,:] = provMathAj[:,i,:] * mUfii[:,i,:]
             
-               resFinMois[:,i,:] = oTaxblInc[:,i,:] + reprisePB[:,i,:] - totIntCred[:,i,:] - pbIncorpIF[:,i,:] - dotationPB[:,i,:] - pbSortie[:,i,:]
+#                resFinMois[:,i,:] = oTaxblInc[:,i,:] + reprisePB[:,i,:] - totIntCred[:,i,:] - pbIncorpIF[:,i,:] - dotationPB[:,i,:] - pbSortie[:,i,:]
             
-               rfinAnn[:,i,:] = (rfinAnn[:,i-1,:] + resFinMois[:,i,:]) * monthPb[:,i,:] * isActive[:,i,:]
+#                rfinAnn[:,i,:] = (rfinAnn[:,i-1,:] + resFinMois[:,i,:]) * monthPb[:,i,:] * isActive[:,i,:]
             
-    #Définition des variables récursives
+#     #Définition des variables récursives
             
-          # Résultat financier en fin de mois non constaté
-          self.resFinMois = resFinMois
-          # Résultat de l'année en cours non constaté
-          self.rfinAnn=rfinAnn
-          # Reserves mathématiques ajustées pour calculer les expenses
-          self.adjMathRes2 = adjMathRes2
-          # Office taxable Income
-          self.oTaxblInc = oTaxblInc
-          # Provisions mathématiques ajustées
-          self.provMathAj = provMathAj
-          # diminution des reserves à la maturité
-          self.resReldMat = resReldMat
-          # prime investie
-          self.premInvest = premInvest
-          # Provisions mathématiqwues
-          self.fMathResIF = fMathResIF
-          # total expenses 
-          self.totExp = totExp
+#           # Résultat financier en fin de mois non constaté
+#           self.resFinMois = resFinMois
+#           # Résultat de l'année en cours non constaté
+#           self.rfinAnn=rfinAnn
+#           # Reserves mathématiques ajustées pour calculer les expenses
+#           self.adjMathRes2 = adjMathRes2
+#           # Office taxable Income
+#           self.oTaxblInc = oTaxblInc
+#           # Provisions mathématiques ajustées
+#           self.provMathAj = provMathAj
+#           # diminution des reserves à la maturité
+#           self.resReldMat = resReldMat
+#           # prime investie
+#           self.premInvest = premInvest
+#           # Provisions mathématiqwues
+#           self.fMathResIF = fMathResIF
+#           # total expenses 
+#           self.totExp = totExp
 
 
 
