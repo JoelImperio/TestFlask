@@ -121,14 +121,9 @@ class RUNPGG():
 # c=run.deltaAnalysisSousPortefeuille()
 # d=run.deltaAnalysisPGG()
 
-
-# from optparse import OptionParser
-# import inspect
-
+# #Tester de récupérer toutes les méthodes et storer tout les résultats
 # a=FU()
 # b = dir(a)
-# c = [func for func in dir(a) if callable(getattr(a, func))]
-# d=inspect.getmembers(a, predicate=inspect.ismethod)
-# e=inspect.getmembers(a, predicate=inspect.isroutine)
+# x=getattr(a,b[106])()
 
 print("Class RUN--- %s sec" %'%.2f'%  (time.time() - start_time))
