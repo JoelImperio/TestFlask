@@ -114,13 +114,21 @@ class RUNPGG():
 ###################################DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES#############################################
 ##############################################################################################################################       
  
-run=RUNPGG()
+# run=RUNPGG()
 
-a=run.pggParSousPortefeuille()
+# a=run.pggParSousPortefeuille()
 # b=run.pggTotal()
 # c=run.deltaAnalysisSousPortefeuille()
 # d=run.deltaAnalysisPGG()
 
 
+# from optparse import OptionParser
+# import inspect
+
+# a=FU()
+# b = dir(a)
+# c = [func for func in dir(a) if callable(getattr(a, func))]
+# d=inspect.getmembers(a, predicate=inspect.ismethod)
+# e=inspect.getmembers(a, predicate=inspect.isroutine)
 
 print("Class RUN--- %s sec" %'%.2f'%  (time.time() - start_time))
