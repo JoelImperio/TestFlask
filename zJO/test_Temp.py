@@ -109,15 +109,13 @@ class Test_TEMP(ut.TestCase):
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='BEL ERROR')
 
             
-    # def test_PGG(self):
-
-    #     python=np.array(self.sp.PGG().to_numpy(),dtype=float)
-    #     python= np.squeeze(python)         
-                
-    #     prophet=ResultatPGG.loc[ResultatPGG['Prophet'].isin(['M0','M0.25','M0.5','M0.75','M1','M1.25','M1.75','M2.5','M2','M3.5']),'PGG']
-    #     prophet=np.array(prophet[0:len(python)].to_numpy(),dtype=float)
-    #     np.testing.assert_allclose(np.around(prophet,decimals=decimalPrecision),np.around(python,decimals=decimalPrecision), rtol = RTOL, atol = (decimalPrecision/(decimalPrecision*100)), err_msg='PGG ERROR')
-       
+    def test_PGG(self):
+        
+        prophet=ResultatPGG.loc[ResultatPGG['Prophet'].isin(['Prev']),'PGG'].values[0]
+        
+        python=self.sp.PGG().values[0,0]
+        
+        self.assertEqual(round(prophet,decimalPrecision),round(python,decimalPrecision))       
 
 
 
