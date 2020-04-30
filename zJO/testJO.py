@@ -1,21 +1,28 @@
 # -*- coding: utf-8 -*-
 
-
-from multiprocessing import Pool
-import time
-
-def f(x):
-    init = time.time()
-    for i in range(1,10):
-        time.sleep(1)
-    fin = time.time()
-    return fin-init
+from MyPyliferisk.mortalitytables import *
 
 
 
-if __name__ == '__main__':
-    with Pool(16) as p:
-        print(p.map(f, [1, 2, 3]))
-        
-        
-f([1, 2, 3])
+homme = Actuarial(nt=EKM1995, i=0, nbtete = 1)
+
+qxM = homme.qx
+lxM = homme.lx
+
+for i in range(0,len(qxM)):
+    
+    qxM[i] = 0.005
+
+
+
+
+
+    
+    
+    
+    
+test = Actuarial(q_x = qxM, i=0, nbtete = 1)
+# test = Actuarial(nt=EKF1995, i=0, nbtete = 1)
+test.qx
+
+test.view()
