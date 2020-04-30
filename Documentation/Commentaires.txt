@@ -120,3 +120,6 @@ cela implique une diminution de la PGG de 52'064
 ça nous donne qxy = qx + qx -qx*qx au lieu de qxy = qx + qy -qx*qy
 
 -TEMP le lapse timing est de 1 pour les temporaires, ce qui implique que pour calculé le nombre de décès on ne prend pas en compte les personnes qui auraient pu lapse avant de mourrir et inversement
+
+-TEMP les tables de mortalité sont fausses, PROPHET va cherché uniquement des code tables 1 présent dans paramtech.fac. Du coup tout les calculs sont effectués avec la table GKM95
+Même si le sexe de l'assuré est féminin'

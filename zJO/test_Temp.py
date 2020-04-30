@@ -22,8 +22,7 @@ start_time = time.time()
 DataProphet=pd.read_excel(path+'\Resultats_Prophet_Temp.xls',sheet_name=None,skiprows=7)
 
 #Les resultats de la PGG selon la répartition en vigueur
-# ResultatPGG=pd.read_excel(path+'\Resultats_PGG.xls',sheet_name='Synthese',skiprows=3)
-
+ResultatPGG=pd.read_excel(path+'\Resultats_PGG.xls',sheet_name='Synthese',skiprows=3)
 
     ### Test Couverture Start
 # cov=coverage.Coverage()
@@ -88,26 +87,26 @@ class Test_TEMP(ut.TestCase):
         np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalClaim ERROR')
             
             
-    # def test_Expense(self):
+    def test_Expense(self):
         
-    #     prophet=np.array(self.spProphet.loc[:self.length,'TOT_EXP'].to_numpy(),dtype=float)
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_EXP'].to_numpy(),dtype=float)
         
-    #     python=np.sum(self.sp.totalExpense()[:,:409,0],axis=0)
+        python=np.sum(self.sp.totalExpense()[:,:409,0],axis=0)
 
         
-    #     np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalExpense ERROR')
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalExpense ERROR')
             
 
 
 
-    # def test_BEL(self):
+    def test_BEL(self):
         
-    #     prophet=np.array(self.spProphet.loc[:self.length,'BEL_B'].to_numpy(),dtype=float)
+        prophet=np.array(self.spProphet.loc[:self.length,'BEL_B'].to_numpy(),dtype=float)
         
-    #     python=np.sum(self.sp.BEL()[:,:409,0],axis=0)
+        python=np.sum(self.sp.BEL()[:,:409,0],axis=0)
 
         
-    #     np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='BEL ERROR')
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='BEL ERROR')
 
             
     # def test_PGG(self):
@@ -120,23 +119,6 @@ class Test_TEMP(ut.TestCase):
     #     np.testing.assert_allclose(np.around(prophet,decimals=decimalPrecision),np.around(python,decimals=decimalPrecision), rtol = RTOL, atol = (decimalPrecision/(decimalPrecision*100)), err_msg='PGG ERROR')
        
 
-
-    def test_ClaimCompl(self):
-        
-        prophet=np.array(self.spProphet.loc[:self.length,'RIDERC_OUTGO'].to_numpy(),dtype=float)
-        
-        python=np.array(np.sum(self.sp.claimCompl()[:,:409,0],axis=0),dtype=float)
-
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='riderCoutgo ERROR')
-
-
-    def test_ClaimPrincip(self):
-        
-        prophet=np.array(self.spProphet.loc[:self.length,'DEATH_OUTGO'].to_numpy(),dtype=float)
-        
-        python=np.array(np.sum(self.sp.claimPrincipal()[:,:409,0],axis=0),dtype=float)
-
-        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='death outgo ERROR')
 
 
 

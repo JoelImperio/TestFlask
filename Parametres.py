@@ -695,6 +695,10 @@ def portfolioPreProcessing(p):
     + pd.to_datetime(p['DateCalcul']).dt.month - pd.to_datetime(p['POLDTDEB']).dt.month + 1  
     
     
+    
+# Prophet considère que toutes les TEMPORAIRES mod3 et 4 possèdent une table GKM95
+    mask34 = p['PMBMOD'].isin([3,4])
+    p.loc[mask34, 'POLTBMORT'] = 'GKM1995'
 
     #Nombre de mois de projection selon la date de fin des polices
     projectionLengh(p)
