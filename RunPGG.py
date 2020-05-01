@@ -131,7 +131,7 @@ class RUNPGG():
 ###################################DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES#############################################
 ##############################################################################################################################       
  
-# run=RUNPGG()
+run=RUNPGG()
 
 a=run.pggParSousPortefeuille2()
 # b=run.pggTotal()
