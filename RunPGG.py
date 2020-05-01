@@ -1,5 +1,5 @@
 from Parametres import allRuns
-from Produits import FU,AX,HO,PR,TE,EP,VE,MI
+from Produits import FU,AX,HO,PR,TE,VE,EP,MI
 import pandas as pd
 import time
 import os, os.path
@@ -12,7 +12,7 @@ class RUNPGG():
 
     def __init__(self):
         
-        self.allSP=[FU,AX,HO,PR,TE,EP,VE,MI]
+        self.allSP=[FU,AX,HO,PR,TE,VE,EP,MI]
 
 #Retourne une df avec la PGG pour chaque sous-portefeuille
     def pggParSousPortefeuille(self,runNumber=allRuns,\
@@ -88,7 +88,7 @@ class RUNPGG():
 ###################################DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES#############################################
 ##############################################################################################################################       
  
-# run=RUNPGG()
+run=RUNPGG()
 
 # a=run.pggParSousPortefeuille()
 # b=run.pggTotal()
