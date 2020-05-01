@@ -26,8 +26,7 @@ class RUNPGG():
             sp=sp.PGG()
             
             pggTotal=pggTotal.append(sp)
-
-                
+           
         return pggTotal
 
 
