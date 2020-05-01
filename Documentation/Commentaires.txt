@@ -113,3 +113,13 @@ il faudra aussi supprimer le fichier "CorrespondanceProduit.xlsx"
 
 -MI le fichier de résultat à été modifier par une modification de VPORTPOLPM car 2 produits Prophète étaient inversé pour les PM F1XT12 et F1XT13
 cela implique une diminution de la PGG de 52'064
+
+
+
+-TEMP meme cas que pour les mixtes : On fait le calcul de la probabilité jointe de décès OK mais uniquement avec le qx du 1ER ASSURE !!!! 
+ça nous donne qxy = qx + qx -qx*qx au lieu de qxy = qx + qy -qx*qy
+
+-TEMP le lapse timing est de 1 pour les temporaires, ce qui implique que pour calculé le nombre de décès on ne prend pas en compte les personnes qui auraient pu lapse avant de mourrir et inversement
+
+-TEMP les tables de mortalité sont fausses, PROPHET va cherché uniquement des code tables 1 présent dans paramtech.fac. Du coup tout les calculs sont effectués avec la table GKM95
+Même si le sexe de l'assuré est féminin'

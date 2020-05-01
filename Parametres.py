@@ -265,6 +265,20 @@ def fraisGestionSumAss(p):
     p['fraisGestDureePrimesSA'] = p['fraisGestDureePrimesSA'].fillna(0)
     p['fraisGestDureePoliceSA'] = p['fraisGestDureePoliceSA'].fillna(0)
     
+    
+    # Mod3 et 4 1 tête
+    mask=(p['PMBMOD'].isin([3, 4])) & (p['POLNBTETE'] == 1)
+    p.loc[mask, 'fraisGestDureePoliceSA'] = 0.0008
+    p.loc[mask, 'fraisGestDureePrimesSA'] = 0
+    
+    # Mod3 2têtes
+    mask=(p['PMBMOD'].isin([3])) & (p['POLNBTETE'] == 2)
+    p.loc[mask, 'fraisGestDureePoliceSA'] = 0.0011
+    p.loc[mask, 'fraisGestDureePrimesSA'] = 0.0011
+    
+    
+    
+    
 def tauxZill(p):
     
     # mod2
@@ -575,11 +589,16 @@ def adjustAgesAndTerm(p):
 
     p.loc[mask2,'Age1AtEntry']=np.minimum(p.loc[mask2,'Age1AtEntry'],p.loc[mask2,'Age2AtEntry'])+ p.loc[mask2,'ageDecalage']
     
-    p.loc[mask,'Age2AtEntry']=999
+    p.loc[~mask2, 'Age2AtEntry']=999
+
     
     p.loc[p['residualTermM']<0,'residualTermM']=0
             
-       
+   
+
+    
+   
+    
     
 # Traitement des modalité 10
         
@@ -681,6 +700,10 @@ def portfolioPreProcessing(p):
     + pd.to_datetime(p['DateCalcul']).dt.month - pd.to_datetime(p['POLDTDEB']).dt.month + 1  
     
     
+    
+# Prophet considère que toutes les TEMPORAIRES mod3 et 4 possèdent une table GKM95
+    mask34 = p['PMBMOD'].isin([3,4])
+    p.loc[mask34, 'POLTBMORT'] = 'GKM1995'
 
     #Nombre de mois de projection selon la date de fin des polices
     projectionLengh(p)
