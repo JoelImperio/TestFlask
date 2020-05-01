@@ -11,53 +11,25 @@ start_time = time.time()
 class RUNPGG():
 
     def __init__(self):
+        
         self.allSP=[FU,AX,HO,PR,EP,VE,MI]
 
 #Retourne une df avec la PGG pour chaque sous-portefeuille
     def pggParSousPortefeuille(self,runNumber=allRuns,\
                                isPortfolioNew=True, isSinistralityNew=True,isLapseNew=True,isCostNew=True,isRateNew=True):
-
-#Ajout de funéraille           
-        fu=FU(run=runNumber,PortfolioNew=isPortfolioNew, SinistralityNew=isSinistralityNew,\
-              LapseNew=isLapseNew,CostNew=isCostNew,RateNew=isRateNew)    
-        fu=fu.PGG()
- 
-#Ajout d'axiprotect      
-        ax=AX(run=runNumber,PortfolioNew=isPortfolioNew, SinistralityNew=isSinistralityNew,\
-              LapseNew=isLapseNew,CostNew=isCostNew,RateNew=isRateNew)    
-        ax=ax.PGG()
-
-#Ajout d'hospitalis      
-        ho=HO(run=runNumber,PortfolioNew=isPortfolioNew, SinistralityNew=isSinistralityNew,\
-              LapseNew=isLapseNew,CostNew=isCostNew,RateNew=isRateNew)    
-        ho=ho.PGG()
-
-#Ajout des PRECISO     
-        pr=PR(run=runNumber,PortfolioNew=isPortfolioNew, SinistralityNew=isSinistralityNew,\
-              LapseNew=isLapseNew,CostNew=isCostNew,RateNew=isRateNew)    
-        pr=pr.PGG()
-
-#Ajout des épargnes     
-        ep=EP(run=runNumber,PortfolioNew=isPortfolioNew, SinistralityNew=isSinistralityNew,\
-              LapseNew=isLapseNew,CostNew=isCostNew,RateNew=isRateNew)    
-        ep=ep.PGG()
         
-#Ajout des vie entières    
-        ve=VE(run=runNumber,PortfolioNew=isPortfolioNew, SinistralityNew=isSinistralityNew,\
-              LapseNew=isLapseNew,CostNew=isCostNew,RateNew=isRateNew)    
-        ve=ve.PGG()
+        pggTotal=pd.DataFrame()
+        for i in range(len(self.allSP)):
+            
+            sp=self.allSP[i](run=runNumber,PortfolioNew=isPortfolioNew, SinistralityNew=isSinistralityNew,\
+              LapseNew=isLapseNew,CostNew=isCostNew,RateNew=isRateNew)
+            sp=sp.PGG()
+            
+            pggTotal=pggTotal.append(sp)
 
-#Ajout des mixtes  
-        mi=MI(run=runNumber,PortfolioNew=isPortfolioNew, SinistralityNew=isSinistralityNew,\
-              LapseNew=isLapseNew,CostNew=isCostNew,RateNew=isRateNew)    
-        mi=mi.PGG()
-
-#Agrégation des sous-portefeuille dans une DF       
-        pggTotal=pd.DataFrame(fu)
-        pggTotal=pggTotal.append([ax,ho,pr,ep,ve,mi])
-        
-        
+                
         return pggTotal
+
 
 #Retourne la PGG total avec les hypothèses N   
     def pggTotal(self):
@@ -110,30 +82,16 @@ class RUNPGG():
         
         return totalDelta
 
-#Retourne une df avec la PGG pour chaque sous-portefeuille
-    def pggParSousPortefeuille2(self,runNumber=allRuns,\
-                               isPortfolioNew=True, isSinistralityNew=True,isLapseNew=True,isCostNew=True,isRateNew=True):
-        
-        pggTotal=pd.DataFrame()
-        for i in range(len(self.allSP)):
-            
-            sp=self.allSP[i](run=runNumber,PortfolioNew=isPortfolioNew, SinistralityNew=isSinistralityNew,\
-              LapseNew=isLapseNew,CostNew=isCostNew,RateNew=isRateNew)
-            sp=sp.PGG()
-            
-            pggTotal=pggTotal.append(sp)
 
-                
-        return pggTotal
 
         
 ##############################################################################################################################
 ###################################DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES#############################################
 ##############################################################################################################################       
  
-run=RUNPGG()
+# run=RUNPGG()
 
-a=run.pggParSousPortefeuille2()
+# a=run.pggParSousPortefeuille()
 # b=run.pggTotal()
 # c=run.deltaAnalysisSousPortefeuille()
 # d=run.deltaAnalysisPGG()
