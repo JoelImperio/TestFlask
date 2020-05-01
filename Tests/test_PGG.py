@@ -5,7 +5,7 @@ import coverage
 import time
 import os, os.path
 path = os.path.dirname(os.path.abspath(__file__))
-from Produits import FU,AX,HO,PR,EP,VE,MI
+from Produits import FU,AX,HO,PR,EP,VE,MI,TE
 
 
 start_time = time.time()
@@ -333,6 +333,88 @@ class Test_PR(ut.TestCase):
         python=self.sp.PGG().values[0,0]
         
         self.assertEqual(round(prophet,decimalPrecision),round(python,decimalPrecision)) 
+
+
+#Test spécifique produit pour le Best Estimate et la PGG
+class Test_TE(ut.TestCase):
+
+    ### Onglet fichier résultat 
+    ongletResultat='TE'
+    spProphet = DataProphet[ongletResultat].replace('-',0)
+    
+    ### Sous portefeuille à tester
+    
+    sp=TE()
+
+
+    length = len(sp.totalPremium()[0,:,0]) - 1
+    
+
+    def test_nombrePolices(self):
+        nbrPolices=18
+        self.assertEqual(len(self.sp.p),nbrPolices)
+    
+    
+    def test_Premium(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'PREM_INC'].to_numpy(),dtype=float)
+
+        python=np.sum(self.sp.totalPremium()[:,:409,0],axis=0)
+
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalPremium ERROR ')
+       
+
+     
+    def test_Commissions(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_COMM'].to_numpy(),dtype=float)
+        
+        python=np.array(np.sum(self.sp.totalCommissions()[:,:409,0],axis=0),dtype=float)
+
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalCommissions ERROR')
+
+
+
+    def test_Claim(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_PREST'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.totalClaim()[:,:409,0],axis=0)
+
+        
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalClaim ERROR')
+            
+            
+    def test_Expense(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'TOT_EXP'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.totalExpense()[:,:409,0],axis=0)
+
+        
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='totalExpense ERROR')
+            
+
+
+
+    def test_BEL(self):
+        
+        prophet=np.array(self.spProphet.loc[:self.length,'BEL_B'].to_numpy(),dtype=float)
+        
+        python=np.sum(self.sp.BEL()[:,:409,0],axis=0)
+
+        
+        np.testing.assert_allclose(prophet, python, rtol = RTOL, atol = ATOL, err_msg='BEL ERROR')
+
+            
+    def test_PGG(self):
+        
+        prophet=ResultatPGG.loc[ResultatPGG['Prophet'].isin(['Prev']),'PGG'].values[0]
+        
+        python=self.sp.PGG().values[0,0]
+        
+        self.assertEqual(round(prophet,decimalPrecision),round(python,decimalPrecision))       
+
 
 
 #Test spécifique produit pour le Best Estimate et la PGG

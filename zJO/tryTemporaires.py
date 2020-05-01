@@ -10,13 +10,12 @@ from MyPyliferisk.mortalitytables import *
 path = os.path.dirname(os.path.abspath(__file__))
 start_time = time.time()
 
-##############################################################################################################################
-#Création de la class TEMP
-##############################################################################################################################
 
-    # Modalité 3 uniquement pour les 1 tête
+# =============================================================================
+# Création de la classe des Temporaires
+# =============================================================================
 class TE(Portfolio):
-    # mods=[3]
+    mods=[3,4]
     # modHeads = [3],1
     # complPremium=pol.p['POLPRCPL2']
     ageLimiteCPL = 60
@@ -25,8 +24,7 @@ class TE(Portfolio):
                  PortfolioNew=True, SinistralityNew=True,LapseNew=True,CostNew=True,RateNew=True ):
         super().__init__(runs=run,\
              myPortfolioNew=PortfolioNew, mySinistralityNew=SinistralityNew,myLapseNew=LapseNew,myCostNew=CostNew,myRateNew=RateNew)
-        self.p=self.modHead([3],1)
-        
+        self.p=self.mod(self.mods)        
         
     
 #Permet de relancer l'update() en intégrant des methodes de la sous-classe
