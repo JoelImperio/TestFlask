@@ -589,8 +589,9 @@ def adjustAgesAndTerm(p):
 
     p.loc[mask2,'Age1AtEntry']=np.minimum(p.loc[mask2,'Age1AtEntry'],p.loc[mask2,'Age2AtEntry'])+ p.loc[mask2,'ageDecalage']
     
-    p.loc[~mask2, 'Age2AtEntry']=999
+    # p.loc[~mask2, 'Age2AtEntry']=999
 
+    p.loc[mask,'Age2AtEntry']=999
     
     p.loc[p['residualTermM']<0,'residualTermM']=0
             
