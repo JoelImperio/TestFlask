@@ -11,7 +11,7 @@ start_time = time.time()
 class RUNPGG():
 
     def __init__(self):
-        self
+        self.allSP=[FU,AX,HO,PR,EP,VE,MI]
 
 #Retourne une df avec la PGG pour chaque sous-portefeuille
     def pggParSousPortefeuille(self,runNumber=allRuns,\
@@ -109,6 +109,23 @@ class RUNPGG():
         totalDelta['Delta']=totalDelta.diff().fillna(0)
         
         return totalDelta
+
+#Retourne une df avec la PGG pour chaque sous-portefeuille
+    def pggParSousPortefeuille2(self,runNumber=allRuns,\
+                               isPortfolioNew=True, isSinistralityNew=True,isLapseNew=True,isCostNew=True,isRateNew=True):
+        
+        pggTotal=pd.DataFrame()
+        for i in range(len(self.allSP)):
+            
+            sp=self.allSP[i](run=runNumber,PortfolioNew=isPortfolioNew, SinistralityNew=isSinistralityNew,\
+              LapseNew=isLapseNew,CostNew=isCostNew,RateNew=isRateNew)
+            sp=sp.PGG()
+            
+            pggTotal=pggTotal.append(sp)
+
+                
+        return pggTotal
+
         
 ##############################################################################################################################
 ###################################DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES#############################################
@@ -116,14 +133,33 @@ class RUNPGG():
  
 # run=RUNPGG()
 
-# a=run.pggParSousPortefeuille()
+a=run.pggParSousPortefeuille2()
 # b=run.pggTotal()
 # c=run.deltaAnalysisSousPortefeuille()
 # d=run.deltaAnalysisPGG()
 
-# #Tester de récupérer toutes les méthodes et storer tout les résultats
+#Tester de récupérer toutes les méthodes et storer tout les résultats
 # a=FU()
 # b = dir(a)
-# x=getattr(a,b[106])()
+# y=pd.DataFrame(columns=['Method','Resultat'])
+
+# for i in range(len(b)):
+
+#     try:
+#         x=getattr(a,b[i])()
+#     except:
+#         x=getattr(a,b[i])
+#     else:
+#         pass
+    
+#     y.loc[i]=[b[i],x]
+
+    
+
+# y.to_excel(path+'/zRW/VariablesRapport.xlsx')
+
+
+
+
 
 print("Class RUN--- %s sec" %'%.2f'%  (time.time() - start_time))
