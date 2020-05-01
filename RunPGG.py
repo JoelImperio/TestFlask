@@ -111,7 +111,6 @@ class RUNPGG():
     
 #     y.loc[i]=[b[i],x]
 
-    
 
 # y.to_excel(path+'/zRW/VariablesRapport.xlsx')
 
