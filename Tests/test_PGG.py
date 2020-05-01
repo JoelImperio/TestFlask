@@ -649,6 +649,10 @@ class Test_MI(ut.TestCase):
 #Permet de lancer les test de ce script
 ut.main()
 
+#Permet de lancer les test d'une classe spécifique
+# ut.main(Test_TE())
+
+
 
 
 #Permet de lancer l'ensemble des test du workspace
