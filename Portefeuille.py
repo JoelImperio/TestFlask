@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from Parametres import Hypo, allRuns,tableExperience
+from Parametres import Hypo,Inputs
 from MyPyliferisk import MortalityTable, Actuarial
 from MyPyliferisk.mortalitytables import *
 import time
@@ -13,6 +13,8 @@ start_time = time.time()
 #Création de la class Portefeuille
 ##############################################################################################################################
 
+myInputs=Inputs()
+
 class Portfolio(Hypo):
 
     ageNan=999
@@ -22,9 +24,9 @@ class Portfolio(Hypo):
 #    lapseTiming=0.5
     lapseTiming=1
  
-    def __init__(self,runs=allRuns, \
+    def __init__(self,inp=myInputs, \
                  myPortfolioNew=True, mySinistralityNew=True,myLapseNew=True,myCostNew=True,myRateNew=True):  
-        super().__init__(Run=runs,\
+        super().__init__(inputs=inp,\
              PortfolioNew=myPortfolioNew, SinistralityNew=mySinistralityNew,LapseNew=myLapseNew,CostNew=myCostNew,RateNew=myRateNew)
 
 ##############################################################################################################################
@@ -63,8 +65,9 @@ class Portfolio(Hypo):
         return age
 
 #Retourne les qx dimensionné pour une table de mortalité,une expérience (100 = 100% de la table) et pour l'assuré 1 ou 2
-    def qx(self,table=tableExperience, exp=100, ass=1):
-         
+    def qx(self, exp=100, ass=1):
+        
+        table=self.inputs.tableExperience
         mt=MortalityTable(nt=table, perc=exp)
         
         aQx=pd.DataFrame(mt.qx).to_numpy()
@@ -398,7 +401,7 @@ class Portfolio(Hypo):
 def testerPortfolio():
     return
   
-#myPolicies=Portfolio(runs=[4,5])
+# myPolicies=Portfolio(runs=[4,5])
 # myPolicies=Portfolio()
 
 # myPolicies.mod([11])

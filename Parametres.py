@@ -379,25 +379,7 @@ def adjustedFracAndPremium(p):
     
     
     
-##############################################################################################################################
-#Calcul de l'âge initial (l'âge du deuxième assuré qui n'existe pas est fixé à 999)
-##############################################################################################################################    
 
-def agesInitial(p):
-    
-    date1=pd.to_datetime(p['CLIDTNAISS'].astype(str), format='%Y%m%d')
-    
-    date2=pd.to_datetime(p['CLIDTNAISS2'].astype(str), format='%Y%m%d')
-    
-    dateDebut= pd.to_datetime(p['POLDTDEB'].astype(str), format='%Y%m%d')
-    
-    dtNaiss1=np.where(date1.dt.month * 100 + date1.dt.day  > dateDebut.dt.month * 100 + dateDebut.dt.day , date1.dt.year  + 1, date1.dt.year)
-    
-    dtNaiss2=np.where(date2.dt.month * 100 + date2.dt.day  > dateDebut.dt.month * 100 + dateDebut.dt.day , date2.dt.year  + 1, date2.dt.year)
-    
-    p['Age1AtEntry']=dateDebut.dt.year-dtNaiss1
-    p['Age2AtEntry']=dateDebut.dt.year-dtNaiss2
-    p.loc[p.Age2AtEntry==0,'Age2AtEntry']=999
     
    
 ##############################################################################################################################
@@ -633,115 +615,6 @@ def ReAllocClassPGG_Mixte(p):
     
     return p 
 
-##############################################################################################################################
-#Permet de formater la dataframe du portefeuille des polices avant d'entrer dans la classe Hypo
-#traitement des anomalies et mise en forme des colonnes
-##############################################################################################################################
-
-def portfolioPreProcessing(p):
-
-#Traitement des anomalies dans les données
-
-    #Certaines dates d'échéances tombe un jour qui n'existe pas
-    p.loc[p['PMBPOL'].isin([1602101,609403,2161101,2162601,297004]), 'POLDTEXP'] = '20190228'
-    
-    #Lorsqu'il y a de l'agravation dans les Funérailles la prime initial est prise
-    p.loc[p['PMBPOL'].isin([602802,2130001,2141101,2149401,2165602,2190101,2216301,2265503,2349803,2547906]), 'POLPRTOT']=240
-    
-    #Une date de naissance a été corrigée rétroactivement, nous replacons la date de naissance présente à la clôture    
-    p.loc[p['PMBPOL'].isin([60602]), 'CLIDTNAISS2'] = '19551009'
-
-    p.loc[p['PMBPOL'].isin([786502]), 'CLIDTNAISS'] = '19611028'
-    
-    p.loc[p['PMBPOL'].isin([3101]), 'CLIDTNAISS'] = '19700910'
-    p.loc[p['PMBPOL'].isin([783401]), 'CLIDTNAISS'] = '19730718'
-
-    
-    
-    
-    #Lorsque la police a une tête l'age du deuxième assuré est 0 donc il né à la date début de la police (ensuite 999 ans)
-    p.loc[p.POLNBTETE==1, 'CLIDTNAISS2'] = p.loc[p.POLNBTETE==1, 'POLDTDEB']
-    
-    #Une police mod 70 est par construction déjà échue le premier mois elle ne rentre pas dans prophet
-    p=p.drop(p.loc[p['PMBPOL'].isin([1054602])].index)
-    
-    #Une police Hospitalis a un taux d'indexation sur la prime à 3%
-    p.loc[p['PMBPOL'].isin([1637202]), 'POLINDEX'] = 0
-    # Une police axiprotect a un taux d'indexation sur la prime à 1%, on force à 0
-    p.loc[p['PMBPOL'].isin([2357801]), 'POLINDEX'] = 0
-    
-    
-    agesInitial(p)
-    
-#Formatage des colonnes et création des colonnes utiles    
-
-    p['DateCalcul']=pd.to_datetime(dateCalcul)
-    p['DateFinCalcul']=pd.to_datetime(dateFinCalcul)
-    
-    #Formatage des date en format date
-    p['POLDTDEB']= pd.to_datetime(p['POLDTDEB'].astype(str), format='%Y%m%d').dt.date
-    p['POLDTEXP']= pd.to_datetime(p['POLDTEXP'].astype(str), format='%Y%m%d').dt.date
-    p['CLIDTNAISS']= pd.to_datetime(p['CLIDTNAISS'].astype(str), format='%Y%m%d').dt.date   
-    p['CLIDTNAISS2']= pd.to_datetime(p['CLIDTNAISS2'].astype(str), format='%Y%m%d').dt.date
-    
-    #Nombre de mois de projection selon la date fin de calcul hardcodé qui est voué à disparaitre 
-    p['ProjectionMonths']=((pd.to_datetime(p['DateFinCalcul'])-pd.to_datetime(p['DateCalcul'])) \
-     /np.timedelta64(1,'M')).apply(np.ceil)
-    
-##On pense que la différence en mois est plus correct que le calcul des DCS pour les duration IF
-#    p['DurationIfInitial']=((pd.to_datetime(p['DateCalcul'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.around)
-    p['DurationIfInitial']=(pd.to_datetime(p['DateCalcul']).dt.year - pd.to_datetime(p['POLDTDEB']).dt.year)*12 \
-    + pd.to_datetime(p['DateCalcul']).dt.month - pd.to_datetime(p['POLDTDEB']).dt.month + 1  
-    
-    
-    
-# Prophet considère que toutes les TEMPORAIRES mod3 et 4 possèdent une table GKM95
-    mask34 = p['PMBMOD'].isin([3,4])
-    p.loc[mask34, 'POLTBMORT'] = 'GKM1995'
-
-    #Nombre de mois de projection selon la date de fin des polices
-    projectionLengh(p)
-    
-    #Création des collones pour l'agragation de la PGG
-    allocationDesClassPGG(p)
-    
-    #A supprimer car permet de reproduire l'erreur d'affectation des classesPGG pour les Mixtes    
-    ReAllocClassPGG_Mixte(p)
-    
-    #Création des PM servant de base pour le calcul de la PGG
-    p['PMbasePGG']=p['PMBPRVMAT']+p['PMBPBEN']+p['PMBREC']+p['PMBRECCPL']
-    
-    #Traitement des ages et policy terme selon Prophet pour mod70 (nous pensons que cela est erroné)
-    adjustAgesAndTerm(p)
-    
-    #? On enlève les 18 polices que prophet ne prenait pas en compte pour les mod6
-    p.loc[p['PMBPOL'].isin([1302, 96803, 96804, 96805, 96806, 150003, 150004, 150005, 150103, 150104, 150105, 262905, 263003, 448502, 448503, 514408, 514409, 2547101]), 'Age1AtEntry'] = 999
-        
-    # Ajout de la colonne contenant les chargements d'acquisition
-    premiumAquisitionLoading(p)
-    
-    # Ajout de la colonne contenant les chargements de gestion
-    premiumGestionLoading(p)
-    
-    #Ajout de la colonne contenant les chargement de gestions en % de la somme assurée
-    fraisGestionSumAss(p)
-    
-    #Ajout d'une colonne contenant les frais de fractionnement
-    fraisFractionnement(p)
-    
-    # Ajustement des fractionnements pour des polices avec frac = 0 (réduites)
-    adjustedFracAndPremium(p)
-    
-    # Ajout des taux de zillmérisations en fonction du tarif
-    tauxZill(p)
-    
-
-    
-    
-
-    return p
-
-
 
 
 ##############################################################################################################################
@@ -754,20 +627,170 @@ def portfolioPreProcessing(p):
 def chargementINPUTS():
     return 
 
-hypN=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypotheses")
-hypN_1=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypotheses")
 
-porN=pd.read_csv(path+'/Portefeuille\Portfolio.csv')
-porN=portfolioPreProcessing(porN)
-
-porN_1=pd.read_csv(path+'/Portefeuille\Portfolio.csv')
-porN_1=portfolioPreProcessing(porN_1)
-
-allRuns=[0,1,2,3,4,5]
-
-tableExperience=EKM05i
    
-# inputs=[hypN,hypN_1,porN,porN_1,allRuns]
+
+# =============================================================================
+#  Création de la classe Inputs
+# =============================================================================
+
+class Inputs:
+
+    def __init__(self):
+        
+        self.allRuns=[0,1,2,3,4,5]
+        
+        self.myRuns=[0,1,2,3,4,5]
+        
+        self.tableExperience=EKM05i
+        
+        
+        self.hy=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypotheses")
+        self.hy1=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypotheses")
+        
+        porN=pd.read_csv(path+'/Portefeuille\Portfolio.csv')
+        porN_1=pd.read_csv(path+'/Portefeuille\Portfolio.csv')
+       
+        self.po=self.portfolioPreProcessing(porN)
+        self.po1=self.portfolioPreProcessing(porN_1)
+              
+    def clean(self):
+                
+        return [self.hy,self.hy1,self.po,self.po1,self.myRuns]
+    
+
+    def aSupprimer(self,p):
+
+    #Traitement des anomalies dans les données
+    
+        #Certaines dates d'échéances tombe un jour qui n'existe pas
+        p.loc[p['PMBPOL'].isin([1602101,609403,2161101,2162601,297004]), 'POLDTEXP'] = '20190228'
+        
+        #Lorsqu'il y a de l'agravation dans les Funérailles la prime initial est prise
+        p.loc[p['PMBPOL'].isin([602802,2130001,2141101,2149401,2165602,2190101,2216301,2265503,2349803,2547906]), 'POLPRTOT']=240
+        
+        #Une date de naissance a été corrigée rétroactivement, nous replacons la date de naissance présente à la clôture    
+        p.loc[p['PMBPOL'].isin([60602]), 'CLIDTNAISS2'] = '19551009' 
+        p.loc[p['PMBPOL'].isin([786502]), 'CLIDTNAISS'] = '19611028'     
+        p.loc[p['PMBPOL'].isin([3101]), 'CLIDTNAISS'] = '19700910'
+        p.loc[p['PMBPOL'].isin([783401]), 'CLIDTNAISS'] = '19730718'
+    
+        
+        #Une police mod 70 est par construction déjà échue le premier mois elle ne rentre pas dans prophet
+        p=p.drop(p.loc[p['PMBPOL'].isin([1054602])].index)
+        
+        #Une police Hospitalis a un taux d'indexation sur la prime à 3%
+        p.loc[p['PMBPOL'].isin([1637202]), 'POLINDEX'] = 0
+        # Une police axiprotect a un taux d'indexation sur la prime à 1%, on force à 0
+        p.loc[p['PMBPOL'].isin([2357801]), 'POLINDEX'] = 0
+
+        # Prophet considère que toutes les TEMPORAIRES mod3 et 4 possèdent une table GKM95
+        mask34 = p['PMBMOD'].isin([3,4])
+        p.loc[mask34, 'POLTBMORT'] = 'GKM1995'
+        
+        return p
+
+##############################################################################################################################
+#Calcul de l'âge initial (l'âge du deuxième assuré qui n'existe pas est fixé à 999)
+##############################################################################################################################    
+
+    def agesInitial(self,p):
+        
+        #police 1 l'age du deuxième assuré est 0 donc il né à la date début de la police (ensuite 999 ans)
+        p.loc[p.POLNBTETE==1, 'CLIDTNAISS2'] = p.loc[p.POLNBTETE==1, 'POLDTDEB']
+        
+        date1=pd.to_datetime(p['CLIDTNAISS'].astype(str), format='%Y%m%d')
+        
+        date2=pd.to_datetime(p['CLIDTNAISS2'].astype(str), format='%Y%m%d')
+        
+        dateDebut= pd.to_datetime(p['POLDTDEB'].astype(str), format='%Y%m%d')
+        
+        dtNaiss1=np.where(date1.dt.month * 100 + date1.dt.day  > dateDebut.dt.month * 100 + dateDebut.dt.day , date1.dt.year  + 1, date1.dt.year)
+        
+        dtNaiss2=np.where(date2.dt.month * 100 + date2.dt.day  > dateDebut.dt.month * 100 + dateDebut.dt.day , date2.dt.year  + 1, date2.dt.year)
+        
+        p['Age1AtEntry']=dateDebut.dt.year-dtNaiss1
+        p['Age2AtEntry']=dateDebut.dt.year-dtNaiss2
+        p.loc[p.Age2AtEntry==0,'Age2AtEntry']=999
+
+            
+##############################################################################################################################
+#Permet de formater la dataframe du portefeuille des polices avant d'entrer dans la classe Hypo
+#traitement des anomalies et mise en forme des colonnes
+##############################################################################################################################
+
+    def portfolioPreProcessing(self,p):
+    
+        
+        p=self.aSupprimer(p)
+
+        self.agesInitial(p)
+        
+    #Formatage des colonnes et création des colonnes utiles    
+    
+        p['DateCalcul']=pd.to_datetime(dateCalcul)
+        p['DateFinCalcul']=pd.to_datetime(dateFinCalcul)
+        
+        #Formatage des date en format date
+        p['POLDTDEB']= pd.to_datetime(p['POLDTDEB'].astype(str), format='%Y%m%d').dt.date
+        p['POLDTEXP']= pd.to_datetime(p['POLDTEXP'].astype(str), format='%Y%m%d').dt.date
+        p['CLIDTNAISS']= pd.to_datetime(p['CLIDTNAISS'].astype(str), format='%Y%m%d').dt.date   
+        p['CLIDTNAISS2']= pd.to_datetime(p['CLIDTNAISS2'].astype(str), format='%Y%m%d').dt.date
+        
+        #Nombre de mois de projection selon la date fin de calcul hardcodé qui est voué à disparaitre 
+        p['ProjectionMonths']=((pd.to_datetime(p['DateFinCalcul'])-pd.to_datetime(p['DateCalcul'])) \
+         /np.timedelta64(1,'M')).apply(np.ceil)
+        
+    ##On pense que la différence en mois est plus correct que le calcul des DCS pour les duration IF
+    #    p['DurationIfInitial']=((pd.to_datetime(p['DateCalcul'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.around)
+        p['DurationIfInitial']=(pd.to_datetime(p['DateCalcul']).dt.year - pd.to_datetime(p['POLDTDEB']).dt.year)*12 \
+        + pd.to_datetime(p['DateCalcul']).dt.month - pd.to_datetime(p['POLDTDEB']).dt.month + 1  
+        
+        
+        
+
+    
+        #Nombre de mois de projection selon la date de fin des polices
+        projectionLengh(p)
+        
+        #Création des collones pour l'agragation de la PGG
+        allocationDesClassPGG(p)
+        
+        #A supprimer car permet de reproduire l'erreur d'affectation des classesPGG pour les Mixtes    
+        ReAllocClassPGG_Mixte(p)
+        
+        #Création des PM servant de base pour le calcul de la PGG
+        p['PMbasePGG']=p['PMBPRVMAT']+p['PMBPBEN']+p['PMBREC']+p['PMBRECCPL']
+        
+        #Traitement des ages et policy terme selon Prophet pour mod70 (nous pensons que cela est erroné)
+        adjustAgesAndTerm(p)
+        
+        #? On enlève les 18 polices que prophet ne prenait pas en compte pour les mod6
+        p.loc[p['PMBPOL'].isin([1302, 96803, 96804, 96805, 96806, 150003, 150004, 150005, 150103, 150104, 150105, 262905, 263003, 448502, 448503, 514408, 514409, 2547101]), 'Age1AtEntry'] = 999
+            
+        # Ajout de la colonne contenant les chargements d'acquisition
+        premiumAquisitionLoading(p)
+        
+        # Ajout de la colonne contenant les chargements de gestion
+        premiumGestionLoading(p)
+        
+        #Ajout de la colonne contenant les chargement de gestions en % de la somme assurée
+        fraisGestionSumAss(p)
+        
+        #Ajout d'une colonne contenant les frais de fractionnement
+        fraisFractionnement(p)
+        
+        # Ajustement des fractionnements pour des polices avec frac = 0 (réduites)
+        adjustedFracAndPremium(p)
+        
+        # Ajout des taux de zillmérisations en fonction du tarif
+        tauxZill(p)
+        
+        return p        
+  
+
+myInputs=Inputs().clean()
+
 
 ##############################################################################################################################
 #Création de la class Hypothèse
@@ -775,22 +798,23 @@ tableExperience=EKM05i
 
 class Hypo:
     
-#    __slot__=('un','vide','zero','run','shape')
 
-    def __init__(self,hy=hypN,hy1=hypN_1,po=porN, po1=porN_1,Run=allRuns, \
+    def __init__(self,inputs=Inputs(), \
                  PortfolioNew=True, SinistralityNew=True,LapseNew=True,CostNew=True,RateNew=True ):
         
+        self.inputs=inputs
+        
         if PortfolioNew:
-            self.tout=po 
-            self.p=po
+            self.tout=self.inputs.clean()[2]
+            self.p=self.inputs.clean()[2]
         else:
-            self.tout=po1
-            self.p=po1
+            self.tout=self.inputs.clean()[3]
+            self.p=self.inputs.clean()[3]
         
-        self.h0=hy
-        self.h1=hy1
+        self.h0=self.inputs.clean()[0]
+        self.h1=self.inputs.clean()[1]
         
-        self.runs=Run
+        self.runs=self.inputs.clean()[4]
         self.shape=list(self.one().shape)
         self.SinistralityNew=SinistralityNew
         self.LapseNew=LapseNew
@@ -857,14 +881,14 @@ class Hypo:
 # Retourne une template formaté pour tous les runs avec des 0  
     def templateAllrun(self):             
         myShape=self.shape
-        myShape[2]=int(len(allRuns))
+        myShape[2]=int(len(self.inputs.allRuns))
         result=np.zeros(myShape)
         return np.copy(result)
     
 # Retourne une template formaté pour tous les runs de 1   
     def oneAllrun(self):             
         myShape=self.shape
-        myShape[2]=int(len(allRuns))
+        myShape[2]=int(len(self.inputs.allRuns))
         result=np.ones(myShape)
         return np.copy(result)
 
@@ -1231,7 +1255,7 @@ class Hypo:
 ##############################################################################################################################
 
 #myHypo=Hypo(Run=[0,5])
-# myHypo=Hypo()
+myHypo=Hypo()
 
 # myHypo.mod([11])
 # p = myHypo.ids([10105])

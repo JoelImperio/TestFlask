@@ -1,5 +1,5 @@
 from Portefeuille import Portfolio
-from Parametres import allRuns
+from Parametres import Inputs
 import numpy as np
 import pandas as pd
 import time
@@ -10,6 +10,7 @@ start_time = time.time()
 ##############################################################################################################################
 ##############################################################################################################################
 
+myInputs=Inputs()
 
 ##############################################################################################################################
 #Création de la class Funérailles
@@ -19,9 +20,9 @@ class FU(Portfolio):
     complPremium=60
 
     
-    def __init__(self,run=allRuns,\
+    def __init__(self,inputs=myInputs,\
                  PortfolioNew=True, SinistralityNew=True,LapseNew=True,CostNew=True,RateNew=True ):
-        super().__init__(runs=run,\
+        super().__init__(inp=inputs,\
              myPortfolioNew=PortfolioNew, mySinistralityNew=SinistralityNew,myLapseNew=LapseNew,myCostNew=CostNew,myRateNew=RateNew)
         self.p=self.mod(self.mods)
 
@@ -105,9 +106,9 @@ class AX(Portfolio):
     capitalCompl=8000
 
     
-    def __init__(self,run=allRuns,\
+    def __init__(self,inputs=myInputs,\
                  PortfolioNew=True, SinistralityNew=True,LapseNew=True,CostNew=True,RateNew=True ):
-        super().__init__(runs=run,\
+        super().__init__(inp=inputs,\
              myPortfolioNew=PortfolioNew, mySinistralityNew=SinistralityNew,myLapseNew=LapseNew,myCostNew=CostNew,myRateNew=RateNew)
         self.p=self.mod(self.mods)
 
@@ -221,9 +222,9 @@ print("Class AX--- %s sec" %'%.2f'%  (time.time() - start_time))
 class HO(Portfolio):
     mods=[58]
     
-    def __init__(self,run=allRuns,\
+    def __init__(self,inputs=myInputs,\
                  PortfolioNew=True, SinistralityNew=True,LapseNew=True,CostNew=True,RateNew=True ):
-        super().__init__(runs=run,\
+        super().__init__(inp=inputs,\
              myPortfolioNew=PortfolioNew, mySinistralityNew=SinistralityNew,myLapseNew=LapseNew,myCostNew=CostNew,myRateNew=RateNew)
         self.p=self.mod(self.mods)
         
@@ -321,9 +322,9 @@ class PR(Portfolio):
 
 
     
-    def __init__(self,run=allRuns,\
+    def __init__(self,inputs=myInputs,\
                  PortfolioNew=True, SinistralityNew=True,LapseNew=True,CostNew=True,RateNew=True ):
-        super().__init__(runs=run,\
+        super().__init__(inp=inputs,\
              myPortfolioNew=PortfolioNew, mySinistralityNew=SinistralityNew,myLapseNew=LapseNew,myCostNew=CostNew,myRateNew=RateNew)
         self.p=self.mod(self.mods)
         
@@ -425,12 +426,11 @@ class TE(Portfolio):
     # complPremium=pol.p['POLPRCPL2']
     ageLimiteCPL = 60
     
-    def __init__(self,run=allRuns,\
+    def __init__(self,inputs=myInputs,\
                  PortfolioNew=True, SinistralityNew=True,LapseNew=True,CostNew=True,RateNew=True ):
-        super().__init__(runs=run,\
+        super().__init__(inp=inputs,\
              myPortfolioNew=PortfolioNew, mySinistralityNew=SinistralityNew,myLapseNew=LapseNew,myCostNew=CostNew,myRateNew=RateNew)
-        self.p=self.mod(self.mods)        
-        
+        self.p=self.mod(self.mods)
     
 #Permet de relancer l'update() en intégrant des methodes de la sous-classe
     def update(self,subPortfolio):
@@ -1032,9 +1032,9 @@ class VE(Portfolio):
     # LapseTimine à 0.5 pour les VE
     lapseTiming = 0.5
     
-    def __init__(self,run=allRuns,\
+    def __init__(self,inputs=myInputs,\
                  PortfolioNew=True, SinistralityNew=True,LapseNew=True,CostNew=True,RateNew=True ):
-        super().__init__(runs=run,\
+        super().__init__(inp=inputs,\
              myPortfolioNew=PortfolioNew, mySinistralityNew=SinistralityNew,myLapseNew=LapseNew,myCostNew=CostNew,myRateNew=RateNew)
         self.p=self.mod(self.mods)
     
@@ -1597,9 +1597,9 @@ class EP(Portfolio):
     ageLimite = 75   
 
     
-    def __init__(self,run=allRuns,\
+    def __init__(self,inputs=myInputs,\
                  PortfolioNew=True, SinistralityNew=True,LapseNew=True,CostNew=True,RateNew=True ):
-        super().__init__(runs=run,\
+        super().__init__(inp=inputs,\
              myPortfolioNew=PortfolioNew, mySinistralityNew=SinistralityNew,myLapseNew=LapseNew,myCostNew=CostNew,myRateNew=RateNew)
         self.p=self.mod(self.mods)
         
@@ -2416,9 +2416,9 @@ class MI(Portfolio):
     ageLimiteCPL1 = 60
     ageLimiteCPL2 = 65
 
-    def __init__(self,run=allRuns,\
+    def __init__(self,inputs=myInputs,\
                  PortfolioNew=True, SinistralityNew=True,LapseNew=True,CostNew=True,RateNew=True ):
-        super().__init__(runs=run,\
+        super().__init__(inp=inputs,\
              myPortfolioNew=PortfolioNew, mySinistralityNew=SinistralityNew,myLapseNew=LapseNew,myCostNew=CostNew,myRateNew=RateNew)
         self.p=self.mod(self.mods)
         
@@ -3341,7 +3341,8 @@ print("Class MI--- %s sec" %'%.2f'%  (time.time() - start_time))
 # =============================================================================
 
 
-# pol=FU()
+
+pol=FU()
 # pol=AX()
 # pol = HO()
 # pol=PR()
