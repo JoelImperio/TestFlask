@@ -738,8 +738,7 @@ class Inputs:
         p['CLIDTNAISS']= pd.to_datetime(p['CLIDTNAISS'].astype(str), format='%Y%m%d').dt.date   
         p['CLIDTNAISS2']= pd.to_datetime(p['CLIDTNAISS2'].astype(str), format='%Y%m%d').dt.date
         
-
-        
+      
         #!! On pense que la différence en mois est plus correct que le calcul des DCS pour les duration IF initiaux
         
         # p['DurationIfInitial']=((pd.to_datetime(p['DateCalcul'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.around)
