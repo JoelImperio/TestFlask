@@ -767,6 +767,7 @@ allRuns=[0,1,2,3,4,5]
 
 tableExperience=EKM05i
    
+# inputs=[hypN,hypN_1,porN,porN_1,allRuns]
 
 ##############################################################################################################################
 #Création de la class Hypothèse
