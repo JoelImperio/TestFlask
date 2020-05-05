@@ -88,7 +88,7 @@ class RUNPGG():
 ###################################DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES#############################################
 ##############################################################################################################################       
  
-run=RUNPGG()
+# run=RUNPGG()
 
 # a=run.pggParSousPortefeuille()
 # b=run.pggTotal()
@@ -98,6 +98,7 @@ run=RUNPGG()
 #Tester de récupérer toutes les méthodes et storer tout les résultats
 # a=FU()
 # b = dir(a)
+# c=pd.DataFrame( a.__class__.__dict__.items())
 # y=pd.DataFrame(columns=['Method','Resultat'])
 
 # for i in range(len(b)):
@@ -113,7 +114,6 @@ run=RUNPGG()
 
 
 # y.to_excel(path+'/zRW/VariablesRapport.xlsx')
-
 
 
 

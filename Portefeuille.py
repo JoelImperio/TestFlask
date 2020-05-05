@@ -269,6 +269,7 @@ class Portfolio(Hypo):
         return txInteret
 
     ### TOTAL PREMIUM
+
 # Retourne le premium à prendre en compte
     def premInc(self):
         return (self.p['POLPRTOT'])[:,np.newaxis,np.newaxis]/self.frac()
