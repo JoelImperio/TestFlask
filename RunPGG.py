@@ -1,10 +1,12 @@
-from Parametres import allRuns
+from Parametres import Inputs
 from Produits import FU,AX,HO,PR,TE,VE,EP,MI
 import pandas as pd
 import time
 import os, os.path
 path = os.path.dirname(os.path.abspath(__file__))
 start_time = time.time()
+
+myInputs=Inputs()
 
 ##############################################################################################################################
 ##############################################################################################################################
@@ -15,13 +17,13 @@ class RUNPGG():
         self.allSP=[FU,AX,HO,PR,TE,VE,EP,MI]
 
 #Retourne une df avec la PGG pour chaque sous-portefeuille
-    def pggParSousPortefeuille(self,runNumber=allRuns,\
+    def pggParSousPortefeuille(self,inp=myInputs,\
                                isPortfolioNew=True, isSinistralityNew=True,isLapseNew=True,isCostNew=True,isRateNew=True):
         
         pggTotal=pd.DataFrame()
         for i in range(len(self.allSP)):
             
-            sp=self.allSP[i](run=runNumber,PortfolioNew=isPortfolioNew, SinistralityNew=isSinistralityNew,\
+            sp=self.allSP[i](inputs=inp,PortfolioNew=isPortfolioNew, SinistralityNew=isSinistralityNew,\
               LapseNew=isLapseNew,CostNew=isCostNew,RateNew=isRateNew)
             sp=sp.PGG()
             
@@ -42,27 +44,27 @@ class RUNPGG():
 #Retourne la PGG par sous-portefeuille contenant la mise à jour de chaque hypothèse une par une    
     def deltaAnalysisSousPortefeuille(self):
         
-        initial=self.pggParSousPortefeuille(runNumber=allRuns,isPortfolioNew=False, isSinistralityNew=False,\
+        initial=self.pggParSousPortefeuille(isPortfolioNew=False, isSinistralityNew=False,\
                                             isLapseNew=False,isCostNew=False,isRateNew=False)
         initial['Etape']='initial'
 
-        portfolio=self.pggParSousPortefeuille(runNumber=allRuns,isPortfolioNew=True, isSinistralityNew=False,\
+        portfolio=self.pggParSousPortefeuille(isPortfolioNew=True, isSinistralityNew=False,\
                                             isLapseNew=False,isCostNew=False,isRateNew=False)
         portfolio['Etape']='portfolio'
         
-        sinistrality=self.pggParSousPortefeuille(runNumber=allRuns,isPortfolioNew=True, isSinistralityNew=True,\
+        sinistrality=self.pggParSousPortefeuille(isPortfolioNew=True, isSinistralityNew=True,\
                                             isLapseNew=False,isCostNew=False,isRateNew=False)
         sinistrality['Etape']='sinistrality'
         
-        lapse=self.pggParSousPortefeuille(runNumber=allRuns,isPortfolioNew=True, isSinistralityNew=True,\
+        lapse=self.pggParSousPortefeuille(isPortfolioNew=True, isSinistralityNew=True,\
                                             isLapseNew=True,isCostNew=False,isRateNew=False)
         lapse['Etape']='lapse'
         
-        cost=self.pggParSousPortefeuille(runNumber=allRuns,isPortfolioNew=True, isSinistralityNew=True,\
+        cost=self.pggParSousPortefeuille(isPortfolioNew=True, isSinistralityNew=True,\
                                             isLapseNew=True,isCostNew=False,isRateNew=False)
         cost['Etape']='cost'       
 
-        rate=self.pggParSousPortefeuille(runNumber=allRuns,isPortfolioNew=True, isSinistralityNew=True,\
+        rate=self.pggParSousPortefeuille(isPortfolioNew=True, isSinistralityNew=True,\
                                             isLapseNew=True,isCostNew=False,isRateNew=True)
         rate['Etape']='rate'    
         
@@ -88,7 +90,7 @@ class RUNPGG():
 ###################################DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES#############################################
 ##############################################################################################################################       
  
-# run=RUNPGG()
+run=RUNPGG()
 
 # a=run.pggParSousPortefeuille()
 # b=run.pggTotal()

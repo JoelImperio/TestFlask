@@ -37,15 +37,6 @@ def portfolioExtractionToCSV():
 
 
 ##############################################################################################################################
-#Inputs global permet de déterminer les date de calcul
-##############################################################################################################################  
-def dateInputs():
-    return
-
-dateCalcul='20181231'
-dateFinCalcul='20521231' #A mon avis doit être remplacer par date expiration des polices (calculé dans projectionLengh())
-
-##############################################################################################################################
 #Permet d'ajouter deux colonnes avec la classPGG pour l'agrégation de la PGG (classPGG)
 ##############################################################################################################################    
 def allocationDesClassPGG(p):
@@ -644,6 +635,9 @@ class Inputs:
         
         self.tableExperience=EKM05i
         
+        self.dateCalcul='20181231'
+        
+        self.dateFinCalcul='20521231'  
         
         self.hy=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypotheses")
         self.hy1=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypotheses")
@@ -728,8 +722,8 @@ class Inputs:
         
     #Formatage des colonnes et création des colonnes utiles    
     
-        p['DateCalcul']=pd.to_datetime(dateCalcul)
-        p['DateFinCalcul']=pd.to_datetime(dateFinCalcul)
+        p['DateCalcul']=pd.to_datetime(self.dateCalcul)
+        p['DateFinCalcul']=pd.to_datetime(self.dateFinCalcul)
         
         #Formatage des date en format date
         p['POLDTDEB']= pd.to_datetime(p['POLDTDEB'].astype(str), format='%Y%m%d').dt.date
