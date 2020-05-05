@@ -378,6 +378,10 @@ def adjustedFracAndPremium(p):
 ##############################################################################################################################
 def projectionLengh(p):
 
+    #!! Nombre de mois de projection selon la date fin de calcul hardcodé qui est voué à disparaitre 
+    p['ProjectionMonths']=((pd.to_datetime(p['DateFinCalcul'])-pd.to_datetime(p['DateCalcul'])) \
+     /np.timedelta64(1,'M')).apply(np.ceil)    
+
     p['residualTermM']=p['ProjectionMonths']
     p.loc[p['POLNBTETE']==1,'Age2AtEntry']=p.loc[p['POLNBTETE']==1,'Age1AtEntry']
     
@@ -668,8 +672,7 @@ class Inputs:
         p.loc[p['PMBPOL'].isin([786502]), 'CLIDTNAISS'] = '19611028'     
         p.loc[p['PMBPOL'].isin([3101]), 'CLIDTNAISS'] = '19700910'
         p.loc[p['PMBPOL'].isin([783401]), 'CLIDTNAISS'] = '19730718'
-    
-        
+            
         #Une police mod 70 est par construction déjà échue le premier mois elle ne rentre pas dans prophet
         p=p.drop(p.loc[p['PMBPOL'].isin([1054602])].index)
         
@@ -679,8 +682,12 @@ class Inputs:
         p.loc[p['PMBPOL'].isin([2357801]), 'POLINDEX'] = 0
 
         # Prophet considère que toutes les TEMPORAIRES mod3 et 4 possèdent une table GKM95
-        mask34 = p['PMBMOD'].isin([3,4])
-        p.loc[mask34, 'POLTBMORT'] = 'GKM1995'
+        mask3_4 = p['PMBMOD'].isin([3,4])
+        p.loc[mask3_4, 'POLTBMORT'] = 'GKM1995'
+        
+        #? On enlève les 18 polices que prophet ne prenait pas en compte pour les mod6
+        p.loc[p['PMBPOL'].isin([1302, 96803, 96804, 96805, 96806, 150003, 150004, 150005, 150103, 150104, 150105, 262905, 263003, 448502, 448503, 514408, 514409, 2547101]), 'Age1AtEntry'] = 999
+   
         
         return p
 
@@ -731,19 +738,15 @@ class Inputs:
         p['CLIDTNAISS']= pd.to_datetime(p['CLIDTNAISS'].astype(str), format='%Y%m%d').dt.date   
         p['CLIDTNAISS2']= pd.to_datetime(p['CLIDTNAISS2'].astype(str), format='%Y%m%d').dt.date
         
-        #Nombre de mois de projection selon la date fin de calcul hardcodé qui est voué à disparaitre 
-        p['ProjectionMonths']=((pd.to_datetime(p['DateFinCalcul'])-pd.to_datetime(p['DateCalcul'])) \
-         /np.timedelta64(1,'M')).apply(np.ceil)
+
         
-    ##On pense que la différence en mois est plus correct que le calcul des DCS pour les duration IF
-    #    p['DurationIfInitial']=((pd.to_datetime(p['DateCalcul'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.around)
+        #!! On pense que la différence en mois est plus correct que le calcul des DCS pour les duration IF initiaux
+        
+        # p['DurationIfInitial']=((pd.to_datetime(p['DateCalcul'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.around)
         p['DurationIfInitial']=(pd.to_datetime(p['DateCalcul']).dt.year - pd.to_datetime(p['POLDTDEB']).dt.year)*12 \
         + pd.to_datetime(p['DateCalcul']).dt.month - pd.to_datetime(p['POLDTDEB']).dt.month + 1  
-        
-        
-        
-
-    
+   
+     
         #Nombre de mois de projection selon la date de fin des polices
         projectionLengh(p)
         
@@ -759,9 +762,7 @@ class Inputs:
         #Traitement des ages et policy terme selon Prophet pour mod70 (nous pensons que cela est erroné)
         adjustAgesAndTerm(p)
         
-        #? On enlève les 18 polices que prophet ne prenait pas en compte pour les mod6
-        p.loc[p['PMBPOL'].isin([1302, 96803, 96804, 96805, 96806, 150003, 150004, 150005, 150103, 150104, 150105, 262905, 263003, 448502, 448503, 514408, 514409, 2547101]), 'Age1AtEntry'] = 999
-            
+         
         # Ajout de la colonne contenant les chargements d'acquisition
         premiumAquisitionLoading(p)
         
