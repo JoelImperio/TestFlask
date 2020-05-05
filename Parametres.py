@@ -368,7 +368,25 @@ def adjustedFracAndPremium(p):
  
     p.loc[mask & (p['PMBFRACT']==0) , 'PMBFRACT'] = 1
     
+ ##############################################################################################################################
+#Calcul de l'âge initial (l'âge du deuxième assuré qui n'existe pas est fixé à 999)
+##############################################################################################################################    
+
+def agesInitial(p):
     
+    date1=pd.to_datetime(p['CLIDTNAISS'].astype(str), format='%Y%m%d')
+    
+    date2=pd.to_datetime(p['CLIDTNAISS2'].astype(str), format='%Y%m%d')
+    
+    dateDebut= pd.to_datetime(p['POLDTDEB'].astype(str), format='%Y%m%d')
+    
+    dtNaiss1=np.where(date1.dt.month * 100 + date1.dt.day  > dateDebut.dt.month * 100 + dateDebut.dt.day , date1.dt.year  + 1, date1.dt.year)
+    
+    dtNaiss2=np.where(date2.dt.month * 100 + date2.dt.day  > dateDebut.dt.month * 100 + dateDebut.dt.day , date2.dt.year  + 1, date2.dt.year)
+    
+    p['Age1AtEntry']=dateDebut.dt.year-dtNaiss1
+    p['Age2AtEntry']=dateDebut.dt.year-dtNaiss2
+    p.loc[p.Age2AtEntry==0,'Age2AtEntry']=999   
     
 
     
@@ -685,9 +703,6 @@ class Inputs:
         mask3_4 = p['PMBMOD'].isin([3,4])
         p.loc[mask3_4, 'POLTBMORT'] = 'GKM1995'
         
-        #? On enlève les 18 polices que prophet ne prenait pas en compte pour les mod6
-        p.loc[p['PMBPOL'].isin([1302, 96803, 96804, 96805, 96806, 150003, 150004, 150005, 150103, 150104, 150105, 262905, 263003, 448502, 448503, 514408, 514409, 2547101]), 'Age1AtEntry'] = 999
-   
         
         return p
 
@@ -720,107 +735,17 @@ class Inputs:
 #traitement des anomalies et mise en forme des colonnes
 ##############################################################################################################################
 
-    # def portfolioPreProcessing(self,p):
-    
-        
-    #     p=self.aSupprimer(p)
-
-    #     self.agesInitial(p)
-        
-    # #Formatage des colonnes et création des colonnes utiles    
-    
-    #     p['DateCalcul']=pd.to_datetime(self.dateCalcul)
-    #     p['DateFinCalcul']=pd.to_datetime(self.dateFinCalcul)
-        
-    #     #Formatage des date en format date
-    #     p['POLDTDEB']= pd.to_datetime(p['POLDTDEB'].astype(str), format='%Y%m%d').dt.date
-    #     p['POLDTEXP']= pd.to_datetime(p['POLDTEXP'].astype(str), format='%Y%m%d').dt.date
-    #     p['CLIDTNAISS']= pd.to_datetime(p['CLIDTNAISS'].astype(str), format='%Y%m%d').dt.date   
-    #     p['CLIDTNAISS2']= pd.to_datetime(p['CLIDTNAISS2'].astype(str), format='%Y%m%d').dt.date
-        
-      
-    #     #!! On pense que la différence en mois est plus correct que le calcul des DCS pour les duration IF initiaux
-        
-    #     # p['DurationIfInitial']=((pd.to_datetime(p['DateCalcul'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.around)
-    #     p['DurationIfInitial']=(pd.to_datetime(p['DateCalcul']).dt.year - pd.to_datetime(p['POLDTDEB']).dt.year)*12 \
-    #     + pd.to_datetime(p['DateCalcul']).dt.month - pd.to_datetime(p['POLDTDEB']).dt.month + 1  
-   
-     
-    #     #Nombre de mois de projection selon la date de fin des polices
-    #     projectionLengh(p)
-        
-    #     #Création des collones pour l'agragation de la PGG
-    #     allocationDesClassPGG(p)
-        
-    #     #A supprimer car permet de reproduire l'erreur d'affectation des classesPGG pour les Mixtes    
-    #     ReAllocClassPGG_Mixte(p)
-        
-    #     #Création des PM servant de base pour le calcul de la PGG
-    #     p['PMbasePGG']=p['PMBPRVMAT']+p['PMBPBEN']+p['PMBREC']+p['PMBRECCPL']
-        
-    #     #Traitement des ages et policy terme selon Prophet pour mod70 (nous pensons que cela est erroné)
-    #     adjustAgesAndTerm(p)
-        
-         
-    #     # Ajout de la colonne contenant les chargements d'acquisition
-    #     premiumAquisitionLoading(p)
-        
-    #     # Ajout de la colonne contenant les chargements de gestion
-    #     premiumGestionLoading(p)
-        
-    #     #Ajout de la colonne contenant les chargement de gestions en % de la somme assurée
-    #     fraisGestionSumAss(p)
-        
-    #     #Ajout d'une colonne contenant les frais de fractionnement
-    #     fraisFractionnement(p)
-        
-    #     # Ajustement des fractionnements pour des polices avec frac = 0 (réduites)
-    #     adjustedFracAndPremium(p)
-        
-    #     # Ajout des taux de zillmérisations en fonction du tarif
-    #     tauxZill(p)
-        
-    #     return p        
-  
     def portfolioPreProcessing(self,p):
-        
-    #Traitement des anomalies dans les données
-    
-        #Certaines dates d'échéances tombe un jour qui n'existe pas
-        p.loc[p['PMBPOL'].isin([1602101,609403,2161101,2162601,297004]), 'POLDTEXP'] = '20190228'
-        
-        #Lorsqu'il y a de l'agravation dans les Funérailles la prime initial est prise
-        p.loc[p['PMBPOL'].isin([602802,2130001,2141101,2149401,2165602,2190101,2216301,2265503,2349803,2547906]), 'POLPRTOT']=240
-        
-        #Une date de naissance a été corrigée rétroactivement, nous replacons la date de naissance présente à la clôture    
-        p.loc[p['PMBPOL'].isin([60602]), 'CLIDTNAISS2'] = '19551009'
-    
-        p.loc[p['PMBPOL'].isin([786502]), 'CLIDTNAISS'] = '19611028'
-        
-        p.loc[p['PMBPOL'].isin([3101]), 'CLIDTNAISS'] = '19700910'
-        p.loc[p['PMBPOL'].isin([783401]), 'CLIDTNAISS'] = '19730718'
     
         
-        
-        
-        #Lorsque la police a une tête l'age du deuxième assuré est 0 donc il né à la date début de la police (ensuite 999 ans)
-        p.loc[p.POLNBTETE==1, 'CLIDTNAISS2'] = p.loc[p.POLNBTETE==1, 'POLDTDEB']
-        
-        #Une police mod 70 est par construction déjà échue le premier mois elle ne rentre pas dans prophet
-        p=p.drop(p.loc[p['PMBPOL'].isin([1054602])].index)
-        
-        #Une police Hospitalis a un taux d'indexation sur la prime à 3%
-        p.loc[p['PMBPOL'].isin([1637202]), 'POLINDEX'] = 0
-        # Une police axiprotect a un taux d'indexation sur la prime à 1%, on force à 0
-        p.loc[p['PMBPOL'].isin([2357801]), 'POLINDEX'] = 0
-        
-        
-        agesInitial(p)
+        p=self.aSupprimer(p)
+
+        self.agesInitial(p)
         
     #Formatage des colonnes et création des colonnes utiles    
     
-        p['DateCalcul']=pd.to_datetime(dateCalcul)
-        p['DateFinCalcul']=pd.to_datetime(dateFinCalcul)
+        p['DateCalcul']=pd.to_datetime(self.dateCalcul)
+        p['DateFinCalcul']=pd.to_datetime(self.dateFinCalcul)
         
         #Formatage des date en format date
         p['POLDTDEB']= pd.to_datetime(p['POLDTDEB'].astype(str), format='%Y%m%d').dt.date
@@ -828,21 +753,14 @@ class Inputs:
         p['CLIDTNAISS']= pd.to_datetime(p['CLIDTNAISS'].astype(str), format='%Y%m%d').dt.date   
         p['CLIDTNAISS2']= pd.to_datetime(p['CLIDTNAISS2'].astype(str), format='%Y%m%d').dt.date
         
-        #Nombre de mois de projection selon la date fin de calcul hardcodé qui est voué à disparaitre 
-        p['ProjectionMonths']=((pd.to_datetime(p['DateFinCalcul'])-pd.to_datetime(p['DateCalcul'])) \
-         /np.timedelta64(1,'M')).apply(np.ceil)
+      
+        #!! On pense que la différence en mois est plus correct que le calcul des DCS pour les duration IF initiaux
         
-    ##On pense que la différence en mois est plus correct que le calcul des DCS pour les duration IF
-    #    p['DurationIfInitial']=((pd.to_datetime(p['DateCalcul'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.around)
+        # p['DurationIfInitial']=((pd.to_datetime(p['DateCalcul'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.around)
         p['DurationIfInitial']=(pd.to_datetime(p['DateCalcul']).dt.year - pd.to_datetime(p['POLDTDEB']).dt.year)*12 \
         + pd.to_datetime(p['DateCalcul']).dt.month - pd.to_datetime(p['POLDTDEB']).dt.month + 1  
-        
-        
-        
-    # Prophet considère que toutes les TEMPORAIRES mod3 et 4 possèdent une table GKM95
-        mask34 = p['PMBMOD'].isin([3,4])
-        p.loc[mask34, 'POLTBMORT'] = 'GKM1995'
-    
+   
+     
         #Nombre de mois de projection selon la date de fin des polices
         projectionLengh(p)
         
@@ -858,9 +776,10 @@ class Inputs:
         #Traitement des ages et policy terme selon Prophet pour mod70 (nous pensons que cela est erroné)
         adjustAgesAndTerm(p)
         
-        #? On enlève les 18 polices que prophet ne prenait pas en compte pour les mod6
+        #!! ? On enlève les 18 polices que prophet ne prenait pas en compte pour les mod6
         p.loc[p['PMBPOL'].isin([1302, 96803, 96804, 96805, 96806, 150003, 150004, 150005, 150103, 150104, 150105, 262905, 263003, 448502, 448503, 514408, 514409, 2547101]), 'Age1AtEntry'] = 999
-            
+         
+         
         # Ajout de la colonne contenant les chargements d'acquisition
         premiumAquisitionLoading(p)
         
@@ -877,9 +796,108 @@ class Inputs:
         adjustedFracAndPremium(p)
         
         # Ajout des taux de zillmérisations en fonction du tarif
-        tauxZill(p)        
+        tauxZill(p)
         
-        return p
+        return p        
+  
+    # def portfolioPreProcessing(self,p):
+        
+    # #Traitement des anomalies dans les données
+    
+    #     #Certaines dates d'échéances tombe un jour qui n'existe pas
+    #     p.loc[p['PMBPOL'].isin([1602101,609403,2161101,2162601,297004]), 'POLDTEXP'] = '20190228'
+        
+    #     #Lorsqu'il y a de l'agravation dans les Funérailles la prime initial est prise
+    #     p.loc[p['PMBPOL'].isin([602802,2130001,2141101,2149401,2165602,2190101,2216301,2265503,2349803,2547906]), 'POLPRTOT']=240
+        
+    #     #Une date de naissance a été corrigée rétroactivement, nous replacons la date de naissance présente à la clôture    
+    #     p.loc[p['PMBPOL'].isin([60602]), 'CLIDTNAISS2'] = '19551009'
+    
+    #     p.loc[p['PMBPOL'].isin([786502]), 'CLIDTNAISS'] = '19611028'
+        
+    #     p.loc[p['PMBPOL'].isin([3101]), 'CLIDTNAISS'] = '19700910'
+    #     p.loc[p['PMBPOL'].isin([783401]), 'CLIDTNAISS'] = '19730718'
+    
+        
+        
+        
+    #     #Lorsque la police a une tête l'age du deuxième assuré est 0 donc il né à la date début de la police (ensuite 999 ans)
+    #     p.loc[p.POLNBTETE==1, 'CLIDTNAISS2'] = p.loc[p.POLNBTETE==1, 'POLDTDEB']
+        
+    #     #Une police mod 70 est par construction déjà échue le premier mois elle ne rentre pas dans prophet
+    #     p=p.drop(p.loc[p['PMBPOL'].isin([1054602])].index)
+        
+    #     #Une police Hospitalis a un taux d'indexation sur la prime à 3%
+    #     p.loc[p['PMBPOL'].isin([1637202]), 'POLINDEX'] = 0
+    #     # Une police axiprotect a un taux d'indexation sur la prime à 1%, on force à 0
+    #     p.loc[p['PMBPOL'].isin([2357801]), 'POLINDEX'] = 0
+        
+        
+    #     agesInitial(p)
+        
+    # #Formatage des colonnes et création des colonnes utiles    
+    
+    #     p['DateCalcul']=pd.to_datetime(self.dateCalcul)
+    #     p['DateFinCalcul']=pd.to_datetime(self.dateFinCalcul)
+        
+    #     #Formatage des date en format date
+    #     p['POLDTDEB']= pd.to_datetime(p['POLDTDEB'].astype(str), format='%Y%m%d').dt.date
+    #     p['POLDTEXP']= pd.to_datetime(p['POLDTEXP'].astype(str), format='%Y%m%d').dt.date
+    #     p['CLIDTNAISS']= pd.to_datetime(p['CLIDTNAISS'].astype(str), format='%Y%m%d').dt.date   
+    #     p['CLIDTNAISS2']= pd.to_datetime(p['CLIDTNAISS2'].astype(str), format='%Y%m%d').dt.date
+        
+    #     #Nombre de mois de projection selon la date fin de calcul hardcodé qui est voué à disparaitre 
+    #     p['ProjectionMonths']=((pd.to_datetime(p['DateFinCalcul'])-pd.to_datetime(p['DateCalcul'])) \
+    #      /np.timedelta64(1,'M')).apply(np.ceil)
+        
+    # ##On pense que la différence en mois est plus correct que le calcul des DCS pour les duration IF
+    # #    p['DurationIfInitial']=((pd.to_datetime(p['DateCalcul'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.around)
+    #     p['DurationIfInitial']=(pd.to_datetime(p['DateCalcul']).dt.year - pd.to_datetime(p['POLDTDEB']).dt.year)*12 \
+    #     + pd.to_datetime(p['DateCalcul']).dt.month - pd.to_datetime(p['POLDTDEB']).dt.month + 1  
+        
+        
+        
+    # # Prophet considère que toutes les TEMPORAIRES mod3 et 4 possèdent une table GKM95
+    #     mask34 = p['PMBMOD'].isin([3,4])
+    #     p.loc[mask34, 'POLTBMORT'] = 'GKM1995'
+    
+    #     #Nombre de mois de projection selon la date de fin des polices
+    #     projectionLengh(p)
+        
+    #     #Création des collones pour l'agragation de la PGG
+    #     allocationDesClassPGG(p)
+        
+    #     #A supprimer car permet de reproduire l'erreur d'affectation des classesPGG pour les Mixtes    
+    #     ReAllocClassPGG_Mixte(p)
+        
+    #     #Création des PM servant de base pour le calcul de la PGG
+    #     p['PMbasePGG']=p['PMBPRVMAT']+p['PMBPBEN']+p['PMBREC']+p['PMBRECCPL']
+        
+    #     #Traitement des ages et policy terme selon Prophet pour mod70 (nous pensons que cela est erroné)
+    #     adjustAgesAndTerm(p)
+        
+    #     #? On enlève les 18 polices que prophet ne prenait pas en compte pour les mod6
+    #     p.loc[p['PMBPOL'].isin([1302, 96803, 96804, 96805, 96806, 150003, 150004, 150005, 150103, 150104, 150105, 262905, 263003, 448502, 448503, 514408, 514409, 2547101]), 'Age1AtEntry'] = 999
+            
+    #     # Ajout de la colonne contenant les chargements d'acquisition
+    #     premiumAquisitionLoading(p)
+        
+    #     # Ajout de la colonne contenant les chargements de gestion
+    #     premiumGestionLoading(p)
+        
+    #     #Ajout de la colonne contenant les chargement de gestions en % de la somme assurée
+    #     fraisGestionSumAss(p)
+        
+    #     #Ajout d'une colonne contenant les frais de fractionnement
+    #     fraisFractionnement(p)
+        
+    #     # Ajustement des fractionnements pour des polices avec frac = 0 (réduites)
+    #     adjustedFracAndPremium(p)
+        
+    #     # Ajout des taux de zillmérisations en fonction du tarif
+    #     tauxZill(p)        
+        
+    #     return p
 
         
         
