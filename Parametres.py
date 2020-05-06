@@ -621,7 +621,7 @@ class Inputs:
 
 
     # Les allocations dans les classes PGG ne correspondait pas aux taux technique pour les mixtes
-    def aSupprimer_ReAllocClassPGG_Mixte(p):
+    def aSupprimer_ReAllocClassPGG_Mixte(self,p):
         
         newClass=pd.read_excel(path+'/Portefeuille\CorrespondanceProduit.xlsx',sheet_name='MIXTES')
         
@@ -632,7 +632,7 @@ class Inputs:
         p.loc[p['ClassPGG2'].isnull()==False,'ClassPGG']= p.loc[p['ClassPGG2'].isnull()==False,'ClassPGG2']    
 
     #Réplication des DCS mais on pense que le calcul de la différence de mois est plus correct
-    def aSupprimer_FixationDeLaDurationInitiale(p):
+    def aSupprimer_FixationDeLaDurationInitiale(self,p):
 
  
          p['DurationIfInitial']=(pd.to_datetime(p['DateCalcul']).dt.year - pd.to_datetime(p['POLDTDEB']).dt.year)*12 \
@@ -665,7 +665,7 @@ class Inputs:
 ##############################################################################################################################
 #Permet d'ajouter deux colonnes avec la classPGG pour l'agrégation de la PGG (classPGG)
 ##############################################################################################################################    
-    def allocationDesClassPGG(p):
+    def allocationDesClassPGG(self,p):
         p['zero']=0   
         dico=dict(zip(p['PMBMOD'],p['zero']))        
         #Les listes de numéro représente les mod a allouer chaque la catégorie
@@ -696,7 +696,7 @@ class Inputs:
         #Correction des polices Multi-taux affectées à la classe EP1.5    
         p.loc[p['PMBPOL'].isin([1751801,514407]), 'ClassPGG'] = 'EP1.5'
 
-    def ajoutEtFormatColonnes(p):
+    def ajoutEtFormatColonnes(self,p):
         
         #Dates des calcules
         p['DateCalcul']=pd.to_datetime(self.dateCalcul)
