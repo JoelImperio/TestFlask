@@ -48,7 +48,7 @@ allMethods['Occurence'] = allMethods.isin([True]).sum(1)
 
 allMethods.to_excel(path+'/zRW/MethodStructure.xlsx')
 
-
+# test
 
 
 print("Get Structure in --- %s sec" %'%.2f'%  (time.time() - start_time))
