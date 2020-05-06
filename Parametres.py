@@ -559,28 +559,6 @@ def adjustAgesAndTerm(p):
     p.loc[mask,'residualTermM']= p.loc[mask,'POLDURC']*12-p.loc[mask,'DurationIfInitial']    
  
     
- 
-#Création d'une réalocation de la classe PGG pour les polices Mixte
-#Afin de reproduire l'erreur dans le fichier d'extraction des résultats actuel
-#A supprimer
-
-
-
-
-
-##############################################################################################################################
-#CHARGEMENT DES FICHIERS INPUTS
-#- Hypothèses N et N-1
-#- Portefeuille N et N-1
-#- les runs possible
-#- La table de mortalité d'expérience
-##############################################################################################################################
-def chargementINPUTS():
-    return 
-
-
-   
-
 # =============================================================================
 #  Création de la classe Inputs
 # =============================================================================
@@ -743,7 +721,7 @@ class Inputs:
 
     def portfolioPreProcessing(self,p):
     
-        #!! Réplication des erreur dans les données du portefeuille
+        #!! Réplication des erreurs dans les données du portefeuille
         self.aSupprimer_DataError(p)
 
         # Définition des Ages d'entrée
@@ -758,7 +736,7 @@ class Inputs:
         #Création des collones pour l'agragation de la PGG
         self.allocationDesClassPGG(p)
        
-        #!! car permet de reproduire l'erreur d'affectation des classesPGG pour les Mixtes         
+        #!! Réplication de l'erreur d'affectation des classesPGG pour les Mixtes         
         self.aSupprimer_ReAllocClassPGG_Mixte(p)
      
         #Nombre de mois de projection selon la date de fin des polices
@@ -792,11 +770,9 @@ class Inputs:
         return p        
   
 
-
-##############################################################################################################################
-#Création de la class Hypothèse
-##############################################################################################################################
-
+# =============================================================================
+# Création de la class Hypothèse
+# =============================================================================
 class Hypo:
     
 
@@ -822,13 +798,9 @@ class Hypo:
         self.CostNew=CostNew
         self.RateNew=RateNew
 
-#        self.securityMarginMarge=1+self.h.iloc[53,2]
-#        self.securityMarginBio=1+self.h.iloc[54,2]
-
- 
-##############################################################################################################################
-###################################DEBUT DES METHODES DE DIMENSSIONEMENT######################################################
-##############################################################################################################################
+# =============================================================================
+    ### METHODES DE DIMENSSIONEMENT
+# =============================================================================
 
 #Permet de retourner un sous-portefeuille sélectionné de la liste de mods=[]
     def mod(self,mods):
@@ -909,12 +881,10 @@ class Hypo:
         else:
             h=self.h1
         return h
-        
 
-##############################################################################################################################
-###################################DEBUT DES METHODES DES HYPOTHESES##########################################################
-##############################################################################################################################
-   
+# =============================================================================
+    ### METHODES DES HYPOTHESES
+# =============================================================================
 # Retourne les frais de gestion par police (coût par police)
     def fraisGestion(self):
         
@@ -1167,20 +1137,16 @@ class Hypo:
         
         h=self.hypoSet(self.CostNew)
         
-        inflationRate=h.iloc[55,2]
-        
+        inflationRate=h.iloc[55,2]       
         inflationRate=inflationRate+self.one()
         
         increment=np.arange(0,self.shape[1])[np.newaxis,:,np.newaxis]
-            
-        inflationMensuel= inflationRate**(increment/12)
               
-        return inflationMensuel
-    
-##############################################################################################################################
-###################################DEBUT DES METHODES DU CALCUL DES PRODUITS#################################################
-##############################################################################################################################
+        return inflationRate**(increment/12)
 
+# =============================================================================
+    ### METHODES CALCUL DES PRODUITS
+# =============================================================================
 #Retourne un vecteur du nombre de mois que la police est en vigeur qui s'incrémente de 1 par mois
     def durationIf(self):
         
