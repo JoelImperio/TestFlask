@@ -22,13 +22,19 @@ for i in range(len(allSP)):
     sp=allSP[i]()
     
     instanceAllSP.append(sp)
-    
-    allVar=allVar.append(pd.DataFrame(sp.__class__.__dict__.items()))
+
+    v=pd.DataFrame(sp.__class__.__dict__.items()
     
     aString=str(allSP[i])
-    allVar[aString]=allVar[0]
+    v[aString]=v[0]
+    
+    allVar=allVar.append(v)
+    
 
 
+a['test']=a[0]
+
+allVar=allVar.append(a)
 
 allMethods=pd.DataFrame(set(allVar[0]))
 
