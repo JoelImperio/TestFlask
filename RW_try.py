@@ -1,4 +1,4 @@
-from Parametres import allRuns, Hypo
+from Parametres import Hypo
 from Portefeuille import Portfolio
 from Produits import FU,AX,HO,PR,TE,VE,EP,MI
 import pandas as pd
@@ -13,22 +13,22 @@ start_time = time.time()
 allSP=[Hypo,Portfolio,FU,AX,HO,PR,TE,VE,EP,MI]
 
 
-instanceAllSP=pd.DataFrame()
+instanceAllSP=[]
 
-allVar==pd.DataFrame()
+allVar=pd.DataFrame()
 
 for i in range(len(allSP)):
     
     sp=allSP[i]()
     
-    instanceAllSP=instanceAllSP.append(sp)
+    instanceAllSP.append(sp)
     
-    allVar=allVar(sp.__class__.__dict__.items())
+    allVar.append(pd.DataFrame(sp.__class__.__dict__.items()))
 
 
 allMethods=pd.DataFrame(set(allVar[0]))
 
-a=set(allVar[0])
+# a=set(allVar[0])
 
 # d=MI()
 
