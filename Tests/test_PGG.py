@@ -648,10 +648,10 @@ class Test_MI(ut.TestCase):
 # cov.report()
 
 #Permet de lancer les test de ce script
-# ut.main()
+ut.main()
 
 #Permet de lancer les tests d'une classe spécifique
-ut.main(Test_MI())
+# ut.main(Test_MI())
 
 
 

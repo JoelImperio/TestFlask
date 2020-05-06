@@ -36,39 +36,7 @@ def portfolioExtractionToCSV():
 
 
 
-##############################################################################################################################
-#Permet d'ajouter deux colonnes avec la classPGG pour l'agrégation de la PGG (classPGG)
-##############################################################################################################################    
-def allocationDesClassPGG(p):
-    p['zero']=0   
-    dico=dict(zip(p['PMBMOD'],p['zero']))        
-    #Les listes de numéro représente les mod a allouer chaque la catégorie
-    for i in [2,10,6,7]:
-        dico[i]='MI'       
-    for i in [1,11]:
-        dico[i]='VE'
-    for i in [3,4]:
-        dico[i]='TE'
-    for i in [25,26]:
-        dico[i]='PR'
-    for i in [8,9,12]:
-        dico[i]='FU'       
-    for i in [28,29,30,31,32,33,36]:      
-        dico[i]='EP'  
-    for i in [58]:
-        dico[i]='HO'
-    for i in [70]:
-        dico[i]='AX'
-    #Creation des classes PGG génériques
-    p['ClassPGGinit'] = p['PMBMOD'].map(dico)
-    #Creation des classesPGG avec txInt pour les EP et MI
-    p['ClassPGG']=p['ClassPGGinit']
-    p.loc[p['ClassPGGinit'].isin(['EP','MI']),'ClassPGG']= \
-    p.loc[p['ClassPGGinit'].isin(['EP','MI']),'ClassPGGinit'].map(str)+ \
-    p.loc[p['ClassPGGinit'].isin(['EP','MI']),'PMBTXINT'].map(str)
-    
-    #Correction des polices Multi-taux affectées à la classe EP1.5    
-    p.loc[p['PMBPOL'].isin([1751801,514407]), 'ClassPGG'] = 'EP1.5'
+
 
     
 ##############################################################################################################################
@@ -596,17 +564,7 @@ def adjustAgesAndTerm(p):
 #Afin de reproduire l'erreur dans le fichier d'extraction des résultats actuel
 #A supprimer
 
-def ReAllocClassPGG_Mixte(p):
-    
-    newClass=pd.read_excel(path+'/Portefeuille\CorrespondanceProduit.xlsx',sheet_name='MIXTES')
-    
-    newClasse=pd.Series(newClass['ClassePGG'].values, index=newClass['ID'] ).to_dict()
-    
-    p['ClassPGG2']=p['PMBPOL'].map(newClasse)
-    
-    p.loc[p['ClassPGG2'].isnull()==False,'ClassPGG']= p.loc[p['ClassPGG2'].isnull()==False,'ClassPGG2']    
-    
-    return p 
+
 
 
 
@@ -655,7 +613,7 @@ class Inputs:
         return [self.hy,self.hy1,self.po,self.po1,self.myRuns]
     
 
-    def aSupprimer(self,p):
+    def aSupprimer_DataError(self,p):
 
     #Traitement des anomalies dans les données
     
@@ -682,9 +640,26 @@ class Inputs:
         # Prophet considère que toutes les TEMPORAIRES mod3 et 4 possèdent une table GKM95
         mask3_4 = p['PMBMOD'].isin([3,4])
         p.loc[mask3_4, 'POLTBMORT'] = 'GKM1995'
+
+
+    # Les allocations dans les classes PGG ne correspondait pas aux taux technique pour les mixtes
+    def aSupprimer_ReAllocClassPGG_Mixte(p):
         
+        newClass=pd.read_excel(path+'/Portefeuille\CorrespondanceProduit.xlsx',sheet_name='MIXTES')
         
-        return p
+        newClasse=pd.Series(newClass['ClassePGG'].values, index=newClass['ID'] ).to_dict()
+        
+        p['ClassPGG2']=p['PMBPOL'].map(newClasse)
+        
+        p.loc[p['ClassPGG2'].isnull()==False,'ClassPGG']= p.loc[p['ClassPGG2'].isnull()==False,'ClassPGG2']    
+
+    #Réplication des DCS mais on pense que le calcul de la différence de mois est plus correct
+    def aSupprimer_FixationDeLaDurationInitiale(p):
+
+ 
+         p['DurationIfInitial']=(pd.to_datetime(p['DateCalcul']).dt.year - pd.to_datetime(p['POLDTDEB']).dt.year)*12 \
+        + pd.to_datetime(p['DateCalcul']).dt.month - pd.to_datetime(p['POLDTDEB']).dt.month + 1  
+        
 
 ##############################################################################################################################
 #Calcul de l'âge initial (l'âge du deuxième assuré qui n'existe pas est fixé à 999)
@@ -709,21 +684,43 @@ class Inputs:
         p['Age2AtEntry']=dateDebut.dt.year-dtNaiss2
         p.loc[p.Age2AtEntry==0,'Age2AtEntry']=999
 
-            
 ##############################################################################################################################
-#Permet de formater la dataframe du portefeuille des polices avant d'entrer dans la classe Hypo
-#traitement des anomalies et mise en forme des colonnes
-##############################################################################################################################
-
-    def portfolioPreProcessing(self,p):
-    
+#Permet d'ajouter deux colonnes avec la classPGG pour l'agrégation de la PGG (classPGG)
+##############################################################################################################################    
+    def allocationDesClassPGG(p):
+        p['zero']=0   
+        dico=dict(zip(p['PMBMOD'],p['zero']))        
+        #Les listes de numéro représente les mod a allouer chaque la catégorie
+        for i in [2,10,6,7]:
+            dico[i]='MI'       
+        for i in [1,11]:
+            dico[i]='VE'
+        for i in [3,4]:
+            dico[i]='TE'
+        for i in [25,26]:
+            dico[i]='PR'
+        for i in [8,9,12]:
+            dico[i]='FU'       
+        for i in [28,29,30,31,32,33,36]:      
+            dico[i]='EP'  
+        for i in [58]:
+            dico[i]='HO'
+        for i in [70]:
+            dico[i]='AX'
+        #Creation des classes PGG génériques
+        p['ClassPGGinit'] = p['PMBMOD'].map(dico)
+        #Creation des classesPGG avec txInt pour les EP et MI
+        p['ClassPGG']=p['ClassPGGinit']
+        p.loc[p['ClassPGGinit'].isin(['EP','MI']),'ClassPGG']= \
+        p.loc[p['ClassPGGinit'].isin(['EP','MI']),'ClassPGGinit'].map(str)+ \
+        p.loc[p['ClassPGGinit'].isin(['EP','MI']),'PMBTXINT'].map(str)
         
-        p=self.aSupprimer(p)
+        #Correction des polices Multi-taux affectées à la classe EP1.5    
+        p.loc[p['PMBPOL'].isin([1751801,514407]), 'ClassPGG'] = 'EP1.5'
 
-        self.agesInitial(p)
+    def ajoutEtFormatColonnes(p):
         
-    #Formatage des colonnes et création des colonnes utiles    
-    
+        #Dates des calcules
         p['DateCalcul']=pd.to_datetime(self.dateCalcul)
         p['DateFinCalcul']=pd.to_datetime(self.dateFinCalcul)
         
@@ -732,27 +729,41 @@ class Inputs:
         p['POLDTEXP']= pd.to_datetime(p['POLDTEXP'].astype(str), format='%Y%m%d').dt.date
         p['CLIDTNAISS']= pd.to_datetime(p['CLIDTNAISS'].astype(str), format='%Y%m%d').dt.date   
         p['CLIDTNAISS2']= pd.to_datetime(p['CLIDTNAISS2'].astype(str), format='%Y%m%d').dt.date
+          
+        #Fixation du Duration Initial par différence des mois
+        p['DurationIfInitial']=((pd.to_datetime(p['DateCalcul'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.around)
+ 
+        #Création des PM servant de base pour le calcul de la PGG
+        p['PMbasePGG']=p['PMBPRVMAT']+p['PMBPBEN']+p['PMBREC']+p['PMBRECCPL']        
+            
+##############################################################################################################################
+#Permet de formater la dataframe du portefeuille des polices avant d'entrer dans la classe Hypo
+#traitement des anomalies et mise en forme des colonnes
+##############################################################################################################################
+
+    def portfolioPreProcessing(self,p):
+    
+        #!! Réplication des erreur dans les données du portefeuille
+        self.aSupprimer_DataError(p)
+
+        # Définition des Ages d'entrée
+        self.agesInitial(p)
         
-      
-        #!! On pense que la différence en mois est plus correct que le calcul des DCS pour les duration IF initiaux
+        #Formatage des colonnes et création des colonnes utiles    
+        self.ajoutEtFormatColonnes(p)
         
-        # p['DurationIfInitial']=((pd.to_datetime(p['DateCalcul'])-pd.to_datetime(p['POLDTDEB']))/np.timedelta64(1,'M')).apply(np.around)
-        p['DurationIfInitial']=(pd.to_datetime(p['DateCalcul']).dt.year - pd.to_datetime(p['POLDTDEB']).dt.year)*12 \
-        + pd.to_datetime(p['DateCalcul']).dt.month - pd.to_datetime(p['POLDTDEB']).dt.month + 1  
-   
+        #!! Réplication des DCS pour le DurationIfInitial
+        self.aSupprimer_FixationDeLaDurationInitiale(p)
+
+        #Création des collones pour l'agragation de la PGG
+        self.allocationDesClassPGG(p)
+       
+        #!! car permet de reproduire l'erreur d'affectation des classesPGG pour les Mixtes         
+        self.aSupprimer_ReAllocClassPGG_Mixte(p)
      
         #Nombre de mois de projection selon la date de fin des polices
         projectionLengh(p)
-        
-        #Création des collones pour l'agragation de la PGG
-        allocationDesClassPGG(p)
-        
-        #A supprimer car permet de reproduire l'erreur d'affectation des classesPGG pour les Mixtes    
-        ReAllocClassPGG_Mixte(p)
-        
-        #Création des PM servant de base pour le calcul de la PGG
-        p['PMbasePGG']=p['PMBPRVMAT']+p['PMBPBEN']+p['PMBREC']+p['PMBRECCPL']
-        
+           
         #Traitement des ages et policy terme selon Prophet pour mod70 (nous pensons que cela est erroné)
         adjustAgesAndTerm(p)
         
