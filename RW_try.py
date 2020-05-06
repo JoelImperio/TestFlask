@@ -23,10 +23,26 @@ for i in range(len(allSP)):
     
     instanceAllSP.append(sp)
     
-    allVar.append(pd.DataFrame(sp.__class__.__dict__.items()))
+    allVar=allVar.append(pd.DataFrame(sp.__class__.__dict__.items()))
+    
+    aString=str(allSP[i])
+    allVar[aString]=allVar[0]
+
 
 
 allMethods=pd.DataFrame(set(allVar[0]))
+
+
+for i in range(len(allSP)):
+    
+    aString=str(allSP[i])
+    
+    allMethods[aString]=allMethods[0].isin(allVar[aString])
+    
+    
+    
+
+
 
 # a=set(allVar[0])
 
