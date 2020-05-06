@@ -23,8 +23,8 @@ for i in range(len(allSP)):
     
     instanceAllSP.append(sp)
 
-    v=pd.DataFrame(sp.__class__.__dict__.items()
-    
+    v=pd.DataFrame(sp.__class__.__dict__.items())
+                  
     aString=str(allSP[i])
     v[aString]=v[0]
     
