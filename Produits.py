@@ -5,6 +5,7 @@ import pandas as pd
 import time
 import os, os.path
 path = os.path.dirname(os.path.abspath(__file__))
+
 start_time = time.time()
 
 ##############################################################################################################################
@@ -3342,7 +3343,7 @@ print("Class MI--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 
 
-pol=FU()
+# pol=FU()
 # pol=AX()
 # pol = HO()
 # pol=PR()
