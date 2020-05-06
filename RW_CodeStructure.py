@@ -43,18 +43,12 @@ for i in range(len(allSP)):
     
     
     
+allMethods['Occurence'] = allMethods.isin([True]).sum(1)
 
 
-
-# a=set(allVar[0])
-
-# d=MI()
-
-# z=pd.DataFrame( d.__class__.__dict__.items())
-
-# c=tuple(set(dir(d))-set(dir(a)))
+allMethods.to_excel(path+'/zRW/MethodStructure.xlsx')
 
 
 
 
-print("Class RUN--- %s sec" %'%.2f'%  (time.time() - start_time))
+print("Get Structure in --- %s sec" %'%.2f'%  (time.time() - start_time))
