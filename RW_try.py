@@ -32,10 +32,6 @@ for i in range(len(allSP)):
     
 
 
-a['test']=a[0]
-
-allVar=allVar.append(a)
-
 allMethods=pd.DataFrame(set(allVar[0]))
 
 
