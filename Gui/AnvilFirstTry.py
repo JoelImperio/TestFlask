@@ -8,7 +8,7 @@ import pandas as pd
 
 
 #Connect to Uplink
-anvil.server.connect("3ZKB3TT2SZ7CKNXGTIXFLIB5-7SANNLTDTVUUVWY5")
+anvil.server.connect("DQOCUFAJWO5VDNC5SS5FMLXP-QVUTIRN4LZNTVYGX")
 
 
 # import app_tables to access your data tables
@@ -33,8 +33,8 @@ for f in files:
 def runMyPGG():
     a=HO().PGG()
     app_tables.resultpgg.add_row(res=a.PGG[0], Produit=a.index[0])
-#     return a
+    # return a
     
 # a=runMyPGG()   
 
-# anvil.server.wait_forever()
+anvil.server.wait_forever()
