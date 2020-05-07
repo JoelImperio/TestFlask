@@ -61,11 +61,11 @@ class RUNPGG():
         lapse['Etape']='lapse'
         
         cost=self.pggParSousPortefeuille(isPortfolioNew=True, isSinistralityNew=True,\
-                                            isLapseNew=True,isCostNew=False,isRateNew=False)
+                                            isLapseNew=True,isCostNew=True,isRateNew=False)
         cost['Etape']='cost'       
 
         rate=self.pggParSousPortefeuille(isPortfolioNew=True, isSinistralityNew=True,\
-                                            isLapseNew=True,isCostNew=False,isRateNew=True)
+                                            isLapseNew=True,isCostNew=True,isRateNew=True)
         rate['Etape']='rate'    
         
         deltaAnalysis=initial.append([portfolio,sinistrality,lapse,cost,rate])
