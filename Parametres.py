@@ -336,229 +336,8 @@ def adjustedFracAndPremium(p):
  
     p.loc[mask & (p['PMBFRACT']==0) , 'PMBFRACT'] = 1
     
- 
-      
-   
-##############################################################################################################################
-#Calcul de l'échéance des polices pour obtenir la durée des projections traité par modalité
-##############################################################################################################################
-def projectionLengh(p):
-
-    #!! Nombre de mois de projection selon la date fin de calcul hardcodé qui est voué à disparaitre 
-    # p['ProjectionMonths']=((pd.to_datetime(p['DateFinCalcul'])-pd.to_datetime(p['DateCalcul'])) \
-    #  /np.timedelta64(1,'M')).apply(np.ceil)    
-    # p['residualTermM']=p['ProjectionMonths']
-    
-    p.loc[p['POLNBTETE']==1,'Age2AtEntry']=p.loc[p['POLNBTETE']==1,'Age1AtEntry']
-    
-    #Dertermination des âges limites
-    ageMaxFU=65
-    ageMaxAX=80
-    ageMaxHO=75
-    ageMaxEP=55
-  
-#Traitement des mods 8 et 9
-    mask=(p['PMBMOD']==8)|(p['PMBMOD']==9)
-    
-    p.loc[mask,'residualTermM']=p.loc[mask,['Age2AtEntry','Age1AtEntry']].max(axis=1)
-    p.loc[mask,'residualTermM']=((ageMaxFU-p.loc[mask,'residualTermM'])*12)-p.loc[mask,'DurationIfInitial']
- 
-    #Nous pensons que cette variante est plus correct car dans le mod 9 la police continue jusqu'à 65 ans du plus jeune assuré
-    #Il faut ajouté le code commenté pour prendre en compte le changement et supprimé le mod neuf du mask du mod 8 
- 
-    # mask=(p['PMBMOD']==9)    
-
-    # p.loc[mask,'residualTermM']=p.loc[mask,['Age2AtEntry','Age1AtEntry']].min(axis=1)
-    # p.loc[mask,'residualTermM']=((ageMaxFU-p.loc[mask,'residualTermM'])*12)-p.loc[mask,'DurationIfInitial']
 
 
-#Traitement du mod 70
-    mask=(p['PMBMOD']==70)
-    
-    p.loc[mask,'residualTermM']=p.loc[mask,['Age2AtEntry','Age1AtEntry']].max(axis=1)
-    p.loc[mask,'residualTermM']=((ageMaxAX-p.loc[mask,'residualTermM'])*12)-p.loc[mask,'DurationIfInitial']
-
-
- # Traitement du mod 58
-    mask=(p['PMBMOD']==58)
-    p.loc[mask,'residualTermM']=((ageMaxHO-p.loc[mask,'Age1AtEntry'])*12)-p.loc[mask,'DurationIfInitial']
-
- # # Traitement du mod 29
-    # mask=(p['PMBMOD']==29)
-    # p.loc[mask,'residualTermM']=((ageMaxEP-p.loc[mask,'Age1AtEntry'])*12)-p.loc[mask,'DurationIfInitial']    
-
-    
-
-    #Replacer 999 pour les deuxièmes assurés des polices à une tête
-    p.loc[p['POLNBTETE']==1,'Age2AtEntry']=999
-
-
- # Traitement des vies entières
-    mask=(p['PMBMOD']==11)|(p['PMBMOD']==1)
-    # p.loc[mask,'residualTermM']=((121-p.loc[mask,'Age1AtEntry'])*12)-p.loc[mask,'DurationIfInitial']
-    p.loc[mask,'residualTermM']=(99*12)-p.loc[mask,'DurationIfInitial']
-
-
-
-##############################################################################################################################
-#Correction des ages et du résidual terme pour Axiprotect et Preciso (Réplication Prophet) A supprimer pour corriger
-##############################################################################################################################
-
-def adjustAgesAndTerm(p):
-
-#    p=porN
-    
-    
-#Traitement des mod 70,25,26
-    mask=(p['PMBMOD']==70)|(p['PMBMOD']==25)|(p['PMBMOD']==26)
-    
-    date1=pd.to_datetime(p.loc[mask,'CLIDTNAISS'])
-    
-    date2=pd.to_datetime(p.loc[mask,'CLIDTNAISS2'])
-    
-    dateDebut=pd.to_datetime(p.loc[mask,'POLDTDEB'])
-         
-    age1=(((12*(dateDebut.dt.year-date1.dt.year)+dateDebut.dt.month-date1.dt.month+(dateDebut.dt.day/100)-(date1.dt.day/100))/12)+0.5).astype(int)
-    age2=(((12*(dateDebut.dt.year-date2.dt.year)+dateDebut.dt.month-date2.dt.month+(dateDebut.dt.day/100)-(date2.dt.day/100))/12)+0.5).astype(int)
-
-    p.loc[mask,'Age1AtEntry']=age1
-    p.loc[mask,'Age2AtEntry']=age2
- 
-    mask1=(mask) & (p['POLNBTETE']==1)    
-    p.loc[mask1,'residualTermM']= (65-p.loc[mask1,'Age1AtEntry'])*12-p.loc[mask1,'DurationIfInitial']
-
-    mask2=(mask) & (p['POLNBTETE']==2) 
-    
-    p.loc[mask2,'residualTermM']=p.loc[mask2,['Age2AtEntry','Age1AtEntry']].max(axis=1)
-    p.loc[mask2,'residualTermM']=((70-p.loc[mask2,'residualTermM'])*12)-p.loc[mask2,'DurationIfInitial']
- 
-    decalage=pd.ExcelFile(path  + '/Hypotheses/Decalage.xlsx').parse("Feuil1")
-    
-    decalage=decalage['DECALAGE'].to_dict()
-
-    p.loc[mask2,'ageDiff']=abs(p.loc[mask2,'Age1AtEntry']-p.loc[mask2,'Age2AtEntry'])
-    p.loc[mask1,'ageDiff']=p.loc[mask1,'ageDiff'].fillna(0)
-
-    
-    p['ageDecalage']=p['ageDiff'].map(decalage)
-
-    p.loc[mask2,'Age1AtEntry']=np.minimum(p.loc[mask2,'Age1AtEntry'],p.loc[mask2,'Age2AtEntry'])+ p.loc[mask2,'ageDecalage']
-    
-    p.loc[mask,'Age2AtEntry']=999
-    
-    p.loc[p['residualTermM']<0,'residualTermM']=0
-
-
-
-# =============================================================================
-# Correction des ages pour HOSPITALIS/SERENITE . A supprimer pour corriger
-# =============================================================================
-
-       
-    mask=(p['PMBMOD']==58)|(p['PMBMOD']==11)|(p['PMBMOD']==1)
-    
-    date1=pd.to_datetime(p.loc[mask,'CLIDTNAISS'])
-       
-    moisnaiss1 = date1.dt.month*1
-    
-    dateDebut=pd.to_datetime(p.loc[mask,'POLDTDEB'])
-    
-#  Condition présente dans les DCS
-    mask2 =(np.absolute(date1.dt.month - dateDebut.dt.month) == 6)
-    
-    mask3 = (dateDebut.dt.day < date1.dt.day)
-    
-    moisnaiss1[mask3 & mask2] =  moisnaiss1+1
-    
-    age1=(((12*(dateDebut.dt.year-date1.dt.year)+dateDebut.dt.month-moisnaiss1)/12)+0.5).astype(int)
-
-    p.loc[mask,'Age1AtEntry']=age1
-    
-    
-    
-# =============================================================================
-# Residual Term M pour ces cas MOD11 et 58
-# =============================================================================
-    
-    mask=(p['PMBMOD']==58)
-    p.loc[mask,'residualTermM']=((75-p.loc[mask,'Age1AtEntry'])*12)-p.loc[mask,'DurationIfInitial']
-
-# On force l'age 2 à 999 car les DCS ne prennent pas en compte la 2ème tête
-    p.loc[mask,'Age2AtEntry']=999
-    
-
-    
-    
-      
-    
-##############################################################################################################################
-#Correction des ages et residual pour TEMPORAIRE. A supprimer pour corriger
-########################################################################################################################
-
-            
-    mask=(p['PMBMOD'].isin([28,29,30,31,32,33,36, 2, 6, 7, 3, 4]))
-
-    date1=pd.to_datetime(p.loc[mask,'CLIDTNAISS'])
-    
-    date2=pd.to_datetime(p.loc[mask,'CLIDTNAISS2'])
-    
-    dateDebut=pd.to_datetime(p.loc[mask,'POLDTDEB'])
-         
-    age1=(((12*(dateDebut.dt.year-date1.dt.year)+dateDebut.dt.month-date1.dt.month+(dateDebut.dt.day/100)-(date1.dt.day/100))/12)+0.5).astype(int)
-    age2=(((12*(dateDebut.dt.year-date2.dt.year)+dateDebut.dt.month-date2.dt.month+(dateDebut.dt.day/100)-(date2.dt.day/100))/12)+0.5).astype(int)
-      
-    age1[age1==0]=1
-    
-    p.loc[(mask),'Age1AtEntry']=age1
-    p.loc[(mask),'Age2AtEntry']=age2
- 
-    mask1=(mask) & (p['POLNBTETE']==1)    
-    p.loc[mask1,'residualTermM']= p.loc[mask1,'POLDURC']*12-p.loc[mask1,'DurationIfInitial']
-
-    mask2=(mask) & (p['POLNBTETE']==2) 
-    
-    p.loc[mask2,'residualTermM']= p.loc[mask2,'POLDURC']*12-p.loc[mask2,'DurationIfInitial']
- 
-    decalage=pd.ExcelFile(path  + '/Hypotheses/Decalage.xlsx').parse("Feuil1")
-    
-    decalage=decalage['DECALAGE'].to_dict()
-
-    p.loc[mask2,'ageDiff']=abs(p.loc[mask2,'Age1AtEntry']-p.loc[mask2,'Age2AtEntry'])
-    p.loc[mask1,'ageDiff']=p.loc[mask1,'ageDiff'].fillna(0)
- 
-    p['ageDecalage']=p['ageDiff'].map(decalage)
-
-    p.loc[mask2,'Age1AtEntry']=np.minimum(p.loc[mask2,'Age1AtEntry'],p.loc[mask2,'Age2AtEntry'])+ p.loc[mask2,'ageDecalage']
-    
-
-    p.loc[mask,'Age2AtEntry']=999
-    
-    p.loc[p['residualTermM']<0,'residualTermM']=0
-            
-   
-    
-# Traitement des modalité 10
-        
-    mask=(p['PMBMOD'].isin([10]))
-
-    date1=pd.to_datetime(p.loc[mask,'CLIDTNAISS'])
-    
-    date2=pd.to_datetime(p.loc[mask,'CLIDTNAISS2'])
-    
-    dateDebut=pd.to_datetime(p.loc[mask,'POLDTDEB'])
-         
-    age1=(((12*(dateDebut.dt.year-date1.dt.year)+dateDebut.dt.month-date1.dt.month+(dateDebut.dt.day/100)-(date1.dt.day/100))/12)+0.5).astype(int)
-    age2=(((12*(dateDebut.dt.year-date2.dt.year)+dateDebut.dt.month-date2.dt.month+(dateDebut.dt.day/100)-(date2.dt.day/100))/12)+0.5).astype(int)
-      
-    age1[age1==0]=1
-    
-    p.loc[(mask),'Age1AtEntry']=age1
-    p.loc[(mask),'Age2AtEntry']=age2   
-
-     
-    p.loc[mask,'residualTermM']= p.loc[mask,'POLDURC']*12-p.loc[mask,'DurationIfInitial']    
- 
-    
 # =============================================================================
 #  Création de la classe Inputs
 # =============================================================================
@@ -641,7 +420,76 @@ class Inputs:
         p['DurationIfInitial']=(pd.to_datetime(p['DateCalcul']).dt.year - pd.to_datetime(p['POLDTDEB']).dt.year)*12 \
         + pd.to_datetime(p['DateCalcul']).dt.month - pd.to_datetime(p['POLDTDEB']).dt.month + 1 
         return p
+    
+    #Réplication des residual terme
+    def aSupprimer_CorrResidualTermM(self,p):
+    
+        #mod 9
+        #la police continue jusqu'à 65 ans du plus jeune assuré alors que c'est l'inverse actuellement
+        ageMaxFU=65
+        mask=(p['PMBMOD']==9)   
+        p.loc[(mask) & (p['POLNBTETE']==1),'Age2AtEntry']=p.loc[(mask)& (p['POLNBTETE']==1),'Age1AtEntry']
+        p.loc[mask,'residualTermM']=p.loc[mask,['Age2AtEntry','Age1AtEntry']].max(axis=1)
+        p.loc[mask,'residualTermM']=((ageMaxFU-p.loc[mask,'residualTermM'])*12)-p.loc[mask,'DurationIfInitial']
+
+        #mod 70,25,26
+        mask=(p['PMBMOD']==70)|(p['PMBMOD']==25)|(p['PMBMOD']==26)
+        mask1=(mask) & (p['POLNBTETE']==1)
+        mask2=(mask) & (p['POLNBTETE']==2)
+            
+        p.loc[mask1,'residualTermM']= (65-p.loc[mask1,'Age1AtEntry'])*12-p.loc[mask1,'DurationIfInitial']
+        p.loc[mask2,'residualTermM']=p.loc[mask2,['Age2AtEntry','Age1AtEntry']].max(axis=1)
+        p.loc[mask2,'residualTermM']=((70-p.loc[mask2,'residualTermM'])*12)-p.loc[mask2,'DurationIfInitial']
+     
+        #mod 58 
+        mask=(p['PMBMOD']==58)
+        p.loc[mask,'residualTermM']=((75-p.loc[mask,'Age1AtEntry'])*12)-p.loc[mask,'DurationIfInitial']
+
+        #mod 1,11
+        ageMaxVE=12*99
+        mask=(p['PMBMOD']==11)|(p['PMBMOD']==1)
+        p.loc[mask,'residualTermM']=ageMaxVE-p.loc[mask,'DurationIfInitial']       
+    
+        # mod 28,29,30,31,32,33,36, 2, 6, 7, 3, 4, 10
+        mask=(p['PMBMOD'].isin([28,29,30,31,32,33,36, 2, 6, 7, 3, 4, 10]))  
+        mask1=(mask) & (p['POLNBTETE']==1)
+        mask2=(mask) & (p['POLNBTETE']==2)
+#? cette façon de faire semble correct peut-elle être appliquée aux mod 10,8,9,1,11,25,26,58,70        
+        p.loc[mask1,'residualTermM']= p.loc[mask1,'POLDURC']*12-p.loc[mask1,'DurationIfInitial']      
+        p.loc[mask2,'residualTermM']= p.loc[mask2,'POLDURC']*12-p.loc[mask2,'DurationIfInitial']
+
+        return p
+
+#Utilisation de méthode alternatives pour le calcul des ages
+    def aSupprimer_CorrAgeAtEntry(self,p):
+
+        #mod [28,29,30,31,32,33,36, 2, 6, 7, 3, 4, 70, 25, 26, 10]
+        mask=(p['PMBMOD'].isin([28,29,30,31,32,33,36, 2, 6, 7, 3, 4, 70, 25, 26, 10]))
+        date1=pd.to_datetime(p.loc[mask,'CLIDTNAISS'])        
+        date2=pd.to_datetime(p.loc[mask,'CLIDTNAISS2'])        
+        dateDebut=pd.to_datetime(p.loc[mask,'POLDTDEB'])           
+        age1=(((12*(dateDebut.dt.year-date1.dt.year)+dateDebut.dt.month-date1.dt.month+(dateDebut.dt.day/100)-(date1.dt.day/100))/12)+0.5).astype(int)
+        age2=(((12*(dateDebut.dt.year-date2.dt.year)+dateDebut.dt.month-date2.dt.month+(dateDebut.dt.day/100)-(date2.dt.day/100))/12)+0.5).astype(int)  
+#? A remonter
+        age1[age1==0]=1
+
+        p.loc[mask,'Age1AtEntry']=age1
+        p.loc[mask,'Age2AtEntry']=age2
         
+        #mod 58, 11, 1
+        mask=(p['PMBMOD']==58)|(p['PMBMOD']==11)|(p['PMBMOD']==1)
+        
+        date1=pd.to_datetime(p.loc[mask,'CLIDTNAISS'])        
+        moisnaiss1 = date1.dt.month*1        
+        dateDebut=pd.to_datetime(p.loc[mask,'POLDTDEB'])       
+        mask2 =(np.absolute(date1.dt.month - dateDebut.dt.month) == 6)       
+        mask3 = (dateDebut.dt.day < date1.dt.day)        
+        moisnaiss1[mask3 & mask2] =  moisnaiss1+1
+        age1=(((12*(dateDebut.dt.year-date1.dt.year)+dateDebut.dt.month-moisnaiss1)/12)+0.5).astype(int)
+        p.loc[mask,'Age1AtEntry']=age1
+        p.loc[mask,'Age2AtEntry']=999
+       
+        return p        
 
 ##############################################################################################################################
 #Calcul de l'âge initial (l'âge du deuxième assuré qui n'existe pas est fixé à 999)
@@ -736,10 +584,10 @@ class Inputs:
         ageMaxFU=65
         ageMaxAX=80
         ageMaxHO=75
-        ageMaxEP=55
-      
+        ageMaxVE=121
+        ageMax29=55      
     #Traitement des mods 8
-        mask=(p['PMBMOD']==8)
+        mask=(p['PMBMOD']==8) | (p['PMBMOD']==9) 
         
         p.loc[mask,'residualTermM']=p.loc[mask,['Age2AtEntry','Age1AtEntry']].max(axis=1)
         p.loc[mask,'residualTermM']=((ageMaxFU-p.loc[mask,'residualTermM'])*12)-p.loc[mask,'DurationIfInitial']
@@ -749,48 +597,70 @@ class Inputs:
     
         p.loc[mask,'residualTermM']=p.loc[mask,['Age2AtEntry','Age1AtEntry']].min(axis=1)
         p.loc[mask,'residualTermM']=((ageMaxFU-p.loc[mask,'residualTermM'])*12)-p.loc[mask,'DurationIfInitial']
-    
-    
-    #Traitement du mod 70
+      
+    #? Traitement du mod 70
         mask=(p['PMBMOD']==70)
         
         p.loc[mask,'residualTermM']=p.loc[mask,['Age2AtEntry','Age1AtEntry']].max(axis=1)
         p.loc[mask,'residualTermM']=((ageMaxAX-p.loc[mask,'residualTermM'])*12)-p.loc[mask,'DurationIfInitial']
+
     
-    
-     # Traitement du mod 58
+    # Traitement du mod 58
         mask=(p['PMBMOD']==58)
         p.loc[mask,'residualTermM']=((ageMaxHO-p.loc[mask,'Age1AtEntry'])*12)-p.loc[mask,'DurationIfInitial']
+
+    #? Traitement du mod 1 et 11 (Pourquoi 121 ans age Max?)
+        mask=(p['PMBMOD']==11)|(p['PMBMOD']==1)
+        p.loc[mask,'residualTermM']=((ageMaxVE-p.loc[mask,'Age1AtEntry'])*12)-p.loc[mask,'DurationIfInitial']
+
     
-     # # Traitement du mod 29
-        # mask=(p['PMBMOD']==29)
-        # p.loc[mask,'residualTermM']=((ageMaxEP-p.loc[mask,'Age1AtEntry'])*12)-p.loc[mask,'DurationIfInitial']    
+    #? Traitement du mod 29 (je sais pas si c'est bien correct)
+        mask=(p['PMBMOD']==29)
+        p.loc[mask,'residualTermM']=((ageMax29-p.loc[mask,'Age1AtEntry'])*12)-p.loc[mask,'DurationIfInitial']    
+
+    #? Traitement du mod 25-26 (MANQUANT)
+
     
-        
-    
+    #? Traitement mod 28,29,30,31,32,33,36, 2, 6, 7, 3, 4,10 (MANQUANT)
+
+
         #Replacer 999 pour les deuxièmes assurés des polices à une tête
         p.loc[p['POLNBTETE']==1,'Age2AtEntry']=999
-    
-    
-     # Traitement des vies entières
-        mask=(p['PMBMOD']==11)|(p['PMBMOD']==1)
-        # p.loc[mask,'residualTermM']=((121-p.loc[mask,'Age1AtEntry'])*12)-p.loc[mask,'DurationIfInitial']
-        p.loc[mask,'residualTermM']=(99*12)-p.loc[mask,'DurationIfInitial']
-
         return p
     
-    def aSupprimer_CorrResidualTermM(self,p):
+#Cette méthode corrige les ageAtEntry de l'assuré 1 lorsqu'il y a 2 têtes avec un décalage d'age
+# Attention elle doit se situer après les résidualTerm        
+    def ageAtEntryDecalage(self,p):
+
+        #mod 70,25,26
+        mask=(p['PMBMOD'].isin([28,29,30,31,32,33,36, 2, 6, 7, 3, 4, 70, 25, 26]))
+        mask1=(mask) & (p['POLNBTETE']==1)
+        mask2=(mask) & (p['POLNBTETE']==2)            
+
+        decalage=pd.ExcelFile(path  + '/Hypotheses/Decalage.xlsx').parse("Feuil1")        
+        decalage=decalage['DECALAGE'].to_dict()
     
-        #mods 9
-        #la police continue jusqu'à 65 ans du plus jeune assuré alors que c'est l'inverse actuellement
-        ageMaxFU=65
-        mask=(p['PMBMOD']==9)   
-        p.loc[mask,'residualTermM']=p.loc[mask,['Age2AtEntry','Age1AtEntry']].max(axis=1)
-        p.loc[mask,'residualTermM']=((ageMaxFU-p.loc[mask,'residualTermM'])*12)-p.loc[mask,'DurationIfInitial']        
+        p.loc[mask2,'ageDiff']=abs(p.loc[mask2,'Age1AtEntry']-p.loc[mask2,'Age2AtEntry'])
+        p.loc[mask1,'ageDiff']=p.loc[mask1,'ageDiff'].fillna(0)
+        
+        p['ageDecalage']=p['ageDiff'].map(decalage)
+    
+        p.loc[mask2,'Age1AtEntry']=np.minimum(p.loc[mask2,'Age1AtEntry'],p.loc[mask2,'Age2AtEntry'])+ p.loc[mask2,'ageDecalage']
+        
+        p.loc[mask,'Age2AtEntry']=999
+        
+        p.loc[p['residualTermM']<0,'residualTermM']=0            
+
+        #? Replacer 999 pour les deuxièmes assurés des polices à une tête
+        p.loc[p['POLNBTETE']==1,'Age2AtEntry']=999
         
         return p
+    
+
+        
 
 
+        
            
 ##############################################################################################################################
 #Permet de formater la dataframe du portefeuille des polices avant d'entrer dans la classe Hypo
@@ -818,13 +688,15 @@ class Inputs:
         p=self.aSupprimer_ReAllocClassPGG_Mixte(p)
      
         #Nombre de mois de projection selon la date de fin des polices
-        projectionLengh(p)
-        # p=ResidualTermM(p)
+        p=self.ResidualTermM(p)
            
-        #Traitement des ages et policy terme selon Prophet pour mod70 (nous pensons que cela est erroné)
-        adjustAgesAndTerm(p)
-        # p=aSupprimer_CorrResidualTermM(p)
+        #!! Réplication des ages et policy terme selon Prophet
+        p=self.aSupprimer_CorrAgeAtEntry(p)
+        p=self.aSupprimer_CorrResidualTermM(p)
         
+        #Création des décalages d'ages pour les polices 2 têtes de certaines modalités
+        p=self.ageAtEntryDecalage(p)
+            
         #!! ? On enlève les 18 polices que prophet ne prenait pas en compte pour les mod6
         p.loc[p['PMBPOL'].isin([1302, 96803, 96804, 96805, 96806, 150003, 150004, 150005, 150103, 150104, 150105, 262905, 263003, 448502, 448503, 514408, 514409, 2547101]), 'Age1AtEntry'] = 999
          
