@@ -345,10 +345,10 @@ def adjustedFracAndPremium(p):
 def projectionLengh(p):
 
     #!! Nombre de mois de projection selon la date fin de calcul hardcodé qui est voué à disparaitre 
-    p['ProjectionMonths']=((pd.to_datetime(p['DateFinCalcul'])-pd.to_datetime(p['DateCalcul'])) \
-     /np.timedelta64(1,'M')).apply(np.ceil)    
-
-    p['residualTermM']=p['ProjectionMonths']
+    # p['ProjectionMonths']=((pd.to_datetime(p['DateFinCalcul'])-pd.to_datetime(p['DateCalcul'])) \
+    #  /np.timedelta64(1,'M')).apply(np.ceil)    
+    # p['residualTermM']=p['ProjectionMonths']
+    
     p.loc[p['POLNBTETE']==1,'Age2AtEntry']=p.loc[p['POLNBTETE']==1,'Age1AtEntry']
     
     #Dertermination des âges limites
@@ -723,7 +723,75 @@ class Inputs:
         p['PMbasePGG']=p['PMBPRVMAT']+p['PMBPBEN']+p['PMBREC']+p['PMBRECCPL']
         
         return p
-            
+ 
+##############################################################################################################################
+#Calcul de l'échéance des polices pour obtenir la durée des projections traité par modalité
+##############################################################################################################################
+    def ResidualTermM(self,p):
+    
+        #Polices 1 tête,  la tête 2 est fixée à l'âge 1 pour le moment ensuite 999        
+        p.loc[p['POLNBTETE']==1,'Age2AtEntry']=p.loc[p['POLNBTETE']==1,'Age1AtEntry']
+        
+        #Dertermination des âges limites
+        ageMaxFU=65
+        ageMaxAX=80
+        ageMaxHO=75
+        ageMaxEP=55
+      
+    #Traitement des mods 8
+        mask=(p['PMBMOD']==8)
+        
+        p.loc[mask,'residualTermM']=p.loc[mask,['Age2AtEntry','Age1AtEntry']].max(axis=1)
+        p.loc[mask,'residualTermM']=((ageMaxFU-p.loc[mask,'residualTermM'])*12)-p.loc[mask,'DurationIfInitial']
+        
+    #Traitement des mods 9
+        mask=(p['PMBMOD']==9)    
+    
+        p.loc[mask,'residualTermM']=p.loc[mask,['Age2AtEntry','Age1AtEntry']].min(axis=1)
+        p.loc[mask,'residualTermM']=((ageMaxFU-p.loc[mask,'residualTermM'])*12)-p.loc[mask,'DurationIfInitial']
+    
+    
+    #Traitement du mod 70
+        mask=(p['PMBMOD']==70)
+        
+        p.loc[mask,'residualTermM']=p.loc[mask,['Age2AtEntry','Age1AtEntry']].max(axis=1)
+        p.loc[mask,'residualTermM']=((ageMaxAX-p.loc[mask,'residualTermM'])*12)-p.loc[mask,'DurationIfInitial']
+    
+    
+     # Traitement du mod 58
+        mask=(p['PMBMOD']==58)
+        p.loc[mask,'residualTermM']=((ageMaxHO-p.loc[mask,'Age1AtEntry'])*12)-p.loc[mask,'DurationIfInitial']
+    
+     # # Traitement du mod 29
+        # mask=(p['PMBMOD']==29)
+        # p.loc[mask,'residualTermM']=((ageMaxEP-p.loc[mask,'Age1AtEntry'])*12)-p.loc[mask,'DurationIfInitial']    
+    
+        
+    
+        #Replacer 999 pour les deuxièmes assurés des polices à une tête
+        p.loc[p['POLNBTETE']==1,'Age2AtEntry']=999
+    
+    
+     # Traitement des vies entières
+        mask=(p['PMBMOD']==11)|(p['PMBMOD']==1)
+        # p.loc[mask,'residualTermM']=((121-p.loc[mask,'Age1AtEntry'])*12)-p.loc[mask,'DurationIfInitial']
+        p.loc[mask,'residualTermM']=(99*12)-p.loc[mask,'DurationIfInitial']
+
+        return p
+    
+    def aSupprimer_CorrResidualTermM(self,p):
+    
+        #mods 9
+        #la police continue jusqu'à 65 ans du plus jeune assuré alors que c'est l'inverse actuellement
+        ageMaxFU=65
+        mask=(p['PMBMOD']==9)   
+        p.loc[mask,'residualTermM']=p.loc[mask,['Age2AtEntry','Age1AtEntry']].max(axis=1)
+        p.loc[mask,'residualTermM']=((ageMaxFU-p.loc[mask,'residualTermM'])*12)-p.loc[mask,'DurationIfInitial']        
+        
+        return p
+
+
+           
 ##############################################################################################################################
 #Permet de formater la dataframe du portefeuille des polices avant d'entrer dans la classe Hypo
 #traitement des anomalies et mise en forme des colonnes
@@ -751,9 +819,11 @@ class Inputs:
      
         #Nombre de mois de projection selon la date de fin des polices
         projectionLengh(p)
+        # p=ResidualTermM(p)
            
         #Traitement des ages et policy terme selon Prophet pour mod70 (nous pensons que cela est erroné)
         adjustAgesAndTerm(p)
+        # p=aSupprimer_CorrResidualTermM(p)
         
         #!! ? On enlève les 18 polices que prophet ne prenait pas en compte pour les mod6
         p.loc[p['PMBPOL'].isin([1302, 96803, 96804, 96805, 96806, 150003, 150004, 150005, 150103, 150104, 150105, 262905, 263003, 448502, 448503, 514408, 514409, 2547101]), 'Age1AtEntry'] = 999
@@ -779,6 +849,7 @@ class Inputs:
         
         return p        
   
+# a=Inputs()
 
 # =============================================================================
 # Création de la class Hypothèse
