@@ -406,7 +406,7 @@ class Inputs:
         
         
         
-        newClasse=pd.Series(self.newClass['ClassePGG'].values, index=newClass['ID'] ).to_dict()
+        newClasse=pd.Series(self.newClass['ClassePGG'].values, index=self.newClass['ID'] ).to_dict()
         
         p['ClassPGG2']=p['PMBPOL'].map(newClasse)
         
