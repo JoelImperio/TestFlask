@@ -563,7 +563,7 @@ class Inputs:
 ##############################################################################################################################
 #Calcul de l'échéance des polices pour obtenir la durée des projections traité par modalité
 ##############################################################################################################################
-    def ResidualTermM(self,p):
+    def residualTermM(self,p):
     
         #Polices 1 tête,  la tête 2 est fixée à l'âge 1 pour le moment ensuite 999        
         p.loc[p['POLNBTETE']==1,'Age2AtEntry']=p.loc[p['POLNBTETE']==1,'Age1AtEntry']
@@ -682,7 +682,7 @@ class Inputs:
         p=self.aSupprimer_ReAllocClassPGG_Mixte(p)
      
         #Nombre de mois de projection selon la date de fin des polices
-        p=self.ResidualTermM(p)
+        p=self.residualTermM(p)
            
         #!! Réplication des ages et policy terme selon Prophet
         p=self.aSupprimer_CorrAgeAtEntry(p)
