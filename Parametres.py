@@ -206,36 +206,6 @@ def fraisGestionSumAss(p):
     p.loc[mask, 'fraisGestDureePrimesSA'] = 0.0011
     
     
-##############################################################################################################################
-#Permet d'ajuster les polices réduite avec un fractionnement annuel 1 (Replication DCS)
-##############################################################################################################################  
-    
-def adjustedFracAndPremium(p):
-    
-    mask = (p['PMBMOD'].isin([28,29,30,31,32,33,36,2,10,6,7, 11, 1]))  
-    
-    mask4_5_9_0 = (p['POLSIT']==4) | (p['POLSIT']==9) | (p['PMBFRACT']==0) | (p['PMBFRACT']==5)
-    
-    p.loc[mask &  mask4_5_9_0 ,'POLPRTOT']=0
-    
-    p.loc[mask &  mask4_5_9_0 ,'POLPRCPL1']=0
-    p.loc[mask &  mask4_5_9_0 ,'POLPRCPL2']=0
-    p.loc[mask &  mask4_5_9_0 ,'POLPRCPL3']=0
-    p.loc[mask &  mask4_5_9_0 ,'POLPRCPL4']=0
-    p.loc[mask &  mask4_5_9_0 ,'POLPRCPL5']=0
-    p.loc[mask &  mask4_5_9_0 ,'POLPRCPL6']=0
-    p.loc[mask &  mask4_5_9_0 ,'POLPRCPL7']=0
-    p.loc[mask &  mask4_5_9_0 ,'POLPRCPL8']=0
-    p.loc[mask &  mask4_5_9_0 ,'POLPRCPL9']=0
-    p.loc[mask &  mask4_5_9_0 ,'POLPRCPLA']=0  
-    p.loc[mask &  mask4_5_9_0 ,'POLPRCPLB']=0
-    p.loc[mask &  mask4_5_9_0 ,'POLPRVIEHT']=0
-    
- 
-    p.loc[mask & (p['PMBFRACT']==0) , 'PMBFRACT'] = 1
-    
-
-
 # =============================================================================
 #  Création de la classe Inputs
 # =============================================================================
@@ -729,11 +699,7 @@ class Inputs:
         
         #Ajout de la colonne contenant les chargement de gestions en % de la somme assurée
         fraisGestionSumAss(p)
-          
 
-        
-
-        
         return p        
   
 
