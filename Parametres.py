@@ -450,14 +450,6 @@ class Inputs:
         mask=(p['PMBMOD']==11)|(p['PMBMOD']==1)
         p.loc[mask,'residualTermM']=ageMaxVE-p.loc[mask,'DurationIfInitial']       
     
-        # mod 28,29,30,31,32,33,36, 2, 6, 7, 3, 4, 10
-        mask=(p['PMBMOD'].isin([28,29,30,31,32,33,36, 2, 6, 7, 3, 4, 10]))  
-        mask1=(mask) & (p['POLNBTETE']==1)
-        mask2=(mask) & (p['POLNBTETE']==2)
-#? cette façon de faire semble correct peut-elle être appliquée aux mod 10,8,9,1,11,25,26,58,70        
-        p.loc[mask1,'residualTermM']= p.loc[mask1,'POLDURC']*12-p.loc[mask1,'DurationIfInitial']      
-        p.loc[mask2,'residualTermM']= p.loc[mask2,'POLDURC']*12-p.loc[mask2,'DurationIfInitial']
-
         return p
 
 #Utilisation de méthode alternatives pour le calcul des ages
@@ -617,15 +609,22 @@ class Inputs:
     #? Traitement du mod 29 (je sais pas si c'est bien correct)
         mask=(p['PMBMOD']==29)
         p.loc[mask,'residualTermM']=((ageMax29-p.loc[mask,'Age1AtEntry'])*12)-p.loc[mask,'DurationIfInitial']    
+    
+    # Traitement mod 28,29,30,31,32,33,36, 2, 6, 7, 3, 4,10 (MANQUANT)
+        mask=(p['PMBMOD'].isin([28,29,30,31,32,33,36, 2, 6, 7, 3, 4, 10]))  
+        mask1=(mask) & (p['POLNBTETE']==1)
+        mask2=(mask) & (p['POLNBTETE']==2)
+#? cette façon de faire semble correct peut-elle être appliquée aux mod 10,8,9,1,11,25,26,58,70        
+        p.loc[mask1,'residualTermM']= p.loc[mask1,'POLDURC']*12-p.loc[mask1,'DurationIfInitial']      
+        p.loc[mask2,'residualTermM']= p.loc[mask2,'POLDURC']*12-p.loc[mask2,'DurationIfInitial']
 
     #? Traitement du mod 25-26 (MANQUANT)
 
     
-    #? Traitement mod 28,29,30,31,32,33,36, 2, 6, 7, 3, 4,10 (MANQUANT)
-
 
         #Replacer 999 pour les deuxièmes assurés des polices à une tête
         p.loc[p['POLNBTETE']==1,'Age2AtEntry']=999
+        
         return p
     
 #Cette méthode corrige les ageAtEntry de l'assuré 1 lorsqu'il y a 2 têtes avec un décalage d'age
