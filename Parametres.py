@@ -1156,7 +1156,8 @@ class Hypo:
 ##############################################################################################################################
 
 # a=Inputs()
-
+# b=a.groupby(['PMBMOD','POLTARIF']).sum()
+# b.to_excel("check.xlsx", header = True )
 # myHypo=Hypo()
 
 # myHypo.mod([11])
