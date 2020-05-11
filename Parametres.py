@@ -7,35 +7,6 @@ path = os.path.dirname(os.path.abspath(__file__))
 start_time = time.time()
 
 
-##############################################################################################################################
-#Permet de recréer le fichier CSV du portefeuille en cas de modif de l'extraction
-##############################################################################################################################  
-def portfolioExtractionToCSV():
-    import pyodbc
-      
-    #Paramètres de connection
-    cnxn = pyodbc.connect(
-        driver='{iSeries Access ODBC Driver}',
-        system='10.254.5.1',
-        uid='liviaplus',
-        pwd='liviaplus')  
-    #Extraction du portefeuille des polices   
-    PortfolioQRY=open(r'Portefeuille\QRY.txt').read()
-    p=pd.read_sql(PortfolioQRY, cnxn)
-
-    return p.to_csv(r'Portefeuille\Portfolio.csv')
-
-
-##############################################################################################################################
-#Execution de l'extraction du portefeuille de polices requête SQL en CSV
-##############################################################################################################################    
-
-# portfolioExtractionToCSV()
-
-
-
-
-
     
 ##############################################################################################################################
 #Permet d'ajouter une colonne contenant le taux chargement d'ACQUISITION sur prime
@@ -355,16 +326,16 @@ class Inputs:
         
         self.usedFor=use
                 
-        self.hy=pd.ExcelFile(path  + '/Inputs/HypoN.xls').parse("Hypotheses")
-        self.hy1=pd.ExcelFile(path  + '/Inputs/HypoN-1.xls').parse("Hypotheses")
+        self.hy=pd.ExcelFile(path  + '/Inputs/'+self.usedFor+'/HypoN.xls').parse("Hypotheses")
+        self.hy1=pd.ExcelFile(path  + '/Inputs/'+self.usedFor+'/HypoN-1.xls').parse("Hypotheses")
         
         self.decalage=pd.ExcelFile(path  + '/Inputs/Decalage.xlsx').parse("Feuil1")
         
         #!! A supprimer fichier correction des classes pour les mixtes
         self.newClass=pd.read_excel(path+'/Inputs/CorrespondanceProduit.xlsx',sheet_name='MIXTES')
         
-        porN=pd.read_csv(path+'/Inputs\PortfolioN.csv')
-        porN_1=pd.read_csv(path+'/Inputs\PortfolioN-1.csv')
+        porN=pd.read_csv(path+'/Inputs/'+self.usedFor+'/PortfolioN.csv')
+        porN_1=pd.read_csv(path+'/Inputs/'+self.usedFor+'/PortfolioN-1.csv')
        
         self.po=self.portfolioPreProcessing(porN)
         self.po1=self.portfolioPreProcessing(porN_1)
