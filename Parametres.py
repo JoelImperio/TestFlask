@@ -342,7 +342,8 @@ def adjustedFracAndPremium(p):
 
 class Inputs:
 
-    def __init__(self):
+    def __init__(self, use='PGG'):
+        
         
         self.allRuns=[0,1,2,3,4,5]
         
@@ -351,16 +352,19 @@ class Inputs:
         self.tableExperience=EKM05i
         
         self.dateCalcul='20181231'
+        
+        self.usedFor=use
                 
-        self.hy=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypotheses")
-        self.hy1=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypotheses")       
-        self.decalage=pd.ExcelFile(path  + '/Hypotheses/Decalage.xlsx').parse("Feuil1")
+        self.hy=pd.ExcelFile(path  + '/Inputs/HypoN.xls').parse("Hypotheses")
+        self.hy1=pd.ExcelFile(path  + '/Inputs/HypoN-1.xls').parse("Hypotheses")
+        
+        self.decalage=pd.ExcelFile(path  + '/Inputs/Decalage.xlsx').parse("Feuil1")
         
         #!! A supprimer fichier correction des classes pour les mixtes
-        self.newClass=pd.read_excel(path+'/Portefeuille\CorrespondanceProduit.xlsx',sheet_name='MIXTES')
+        self.newClass=pd.read_excel(path+'/Inputs/CorrespondanceProduit.xlsx',sheet_name='MIXTES')
         
-        porN=pd.read_csv(path+'/Portefeuille\Portfolio.csv')
-        porN_1=pd.read_csv(path+'/Portefeuille\Portfolio.csv')
+        porN=pd.read_csv(path+'/Inputs\PortfolioN.csv')
+        porN_1=pd.read_csv(path+'/Inputs\PortfolioN-1.csv')
        
         self.po=self.portfolioPreProcessing(porN)
         self.po1=self.portfolioPreProcessing(porN_1)
@@ -369,6 +373,29 @@ class Inputs:
                 
         return [self.hy,self.hy1,self.po,self.po1,self.myRuns]
     
+    #Extraction du portefeuille des polices à partir du fichier qryN ou qryN-1
+    def portfolioExtractionToCSV(self):
+        import pyodbc
+         
+        #Paramètres de connection
+        cnxn = pyodbc.connect(
+            driver='{iSeries Access ODBC Driver}',
+            system='10.254.5.1',
+            uid='liviaplus',
+            pwd='liviaplus')  
+        #Extraction du portefeuille N   
+        n='N'
+        PortfolioQRY=open(path+'/Inputs/'+self.usedFor+'/qry'+n+'.txt').read()
+        p=pd.read_sql(PortfolioQRY, cnxn)
+        p.to_csv(path+'/Inputs/'+self.usedFor+'/Portfolio'+n+'.csv') 
+
+        #Extraction du portefeuille N-1 
+        n1='N-1'
+        PortfolioQRYn1=open(path+'/Inputs/'+self.usedFor+'/qry'+n1+'.txt').read()
+        p1=pd.read_sql(PortfolioQRYn1, cnxn)
+        p1.to_csv(path+'/Inputs/'+self.usedFor+'/Portfolio'+n1+'.csv')    
+        
+        return p,p1 
 
     def aSupprimer_DataError(self,p):
 
@@ -718,7 +745,7 @@ class Inputs:
         
         return p        
   
-# a=Inputs()
+a=Inputs()
 
 # =============================================================================
 # Création de la class Hypothèse
