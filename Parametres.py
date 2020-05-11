@@ -246,8 +246,6 @@ def tauxZill(p):
     
 
     
-    
-    
 ##############################################################################################################################
 #Permet d'ajouter une colonne contenant les frais de fractionnement
 ##############################################################################################################################
@@ -314,40 +312,37 @@ def adjustedFracAndPremium(p):
 class Inputs:
 
     def __init__(self, use='PGG'):
+
+        self.usedFor=use  
         
-        
-        self.allRuns=[0,1,2,3,4,5]
-        
+        #A définir
+        self.moisJourCalcul='1231'     
         self.myRuns=[0,1,2,3,4,5]
-        
+        self.allRuns=[0,1,2,3,4,5]        
         self.tableExperience=EKM05i
         
-        self.dateCalcul='20181231'
+        #Chargement des fichiers
         
-        self.usedFor=use
-                
         self.hy=pd.ExcelFile(path  + '/Inputs/'+self.usedFor+'/HypoN.xls').parse("Hypotheses")
         self.hy1=pd.ExcelFile(path  + '/Inputs/'+self.usedFor+'/HypoN-1.xls').parse("Hypotheses")
-        
-        self.decalage=pd.ExcelFile(path  + '/Inputs/Decalage.xlsx').parse("Feuil1")
-        
+
+        porN=pd.read_csv(path+'/Inputs/'+self.usedFor+'/PortfolioN.csv')
+        porN_1=pd.read_csv(path+'/Inputs/'+self.usedFor+'/PortfolioN-1.csv')
+            
+        self.decalage=pd.ExcelFile(path  + '/Inputs/Decalage.xlsx').parse("Feuil1")    
         #!! A supprimer fichier correction des classes pour les mixtes
         self.newClass=pd.read_excel(path+'/Inputs/CorrespondanceProduit.xlsx',sheet_name='MIXTES')
         
-        porN=pd.read_csv(path+'/Inputs/'+self.usedFor+'/PortfolioN.csv')
-        porN_1=pd.read_csv(path+'/Inputs/'+self.usedFor+'/PortfolioN-1.csv')
-       
+      
         self.po=self.portfolioPreProcessing(porN)
         self.po1=self.portfolioPreProcessing(porN_1)
               
-    def clean(self):
-                
+    def clean(self):             
         return [self.hy,self.hy1,self.po,self.po1,self.myRuns]
     
     #Extraction du portefeuille des polices à partir du fichier qryN ou qryN-1
     def portfolioExtractionToCSV(self):
-        import pyodbc
-         
+        import pyodbc      
         #Paramètres de connection
         cnxn = pyodbc.connect(
             driver='{iSeries Access ODBC Driver}',
@@ -370,8 +365,7 @@ class Inputs:
 
     def aSupprimer_DataError(self,p):
 
-    #Traitement des anomalies dans les données
-    
+    #Traitement des anomalies dans les données    
         #Certaines dates d'échéances tombe un jour qui n'existe pas
         p.loc[p['PMBPOL'].isin([1602101,609403,2161101,2162601,297004]), 'POLDTEXP'] = '20190228'
         
@@ -545,7 +539,7 @@ class Inputs:
     def ajoutEtFormatColonnes(self,p):
         
         #Dates des calcules
-        p['DateCalcul']=pd.to_datetime(self.dateCalcul)
+        p['DateCalcul']=pd.to_datetime(p['PMBBILAN'].astype(int).astype(str)+self.moisJourCalcul)
         
         #Formatage des date en format date
         p['POLDTDEB']= pd.to_datetime(p['POLDTDEB'].astype(str), format='%Y%m%d').dt.date
