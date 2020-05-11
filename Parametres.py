@@ -22,10 +22,8 @@ def portfolioExtractionToCSV():
     #Extraction du portefeuille des polices   
     PortfolioQRY=open(r'Portefeuille\QRY.txt').read()
     p=pd.read_sql(PortfolioQRY, cnxn)
-    #Copy l'extraction dans un CSV
 
-#Attention enlever à la copie du test lorsque le développement sera fini
-    return p.to_csv(r'Portefeuille\Portfolio.csv'), p.to_csv(r'Tests\Portfolio_Test.csv')
+    return p.to_csv(r'Portefeuille\Portfolio.csv')
 
 
 ##############################################################################################################################
@@ -353,11 +351,13 @@ class Inputs:
         self.tableExperience=EKM05i
         
         self.dateCalcul='20181231'
-        
-        self.dateFinCalcul='20521231'  
-        
+                
         self.hy=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypotheses")
-        self.hy1=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypotheses")
+        self.hy1=pd.ExcelFile(path  + '/Hypotheses/TablesProphet 2018-12.xls').parse("Hypotheses")       
+        self.decalage=pd.ExcelFile(path  + '/Hypotheses/Decalage.xlsx').parse("Feuil1")
+        
+        #!! A supprimer fichier correction des classes pour les mixtes
+        self.newClass=pd.read_excel(path+'/Portefeuille\CorrespondanceProduit.xlsx',sheet_name='MIXTES')
         
         porN=pd.read_csv(path+'/Portefeuille\Portfolio.csv')
         porN_1=pd.read_csv(path+'/Portefeuille\Portfolio.csv')
@@ -404,9 +404,9 @@ class Inputs:
     # Les allocations dans les classes PGG ne correspondait pas aux taux technique pour les mixtes
     def aSupprimer_ReAllocClassPGG_Mixte(self,p):
         
-        newClass=pd.read_excel(path+'/Portefeuille\CorrespondanceProduit.xlsx',sheet_name='MIXTES')
         
-        newClasse=pd.Series(newClass['ClassePGG'].values, index=newClass['ID'] ).to_dict()
+        
+        newClasse=pd.Series(self.newClass['ClassePGG'].values, index=newClass['ID'] ).to_dict()
         
         p['ClassPGG2']=p['PMBPOL'].map(newClasse)
         
@@ -548,7 +548,6 @@ class Inputs:
         
         #Dates des calcules
         p['DateCalcul']=pd.to_datetime(self.dateCalcul)
-        p['DateFinCalcul']=pd.to_datetime(self.dateFinCalcul)
         
         #Formatage des date en format date
         p['POLDTDEB']= pd.to_datetime(p['POLDTDEB'].astype(str), format='%Y%m%d').dt.date
@@ -631,13 +630,12 @@ class Inputs:
 # Attention elle doit se situer après les résidualTerm        
     def ageAtEntryDecalage(self,p):
 
-        #mod 70,25,26
+        #mod [28,29,30,31,32,33,36, 2, 6, 7, 3, 4, 70, 25, 26]
         mask=(p['PMBMOD'].isin([28,29,30,31,32,33,36, 2, 6, 7, 3, 4, 70, 25, 26]))
         mask1=(mask) & (p['POLNBTETE']==1)
         mask2=(mask) & (p['POLNBTETE']==2)            
-
-        decalage=pd.ExcelFile(path  + '/Hypotheses/Decalage.xlsx').parse("Feuil1")        
-        decalage=decalage['DECALAGE'].to_dict()
+        
+        decalage=self.decalage['DECALAGE'].to_dict()
     
         p.loc[mask2,'ageDiff']=abs(p.loc[mask2,'Age1AtEntry']-p.loc[mask2,'Age2AtEntry'])
         p.loc[mask1,'ageDiff']=p.loc[mask1,'ageDiff'].fillna(0)
