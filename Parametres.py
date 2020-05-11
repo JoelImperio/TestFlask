@@ -651,8 +651,34 @@ class Inputs:
         return p
     
 
+# Ajout d'une colonne contenant les frais de fractionnement        
+    def fraisFractionnement(self,p):
+    
+        mask12=(p['PMBFRACT']==12)
+        mask6=(p['PMBFRACT']==6)
+        mask4=(p['PMBFRACT']==4)
+        mask2=(p['PMBFRACT']==2) 
         
-
+        maskAX=(p['PMBMOD']==70)
+        
+        p.loc[mask12 & maskAX,'fraisFract']=1.08
+        p.loc[mask6 & maskAX,'fraisFract']=1.06
+        p.loc[mask4 & maskAX,'fraisFract']=1.05
+        p.loc[mask2 & maskAX,'fraisFract']=1.04
+        
+#? est-ce que cela correspond avec les vrai taux de frais de fractionnement ?        
+        mask=(p['PMBMOD'].isin([25, 26, 2, 6, 10]))
+        
+        p.loc[mask12 & mask,'fraisFract']=1.05
+        p.loc[mask6 & mask,'fraisFract']=1.04
+        p.loc[mask4 & mask,'fraisFract']=1.03
+        p.loc[mask2 & mask,'fraisFract']=1.02
+        
+        
+        p.loc[:,'fraisFract']=p.loc[:,'fraisFract'].fillna(1)
+        
+        return p
+        
 
         
            
@@ -692,8 +718,11 @@ class Inputs:
         p=self.ageAtEntryDecalage(p)
             
         #!! ? On enlève les 18 polices que prophet ne prenait pas en compte pour les mod6
-        p=aSupprimer_Mod6PasDansProphet(p)
-         
+        p=self.aSupprimer_Mod6PasDansProphet(p)
+
+        #Ajout d'une colonne contenant les frais de fractionnement
+        p=self.fraisFractionnement(p)
+        
         # Ajout de la colonne contenant les chargements d'acquisition
         premiumAquisitionLoading(p)
         
@@ -702,10 +731,7 @@ class Inputs:
         
         #Ajout de la colonne contenant les chargement de gestions en % de la somme assurée
         fraisGestionSumAss(p)
-        
-        #Ajout d'une colonne contenant les frais de fractionnement
-        fraisFractionnement(p)
-        
+          
         # Ajustement des fractionnements pour des polices avec frac = 0 (réduites)
         adjustedFracAndPremium(p)
         
