@@ -473,7 +473,12 @@ class Inputs:
         p.loc[mask,'Age1AtEntry']=age1
         p.loc[mask,'Age2AtEntry']=999
        
-        return p        
+        return p
+
+# Enlever des polices mod6 qui sont prise dans les réserves initiales mais pas calculée dans Prophet
+    def aSupprimer_Mod6PasDansProphet(self,p):
+        p.loc[p['PMBPOL'].isin([1302, 96803, 96804, 96805, 96806, 150003, 150004, 150005, 150103, 150104, 150105, 262905, 263003, 448502, 448503, 514408, 514409, 2547101]), 'Age1AtEntry'] = 999
+        return p
 
 ##############################################################################################################################
 #Calcul de l'âge initial (l'âge du deuxième assuré qui n'existe pas est fixé à 999)
@@ -687,8 +692,7 @@ class Inputs:
         p=self.ageAtEntryDecalage(p)
             
         #!! ? On enlève les 18 polices que prophet ne prenait pas en compte pour les mod6
-        p.loc[p['PMBPOL'].isin([1302, 96803, 96804, 96805, 96806, 150003, 150004, 150005, 150103, 150104, 150105, 262905, 263003, 448502, 448503, 514408, 514409, 2547101]), 'Age1AtEntry'] = 999
-         
+        p=aSupprimer_Mod6PasDansProphet(p)
          
         # Ajout de la colonne contenant les chargements d'acquisition
         premiumAquisitionLoading(p)
