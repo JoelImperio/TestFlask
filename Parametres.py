@@ -686,7 +686,7 @@ class Inputs:
         p=self.fraisFractionnement(p)
  
         # Ajout des taux de zillmérisations en fonction du tarif
-        p=self.tauxZiller(p)
+        p=self.tauxZillmer(p)
 
         # Ajustement des fractionnements pour des polices avec frac = 0 (réduites)
         p=self.zeroPremiumForReducePolicy(p)
