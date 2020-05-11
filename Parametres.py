@@ -68,7 +68,7 @@ def premiumAquisitionLoading(p):
     mask = (p['PMBMOD'].isin([2]))
     maskTete = p['POLNBTETE'] == 1
     
-        # Tarif A
+        # Tarifs
     maskTarif = p['POLTARIF'].isin(['A', 'B','C','D'])
     p.loc[maskTete & maskTarif & mask,'aquisitionLoading'] = 0.11
     
@@ -80,6 +80,7 @@ def premiumAquisitionLoading(p):
     
     # Mixtes 2 têtes mod2
     maskTete = p['POLNBTETE'] == 2
+        # Tarifs
     maskTarif = p['POLTARIF'].isin(['A', 'B', 'C', 'D'])
     p.loc[maskTete & maskTarif & mask,'aquisitionLoading'] = 0.11
     
@@ -204,76 +205,6 @@ def fraisGestionSumAss(p):
     p.loc[mask, 'fraisGestDureePoliceSA'] = 0.0011
     p.loc[mask, 'fraisGestDureePrimesSA'] = 0.0011
     
-    
-    
-    
-def tauxZill(p):
-    
-    # mod2
-    mask=(p['PMBMOD'].isin([2]))
-    
-
-    maskTarif = p['POLTARIF'].isin(['H', 'I', 'J', 'L', 'K'])
-    p.loc[maskTarif & mask,'tauxZill'] = 0.05
-    
-    maskTarif = p['POLTARIF'].isin(['A', 'B', 'C', 'D', 'E', 'F', 'G'])
-    p.loc[ maskTarif & mask,'tauxZill'] = 0.08
-    
-    # mod10
-    mask=(p['PMBMOD'].isin([10]))
-    p.loc[mask,'tauxZill'] = 0.05
-     
-    # mod6 et 7
-    mask=(p['PMBMOD'].isin([6, 7]))
-    p.loc[mask,'tauxZill'] = 0
-
-    # mod1
-    mask=(p['PMBMOD'].isin([1]))
-    
-    maskTarif = p['POLTARIF'].isin(['A', 'B', 'C', 'D'])
-    p.loc[maskTarif & mask,'tauxZill'] = 0.08
-    
-    maskTarif = p['POLTARIF'].isin(['H', 'I', 'J'])
-    p.loc[ maskTarif & mask,'tauxZill'] = 0.05
-    
-    # mod11
-    mask=(p['PMBMOD'].isin([11]))
-    
-    maskTarif = p['POLTARIF'].isin(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7'])
-    p.loc[maskTarif & mask,'tauxZill'] = 0.05
-
-    p['tauxZill'] = p['tauxZill'].fillna(0)
-    
-
-    
-##############################################################################################################################
-#Permet d'ajouter une colonne contenant les frais de fractionnement
-##############################################################################################################################
-def fraisFractionnement(p):
-
-    mask12=(p['PMBFRACT']==12)
-    mask6=(p['PMBFRACT']==6)
-    mask4=(p['PMBFRACT']==4)
-    mask2=(p['PMBFRACT']==2) 
-    
-    maskAX=(p['PMBMOD']==70)
-    
-    p.loc[mask12 & maskAX,'fraisFract']=1.08
-    p.loc[mask6 & maskAX,'fraisFract']=1.06
-    p.loc[mask4 & maskAX,'fraisFract']=1.05
-    p.loc[mask2 & maskAX,'fraisFract']=1.04
-    
-    
-    mask=(p['PMBMOD'].isin([25, 26, 2, 6, 10]))
-    
-    p.loc[mask12 & mask,'fraisFract']=1.05
-    p.loc[mask6 & mask,'fraisFract']=1.04
-    p.loc[mask4 & mask,'fraisFract']=1.03
-    p.loc[mask2 & mask,'fraisFract']=1.02
-    
-    
-    p.loc[:,'fraisFract']=p.loc[:,'fraisFract'].fillna(1)
-
     
 ##############################################################################################################################
 #Permet d'ajuster les polices réduite avec un fractionnement annuel 1 (Replication DCS)
@@ -678,9 +609,70 @@ class Inputs:
         p.loc[:,'fraisFract']=p.loc[:,'fraisFract'].fillna(1)
         
         return p
+    
+# Ajout d'une colonne avec le taux de zillmérisation
+# ? Ne manque-t-il pas certain taux dse zillmerisation (ex mod36)        
+    def tauxZillmer(self,p):
         
+        # mod2
+        mask=(p['PMBMOD'].isin([2]))
+    
+        maskTarif = p['POLTARIF'].isin(['H', 'I', 'J', 'L', 'K'])
+        p.loc[maskTarif & mask,'tauxZill'] = 0.05
+        
+        maskTarif = p['POLTARIF'].isin(['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+        p.loc[ maskTarif & mask,'tauxZill'] = 0.08
+        
+        # mod10
+        mask=(p['PMBMOD'].isin([10]))
+        p.loc[mask,'tauxZill'] = 0.05
+             
+        # mod1
+        mask=(p['PMBMOD'].isin([1]))
+        
+        maskTarif = p['POLTARIF'].isin(['A', 'B', 'C', 'D'])
+        p.loc[maskTarif & mask,'tauxZill'] = 0.08
+        
+        maskTarif = p['POLTARIF'].isin(['H', 'I', 'J'])
+        p.loc[ maskTarif & mask,'tauxZill'] = 0.05
+        
+        # mod11
+        mask=(p['PMBMOD'].isin([11]))
+        
+        maskTarif = p['POLTARIF'].isin(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7'])
+        p.loc[maskTarif & mask,'tauxZill'] = 0.05
+    
+        p['tauxZill'] = p['tauxZill'].fillna(0)
+        
+        return p
 
+# Corrige l'ensemble des primes à 0 pour les polices réduites et met le fractionement annuel
+    def zeroPremiumForReducePolicy(self,p):
         
+        mask = (p['PMBMOD'].isin([28,29,30,31,32,33,36,2,10,6,7, 11, 1]))  
+        
+        mask4_5_9_0 = (p['POLSIT']==4) | (p['POLSIT']==9) | (p['PMBFRACT']==0) | (p['PMBFRACT']==5)
+        
+        p.loc[mask &  mask4_5_9_0 ,'POLPRTOT']=0
+        
+        p.loc[mask &  mask4_5_9_0 ,'POLPRCPL1']=0
+        p.loc[mask &  mask4_5_9_0 ,'POLPRCPL2']=0
+        p.loc[mask &  mask4_5_9_0 ,'POLPRCPL3']=0
+        p.loc[mask &  mask4_5_9_0 ,'POLPRCPL4']=0
+        p.loc[mask &  mask4_5_9_0 ,'POLPRCPL5']=0
+        p.loc[mask &  mask4_5_9_0 ,'POLPRCPL6']=0
+        p.loc[mask &  mask4_5_9_0 ,'POLPRCPL7']=0
+        p.loc[mask &  mask4_5_9_0 ,'POLPRCPL8']=0
+        p.loc[mask &  mask4_5_9_0 ,'POLPRCPL9']=0
+        p.loc[mask &  mask4_5_9_0 ,'POLPRCPLA']=0  
+        p.loc[mask &  mask4_5_9_0 ,'POLPRCPLB']=0
+        p.loc[mask &  mask4_5_9_0 ,'POLPRVIEHT']=0
+        
+        #Ajout du fractionnement annuel pour les polices sans fractionnment
+        p.loc[mask & (p['PMBFRACT']==0) , 'PMBFRACT'] = 1
+        
+        return p
+            
            
 ##############################################################################################################################
 #Permet de formater la dataframe du portefeuille des polices avant d'entrer dans la classe Hypo
@@ -722,6 +714,12 @@ class Inputs:
 
         #Ajout d'une colonne contenant les frais de fractionnement
         p=self.fraisFractionnement(p)
+ 
+        # Ajout des taux de zillmérisations en fonction du tarif
+        p=self.tauxZiller(p)
+
+        # Ajustement des fractionnements pour des polices avec frac = 0 (réduites)
+        p=self.zeroPremiumForReducePolicy(p)
         
         # Ajout de la colonne contenant les chargements d'acquisition
         premiumAquisitionLoading(p)
@@ -732,11 +730,9 @@ class Inputs:
         #Ajout de la colonne contenant les chargement de gestions en % de la somme assurée
         fraisGestionSumAss(p)
           
-        # Ajustement des fractionnements pour des polices avec frac = 0 (réduites)
-        adjustedFracAndPremium(p)
+
         
-        # Ajout des taux de zillmérisations en fonction du tarif
-        tauxZill(p)
+
         
         return p        
   
