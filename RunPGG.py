@@ -96,7 +96,7 @@ a=run.pggParSousPortefeuille()
 # b=sum(a['PGG'])
 # b=run.pggTotal()
 # c=run.deltaAnalysisSousPortefeuille()
-# d=run.deltaAnalysisPGG()
+# d=run.deltaAnalysisPGG()♠
 
 #Tester de récupérer toutes les méthodes et storer tout les résultats
 # a=FU()

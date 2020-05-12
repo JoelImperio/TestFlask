@@ -1055,7 +1055,7 @@ class Hypo:
 #zs=myHypo.dc()
 #zt=myHypo.fraisVisite()
 #zu=myHypo.reduction()
-#zv=myHypo.commissions()
+# zv=myHypo.commissions()
 #zw=myHypo.inflation()
 
 # qq =myHypo.polTermM()
@@ -1067,4 +1067,16 @@ print("Class Hypo--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 
 #a=porN.loc[porN['PMBMOD']==70]
+h=pd.ExcelFile(path  + '/Inputs/PGG/HypoN.xls').parse("Hypotheses")
+p=pd.read_csv(path+'/Inputs/PGG/PortfolioN.csv')
 
+
+
+# cl=.p['PMBMOD']
+
+# commissionsRates=h.iloc[61:86,1:7]
+# commissionsRates.columns = commissionsRates.iloc[0]
+# commissionsRates=commissionsRates.drop(commissionsRates.index[0])
+# commissionsRates=commissionsRates.set_index('Modalité').transpose()
+# commissionsRates=commissionsRates[cl].transpose().to_numpy()
+# commissionsRates=commissionsRates[:,:,np.newaxis,np.newaxis]
