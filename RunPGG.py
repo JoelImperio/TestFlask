@@ -90,9 +90,9 @@ class RUNPGG():
 ###################################DEBUT DES TESTS DE LA CLASSE ET FONCTIONALITES#############################################
 ##############################################################################################################################       
  
-# run=RUNPGG()
+run=RUNPGG()
 
-# a=run.pggParSousPortefeuille()
+a=run.pggParSousPortefeuille()
 # b=sum(a['PGG'])
 # b=run.pggTotal()
 # c=run.deltaAnalysisSousPortefeuille()

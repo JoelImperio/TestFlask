@@ -397,11 +397,11 @@ class Inputs:
         l=self.loading
         
         #Contrôle si tout les produits sont pris en compte dans les loadings    
-        df1=l[['PMBMOD','POLTARIF']].groupby(['PMBMOD','POLTARIF']).sum()
-        df2=p[['PMBMOD','POLTARIF']].groupby(['PMBMOD','POLTARIF']).sum()
-        check=df1.equals(df2)
-        if not check:
-            sys.exit('Il manque des chargements dans Loading.xlsx')
+        # df1=l[['PMBMOD','POLTARIF']].groupby(['PMBMOD','POLTARIF']).sum()
+        # df2=p[['PMBMOD','POLTARIF']].groupby(['PMBMOD','POLTARIF']).sum()
+        # check=df1.equals(df2)
+        # if not check:
+        #     sys.exit('Il manque des chargements dans Loading.xlsx')
         
         p['LoadingID']=p['PMBMOD'].astype(int).map(str) + p['POLTARIF'].map(str)
         l['LoadingID']=l['PMBMOD'].map(str)+l['POLTARIF'].map(str)
@@ -911,7 +911,7 @@ class Hypo:
         h=self.hypoSet(self.CostNew)
         cl=self.p['PMBMOD']
         
-        commissionsRates=h.iloc[61:85,1:7]
+        commissionsRates=h.iloc[61:86,1:7]
         commissionsRates.columns = commissionsRates.iloc[0]
         commissionsRates=commissionsRates.drop(commissionsRates.index[0])
         commissionsRates=commissionsRates.set_index('Modalité').transpose()
@@ -1022,7 +1022,7 @@ class Hypo:
    ### DEBUT DES TESTS
 ##############################################################################################################################
 
-a=Inputs()
+# a=Inputs().portfolioExtractionToCSV()
 # b=a.groupby(['PMBMOD','POLTARIF']).sum()
 # b.to_excel("check.xlsx", header = True )
 # myHypo=Hypo()
@@ -1067,3 +1067,4 @@ print("Class Hypo--- %s sec" %'%.2f'%  (time.time() - start_time))
 
 
 #a=porN.loc[porN['PMBMOD']==70]
+
