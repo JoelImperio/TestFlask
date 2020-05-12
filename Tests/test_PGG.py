@@ -31,8 +31,6 @@ ATOL=0.001
 decimalPrecision=2
 
 
-
-
 #Test spécifique produit pour le Best Estimate et la PGG
 class Test_FU(ut.TestCase):
 
