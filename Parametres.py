@@ -2,210 +2,13 @@ import pandas as pd
 import numpy as np
 from MyPyliferisk.mortalitytables import EKM05i
 import time
+import sys
 import os, os.path
 path = os.path.dirname(os.path.abspath(__file__))
 start_time = time.time()
 
 
-    
-##############################################################################################################################
-#Permet d'ajouter une colonne contenant le taux chargement d'ACQUISITION sur prime
-############################################################################################################################## 
-def premiumAquisitionLoading(p):
-    
-    #FU
-    mask=(p['PMBMOD']==8)|(p['PMBMOD']==9)
-    
-    p.loc[mask,'aquisitionLoading']=0.2
-    
-    #AX
-    mask=(p['PMBMOD']==70)
-
-#Les frais d'aquisition sont erronés il faut changer pour 0.32   
-    p.loc[mask,'aquisitionLoading']=0.25   
-#    p.loc[mask,'aquisitionLoading']=0.32       
-
-    #HO
-    mask=(p['PMBMOD']==58)
-
-#Les frais d'aquisition sont erronés il faut changer pour 0.25   
-    p.loc[mask,'aquisitionLoading']=1  
-#    p.loc[mask,'aquisitionLoading']=0.25
-
-    
-    # PRECI
-    mask=(p['PMBMOD']==25)|(p['PMBMOD']==26)
-    p.loc[mask,'aquisitionLoading']=0.25
-    
-    
-    # Epargne retraite mod28 et mod29
-    mask=(p['PMBMOD'].isin([28,29]))
-    p.loc[mask,'aquisitionLoading']= (0.45 * np.minimum(p['POLDURC'], 20) /20)
-    p.loc[mask,'aquisitionLoadingYear2']= 0
-    p.loc[mask,'aquisitionLoadingYear3']= 0    
-
-    # Epargne retraite mod32
-    mask=(p['PMBMOD'].isin([32]))
-    p.loc[mask,'aquisitionLoading']= (0.36 * np.minimum(p['POLDURC'], 20) /20)
-    p.loc[mask,'aquisitionLoadingYear2']= (0.09 * np.minimum(p['POLDURC'], 20) /20)
-    p.loc[mask,'aquisitionLoadingYear3']= 0    
-
-    # Epargne retraite mod33
-    mask=(p['PMBMOD'].isin([33]))
-    p.loc[mask,'aquisitionLoading']= (0.445 * np.minimum(p['POLDURC'], 25) /25)
-    p.loc[mask,'aquisitionLoadingYear2']= (0.395 * np.minimum(p['POLDURC'], 25) /25)
-    p.loc[mask,'aquisitionLoadingYear3']= (0.395 * np.minimum(p['POLDURC'], 25) /25) 
-    
-    # Epargne retraite mod30 et mod31 et mod36
-    mask=(p['PMBMOD'].isin([30,31,36]))
-    p.loc[mask,'aquisitionLoading']=0    
-    p.loc[mask,'aquisitionLoadingYear2']= 0
-    p.loc[mask,'aquisitionLoadingYear3']= 0
-    
-    
-    
-    # Mixtes 1 tête mod2
-    mask = (p['PMBMOD'].isin([2]))
-    maskTete = p['POLNBTETE'] == 1
-    
-        # Tarifs
-    maskTarif = p['POLTARIF'].isin(['A', 'B','C','D'])
-    p.loc[maskTete & maskTarif & mask,'aquisitionLoading'] = 0.11
-    
-    maskTarif = p['POLTARIF'].isin(['E', 'F','G' ])
-    p.loc[maskTete & maskTarif & mask,'aquisitionLoading'] = 0.09
-    
-    maskTarif = p['POLTARIF'].isin(['H', 'I','J', 'L', 'K' ])
-    p.loc[maskTete & maskTarif & mask,'aquisitionLoading'] = 0.07
-    
-    # Mixtes 2 têtes mod2
-    maskTete = p['POLNBTETE'] == 2
-        # Tarifs
-    maskTarif = p['POLTARIF'].isin(['A', 'B', 'C', 'D'])
-    p.loc[maskTete & maskTarif & mask,'aquisitionLoading'] = 0.11
-    
-    maskTarif = p['POLTARIF'].isin(['E', 'F','G'])
-    p.loc[maskTete & maskTarif & mask,'aquisitionLoading'] = 0.09
-    
-    maskTarif = p['POLTARIF'].isin(['H', 'I','J', 'K', 'L'])
-    p.loc[maskTete & maskTarif & mask,'aquisitionLoading'] = 0.07
-    
-    
-    # Mixte mod10
-    mask = (p['PMBMOD'].isin([10]))
-
-    maskTarif = p['POLTARIF'].isin(['A','C', 'D'])
-    p.loc[maskTarif & mask,'aquisitionLoading'] = 0.07
-    
-    # Mixte mod 6
-    mask = (p['PMBMOD'].isin([6]))
-    
-    maskTarif = p['POLTARIF'].isin(['A', 'L1', 'L2', 'M1', 'M2', 'M3'])
-    p.loc[maskTarif & mask,'aquisitionLoading'] = 0.05
-    
-    maskTarif = p['POLTARIF'].isin(['J3'])
-    p.loc[maskTarif & mask,'aquisitionLoading'] = 0
-    
-    
-    # Mixte mod 7
-    mask = (p['PMBMOD'].isin([7]))
-    p.loc[mask,'aquisitionLoading'] = 0
-    
-
-    p['aquisitionLoading'].fillna(0,inplace=True)
-    p['aquisitionLoadingYear2'].fillna(0,inplace=True)
-    p['aquisitionLoadingYear3'].fillna(0,inplace=True)
-    
-##############################################################################################################################
-#Permet d'ajouter une colonne contenant le taux chargement de GESTION sur prime
-###################################################################################################################### 
-    
-def premiumGestionLoading(p):
-    
-    # Mod28 et Mod29
-    mask=(p['PMBMOD'].isin([28,29,32]))
-    p.loc[mask,'gestionLoading']=0.07
-    
-    # Mod30
-    mask=(p['PMBMOD'].isin([30,31]))
-    p.loc[mask,'gestionLoading']=0 
-    
-    # Mod33
-    mask=(p['PMBMOD'].isin([33]))
-    p.loc[mask,'gestionLoading']=0.055
-    
-    # Mod36
-    mask=(p['PMBMOD'].isin([36]))
-    p.loc[mask,'gestionLoading']=0.12
-    
-    # Mod11
-    mask=(p['PMBMOD'].isin([11]))   
-    p.loc[(p['Age1AtEntry'] < 53) & (mask), 'gestionLoading'] = 0.006
-    p.loc[(p['Age1AtEntry'] >=53) & (p['Age1AtEntry'] < 70) & (mask), 'gestionLoading'] = 0.01
-    p.loc[(p['Age1AtEntry'] >= 70) & (mask), 'gestionLoading'] = 0.021
-   
-
-
-
-
-# =============================================================================
-# Frais de gestion en % de la somme assurée sur la durée du contrat
-# =============================================================================
-
-def fraisGestionSumAss(p):
-    
-    # mod2
-    mask=(p['PMBMOD'].isin([2]))
-    
-
-    maskTarif = p['POLTARIF'].isin(['A', 'B', 'C', 'D'])
-    p.loc[maskTarif & mask,'gestionLoadingSA'] = 0.00425
-    
-    maskTarif = p['POLTARIF'].isin(['E', 'F', 'G'])
-    p.loc[maskTarif & mask,'gestionLoadingSA'] = 0.00325
-
-    maskTarif = p['POLTARIF'].isin(['H', 'I', 'J', 'L', 'K'])
-    p.loc[maskTarif & mask,'gestionLoadingSA'] = 0.0039
-
-    # mod10
-    mask=(p['PMBMOD'].isin([10]))
-    p.loc[mask,'gestionLoadingSA'] = 0.0039
-    
-    
-    # mod6
-    mask=(p['PMBMOD'].isin([6]))
-    p.loc[mask,'gestionLoadingSA'] = 0.006
-    
-    # mod7
-    mask=(p['PMBMOD'].isin([7]))
-    p.loc[mask,'gestionLoadingSA'] = 0
-
-    # Mod1 et 11
-    mask=(p['PMBMOD'].isin([1, 11]))   
-    p.loc[(p['Age1AtEntry'] < 53) & (mask), 'fraisGestDureePrimesSA'] = 0.0035
-    p.loc[(p['Age1AtEntry'] < 53) & (mask), 'fraisGestDureePoliceSA'] = 0.0025
-    
-    p.loc[(p['Age1AtEntry'] >=53) & (p['Age1AtEntry'] < 70) & (mask), 'fraisGestDureePrimesSA'] = 0.0055
-    p.loc[(p['Age1AtEntry'] >=53) & (p['Age1AtEntry'] < 70) & (mask), 'fraisGestDureePoliceSA'] = 0.0045
-    
-    p.loc[(p['Age1AtEntry'] >= 70) & (mask), 'fraisGestDureePrimesSA'] = 0.012
-    p.loc[(p['Age1AtEntry'] >= 70) & (mask), 'fraisGestDureePoliceSA'] = 0.009
-    
-    p['fraisGestDureePrimesSA'] = p['fraisGestDureePrimesSA'].fillna(0)
-    p['fraisGestDureePoliceSA'] = p['fraisGestDureePoliceSA'].fillna(0)
-    
-    
-    # Mod3 et 4 1 tête
-    mask=(p['PMBMOD'].isin([3, 4])) & (p['POLNBTETE'] == 1)
-    p.loc[mask, 'fraisGestDureePoliceSA'] = 0.0008
-    p.loc[mask, 'fraisGestDureePrimesSA'] = 0
-    
-    # Mod3 2têtes
-    mask=(p['PMBMOD'].isin([3])) & (p['POLNBTETE'] == 2)
-    p.loc[mask, 'fraisGestDureePoliceSA'] = 0.0011
-    p.loc[mask, 'fraisGestDureePrimesSA'] = 0.0011
-    
-    
+        
 # =============================================================================
 #  Création de la classe Inputs
 # =============================================================================
@@ -230,7 +33,9 @@ class Inputs:
         porN=pd.read_csv(path+'/Inputs/'+self.usedFor+'/PortfolioN.csv')
         porN_1=pd.read_csv(path+'/Inputs/'+self.usedFor+'/PortfolioN-1.csv')
             
-        self.decalage=pd.ExcelFile(path  + '/Inputs/Decalage.xlsx').parse("Feuil1")    
+        self.decalage=pd.ExcelFile(path  + '/Inputs/Decalage.xlsx').parse("Feuil1")
+        self.loading=pd.ExcelFile(path  + '/Inputs/Loading.xlsx').parse("Loading")
+        
         #!! A supprimer fichier correction des classes pour les mixtes
         self.newClass=pd.read_excel(path+'/Inputs/CorrespondanceProduit.xlsx',sheet_name='MIXTES')
         
@@ -440,6 +245,11 @@ class Inputs:
         #Correction des polices Multi-taux affectées à la classe EP1.5    
         p.loc[p['PMBPOL'].isin([1751801,514407]), 'ClassPGG'] = 'EP1.5'
         
+        #check toutes les polices ont une classe
+        check=p['ClassPGG'].isnull().values.any()
+        if check:
+            sys.exit('Cetaines modalités ne sont pas affectées à une classe PGG')        
+        
         return p
 
     def ajoutEtFormatColonnes(self,p):
@@ -580,42 +390,109 @@ class Inputs:
         
         return p
     
-# Ajout d'une colonne avec le taux de zillmérisation
-# ? Ne manque-t-il pas certain taux dse zillmerisation (ex mod36)        
-    def tauxZillmer(self,p):
-        
-        # mod2
-        mask=(p['PMBMOD'].isin([2]))
+
+# Cette méthode crée toutes les colonnes en lien avec des taux de chargement    
+    def ajoutLoadings(self,p):
     
-        maskTarif = p['POLTARIF'].isin(['H', 'I', 'J', 'L', 'K'])
-        p.loc[maskTarif & mask,'tauxZill'] = 0.05
+        l=self.loading
         
-        maskTarif = p['POLTARIF'].isin(['A', 'B', 'C', 'D', 'E', 'F', 'G'])
-        p.loc[ maskTarif & mask,'tauxZill'] = 0.08
+        #Contrôle si tout les produits sont pris en compte dans les loadings    
+        df1=l[['PMBMOD','POLTARIF']].groupby(['PMBMOD','POLTARIF']).sum()
+        df2=p[['PMBMOD','POLTARIF']].groupby(['PMBMOD','POLTARIF']).sum()
+        check=df1.equals(df2)
+        if not check:
+            sys.exit('Il manque des chargements dans Loading.xlsx')
         
-        # mod10
-        mask=(p['PMBMOD'].isin([10]))
-        p.loc[mask,'tauxZill'] = 0.05
-             
-        # mod1
-        mask=(p['PMBMOD'].isin([1]))
-        
-        maskTarif = p['POLTARIF'].isin(['A', 'B', 'C', 'D'])
-        p.loc[maskTarif & mask,'tauxZill'] = 0.08
-        
-        maskTarif = p['POLTARIF'].isin(['H', 'I', 'J'])
-        p.loc[ maskTarif & mask,'tauxZill'] = 0.05
-        
-        # mod11
-        mask=(p['PMBMOD'].isin([11]))
-        
-        maskTarif = p['POLTARIF'].isin(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7'])
-        p.loc[maskTarif & mask,'tauxZill'] = 0.05
+        p['LoadingID']=p['PMBMOD'].astype(int).map(str) + p['POLTARIF'].map(str)
+        l['LoadingID']=l['PMBMOD'].map(str)+l['POLTARIF'].map(str)
+        l=l.set_index('LoadingID')
     
+        #Chargement de Zillmérisation
+# ? Ne manque-t-il pas certain taux dse zillmerisation (ex mod36) 
+        zill=l['Zillmer'].to_dict()   
+        p['tauxZill']=p['LoadingID'].map(zill)
         p['tauxZill'] = p['tauxZill'].fillna(0)
         
+        #Chargement d'aquisition Alpha 1    
+        alpha1=l['Alpha1'].to_dict()   
+        p['aquisitionLoading']=p['LoadingID'].map(alpha1)
+            
+        #Chargement d'aquisition Alpha 2 (deuxième année)   
+        alpha2=l['Alpha2'].to_dict()   
+        p['aquisitionLoadingYear2']=p['LoadingID'].map(alpha2)       
+        
+        #Chargement d'aquisition Alpha 3 (troisième année)   
+        alpha3=l['Alpha3'].to_dict()   
+        p['aquisitionLoadingYear3']=p['LoadingID'].map(alpha3)   
+    
+        #Cas particuliers des Alpha
+        mask=(p['PMBMOD'].isin([28,29,32]))
+        p.loc[mask,'aquisitionLoading']= (p.loc[mask,'aquisitionLoading'] * np.minimum(p.loc[mask,'POLDURC'], 20) /20)    
+        p.loc[mask,'aquisitionLoadingYear2']= (p.loc[mask,'aquisitionLoadingYear2'] * np.minimum(p.loc[mask,'POLDURC'], 20) /20) 
+    
+        mask=(p['PMBMOD'].isin([33]))
+        p.loc[mask,'aquisitionLoading']= (p.loc[mask,'aquisitionLoading'] * np.minimum(p.loc[mask,'POLDURC'], 25) /25)    
+        p.loc[mask,'aquisitionLoadingYear2']= (p.loc[mask,'aquisitionLoadingYear2'] * np.minimum(p.loc[mask,'POLDURC'], 25) /25)    
+        p.loc[mask,'aquisitionLoadingYear3']= (p.loc[mask,'aquisitionLoadingYear3'] * np.minimum(p.loc[mask,'POLDURC'], 25) /25) 
+        
+        #Chargement de gestion Beta 1
+        beta1=l['Beta1'].to_dict()   
+        p['gestionLoading']=p['LoadingID'].map(beta1)    
+    
+        #Chargement de gestion Beta 2
+        beta2=l['Beta2'].to_dict()   
+        p['gestionLoadingSA']=p['LoadingID'].map(beta2)    
+     
+        #Chargement de gestion Beta 3
+        beta3=l['Beta3'].to_dict()   
+        p['fraisGestDureePrimesSA']=p['LoadingID'].map(beta3)    
+    
+        #Chargement de gestion Beta 4
+        beta4=l['Beta4'].to_dict()   
+        p['fraisGestDureePoliceSA']=p['LoadingID'].map(beta4)
+        
+    #Traitement des cas particuliers
+        #Cas particuliers des Alpha
+        mask=(p['PMBMOD'].isin([28,29,32]))
+        p.loc[mask,'aquisitionLoading']= (p.loc[mask,'aquisitionLoading'] * np.minimum(p.loc[mask,'POLDURC'], 20) /20)    
+        p.loc[mask,'aquisitionLoadingYear2']= (p.loc[mask,'aquisitionLoadingYear2'] * np.minimum(p.loc[mask,'POLDURC'], 20) /20) 
+    
+        mask=(p['PMBMOD'].isin([33]))
+        p.loc[mask,'aquisitionLoading']= (p.loc[mask,'aquisitionLoading'] * np.minimum(p.loc[mask,'POLDURC'], 25) /25)    
+        p.loc[mask,'aquisitionLoadingYear2']= (p.loc[mask,'aquisitionLoadingYear2'] * np.minimum(p.loc[mask,'POLDURC'], 25) /25)    
+        p.loc[mask,'aquisitionLoadingYear3']= (p.loc[mask,'aquisitionLoadingYear3'] * np.minimum(p.loc[mask,'POLDURC'], 25) /25) 
+       
+        #Cas particuliers des Beta   
+        #Mod 1 et 11
+        mask=(p['PMBMOD'].isin([11,1]))
+        mask53= (p['Age1AtEntry'] < 53) & mask
+        mask70=(p['Age1AtEntry'] >= 70) & mask
+    
+        beta1_53=l['Beta1Age53'].to_dict()
+        beta1_70=l['Beta1Age70'].to_dict()      
+        p.loc[ mask53, 'gestionLoading'] = p.loc[mask53, 'LoadingID'].map(beta1_53)  
+        p.loc[mask70, 'gestionLoading'] = p.loc[mask70, 'LoadingID'].map(beta1_70)    
+    
+        beta3_53=l['Beta3Age53'].to_dict()
+        beta3_70=l['Beta3Age70'].to_dict()      
+        p.loc[ mask53, 'fraisGestDureePrimesSA'] = p.loc[mask53, 'LoadingID'].map(beta3_53)  
+        p.loc[mask70, 'fraisGestDureePrimesSA'] = p.loc[mask70, 'LoadingID'].map(beta3_70)
+    
+        beta4_53=l['Beta4Age53'].to_dict()
+        beta4_70=l['Beta4Age70'].to_dict()      
+        p.loc[ mask53, 'fraisGestDureePoliceSA'] = p.loc[mask53, 'LoadingID'].map(beta4_53)  
+        p.loc[mask70, 'fraisGestDureePoliceSA'] = p.loc[mask70, 'LoadingID'].map(beta4_70)
+        
+        # Mod3 2têtes
+        mask=(p['PMBMOD'].isin([3])) & (p['POLNBTETE'] == 2)
+    
+        beta3_h2=l['Beta3head2'].to_dict()
+        beta4_h2=l['Beta4head2'].to_dict()
+        p.loc[mask, 'fraisGestDureePrimesSA'] = p.loc[mask, 'LoadingID'].map(beta3_h2)   
+        p.loc[mask, 'fraisGestDureePoliceSA'] = p.loc[mask, 'LoadingID'].map(beta4_h2)
+    
         return p
-
+    
 # Corrige l'ensemble des primes à 0 pour les polices réduites et met le fractionement annuel
     def zeroPremiumForReducePolicy(self,p):
         
@@ -679,30 +556,20 @@ class Inputs:
         #Création des décalages d'ages pour les polices 2 têtes de certaines modalités
         p=self.ageAtEntryDecalage(p)
             
-        #!! ? On enlève les 18 polices que prophet ne prenait pas en compte pour les mod6
-        p=self.aSupprimer_Mod6PasDansProphet(p)
-
         #Ajout d'une colonne contenant les frais de fractionnement
         p=self.fraisFractionnement(p)
- 
-        # Ajout des taux de zillmérisations en fonction du tarif
-        p=self.tauxZillmer(p)
+
+        # Ajout des colonnes avec les chargements
+        p=self.ajoutLoadings(p)
 
         # Ajustement des fractionnements pour des polices avec frac = 0 (réduites)
         p=self.zeroPremiumForReducePolicy(p)
         
-        # Ajout de la colonne contenant les chargements d'acquisition
-        premiumAquisitionLoading(p)
-        
-        # Ajout de la colonne contenant les chargements de gestion
-        premiumGestionLoading(p)
-        
-        #Ajout de la colonne contenant les chargement de gestions en % de la somme assurée
-        fraisGestionSumAss(p)
-
+        #!! ? On enlève les 18 polices que prophet ne prenait pas en compte pour les mod6
+        p=self.aSupprimer_Mod6PasDansProphet(p)
+             
         return p        
   
-
 
 # =============================================================================
 # Création de la class Hypothèse
@@ -1155,7 +1022,7 @@ class Hypo:
    ### DEBUT DES TESTS
 ##############################################################################################################################
 
-# a=Inputs()
+a=Inputs()
 # b=a.groupby(['PMBMOD','POLTARIF']).sum()
 # b.to_excel("check.xlsx", header = True )
 # myHypo=Hypo()

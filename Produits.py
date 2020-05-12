@@ -17,7 +17,7 @@ myInputs=Inputs()
 #Création de la class Funérailles
 ##############################################################################################################################
 class FU(Portfolio):
-    mods=[8,9]
+    mods=[8,9,12]
     complPremium=60
 
     

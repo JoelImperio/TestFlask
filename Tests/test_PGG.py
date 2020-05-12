@@ -653,9 +653,7 @@ class Test_MI(ut.TestCase):
 ut.main()
 
 #Permet de lancer les tests d'une classe spécifique
-# ut.main(Test_FU())
-
-
+# ut.main(Test_EP())
 
 
 
