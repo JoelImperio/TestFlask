@@ -15,7 +15,7 @@ from flask import Flask, flash, request, redirect, url_for
 from werkzeug.utils import secure_filename
 
 UPLOAD_FOLDER = 'zJo/uploadTest/'
-ALLOWED_EXTENSIONS = {'xls', 'xlsx', 'xlsm'}
+ALLOWED_EXTENSIONS = {'xls', 'xlsx', 'xlsm', 'csv'}
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -43,15 +43,19 @@ def upload_file():
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             return redirect(url_for('uploaded_file',
                                     filename=filename))
-    return '''
-    <!doctype html>
-    <title>Input à uploader</title>
-    <h1>Upload les nouveau INPUTS</h1>
-    <form method=post enctype=multipart/form-data>
-      <input type=file name=file>
-      <input type=submit value=Upload>
-    </form>
-    '''
+    
+    
+    return render_template("UploadFichier.html")
+    
+    # return '''
+    # <!doctype html>
+    # <title>Input à uploader</title>
+    # <h1>Upload les nouveau INPUTS</h1>
+    # <form method=post enctype=multipart/form-data>
+    #   <input type=file name=file>
+    #   <input type=submit value=Upload>
+    # </form>
+    # '''
 
 
 # @app.route('/')
@@ -62,3 +66,5 @@ def upload_file():
 
 
 app.run(host='0.0.0.0', port=81)
+
+# http://localhost:81/
