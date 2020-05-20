@@ -6,5 +6,5 @@ save_non_project_files = False
 
 [main]
 version = 0.2.0
-recent_files = ['Tests\\test_PGG.py', 'Parametres.py', 'Portefeuille.py', 'Produits.py']
+recent_files = ['Parametres.py', 'zJO\\test_Temp.py', 'Portefeuille.py', 'Produits.py', 'Tests\\test_PGG.py', 'Documentation\\Commentaires.txt', 'RunPGG.py', 'RW_CodeStructure.py', 'TestFlask.py', '..\\..\\..\\Users\\JoelD\\Anaconda3\\lib\\site-packages\\flask\\app.py']
 

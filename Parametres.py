@@ -48,6 +48,7 @@ class Inputs:
     
     #Extraction du portefeuille des polices à partir du fichier qryN ou qryN-1
     def portfolioExtractionToCSV(self):
+
         import pyodbc      
         #Paramètres de connection
         cnxn = pyodbc.connect(

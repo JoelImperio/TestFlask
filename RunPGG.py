@@ -118,7 +118,7 @@ class RUNPGG():
 
 # y.to_excel(path+'/zRW/VariablesRapport.xlsx')
 
-
+test = FU().totalPremium()
 
 
 print("Class RUN--- %s sec" %'%.2f'%  (time.time() - start_time))
